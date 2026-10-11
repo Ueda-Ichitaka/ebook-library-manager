@@ -10,12 +10,14 @@ Duplicates: when the reviewer keeps one file of a group of possible duplicates, 
 files are recorded as excluded (with the kept file); the build leaves them out, and they
 can be restored. Dismissed duplicate groups are remembered by their key.
 
+Jobs: commands started from the web UI (identify, build, ...) with status, exit code
+and log file.
+
 Records: every build run is recorded with the outcome of each calibre record it built
 (sources, outputs, metadata used, repairs, conversions, retries with the removed XMP
 packets, errors) and the input files it skipped. The review web UI reads and writes the
 same database; WAL mode lets it do that while a run is in progress. Human-readable reports
-are generated from the database: one per run, and a summary of the newest result of
-every book across all runs.
+are generated from the database (see report.py).
 """
 
 import json
@@ -105,6 +107,15 @@ CREATE TABLE IF NOT EXISTS excluded_sources (
 CREATE TABLE IF NOT EXISTS dismissed_duplicates (
     duplicate_group TEXT PRIMARY KEY,
     dismissed_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS jobs (
+    id INTEGER PRIMARY KEY,
+    name TEXT NOT NULL,
+    status TEXT NOT NULL CHECK (status IN ('running', 'succeeded', 'failed', 'stopped', 'interrupted')),
+    log_path TEXT NOT NULL,
+    exit_code INTEGER,
+    started_at TEXT NOT NULL,
+    finished_at TEXT
 );
 CREATE TABLE IF NOT EXISTS skipped (
     run_id INTEGER NOT NULL REFERENCES runs(id),
@@ -214,6 +225,17 @@ class BookRow:
 
 _BOOK_JSON_FIELDS = ("sources", "local_notes", "evidence_isbns", "lookup_errors", "review_reasons")
 _BOOK_OPTIONAL_JSON_FIELDS = ("built_sources",)
+
+
+@dataclass(frozen=True)
+class JobRow:
+    id: int
+    name: str
+    status: str
+    log_path: str
+    exit_code: int | None
+    started_at: str
+    finished_at: str | None
 
 
 @dataclass(frozen=True)
@@ -451,6 +473,39 @@ class StateStore:
                 (_now(), book_id),
             )
 
+    # --- jobs
+
+    def add_job(self, name: str, log_path: str) -> int:
+        with self._connect() as db:
+            cursor = db.execute(
+                "INSERT INTO jobs (name, status, log_path, started_at) VALUES (?, 'running', ?, ?)",
+                (name, log_path, _now()),
+            )
+            return int(cursor.lastrowid)
+
+    def set_job_log(self, job_id: int, log_path: str) -> None:
+        with self._connect() as db:
+            db.execute("UPDATE jobs SET log_path = ? WHERE id = ?", (log_path, job_id))
+
+    def finish_job(self, job_id: int, status: str, exit_code: int | None) -> None:
+        with self._connect() as db:
+            db.execute(
+                "UPDATE jobs SET status = ?, exit_code = ?, finished_at = ? WHERE id = ?",
+                (status, exit_code, _now(), job_id),
+            )
+
+    def job(self, job_id: int) -> JobRow:
+        with self._connect() as db:
+            row = db.execute("SELECT * FROM jobs WHERE id = ?", (job_id,)).fetchone()
+        if row is None:
+            raise KeyError(job_id)
+        return JobRow(**dict(row))
+
+    def jobs(self, limit: int = 50) -> list[JobRow]:
+        with self._connect() as db:
+            rows = db.execute("SELECT * FROM jobs ORDER BY id DESC LIMIT ?", (limit,)).fetchall()
+        return [JobRow(**dict(row)) for row in rows]
+
     # --- duplicates
 
     def exclude_sources(self, paths: list[str], kept: str, group: str) -> None:
@@ -556,96 +611,3 @@ def _entry_from_row(row: sqlite3.Row) -> RecordEntry:
 
 def _now() -> str:
     return datetime.now(UTC).isoformat(timespec="seconds")
-
-
-def write_report(store: StateStore, run_id: int, path: Path) -> Path:
-    """Report of one run."""
-    return _write(f"ebookprep report, run {run_id}", store.records(run_id), store.skipped(run_id), path)
-
-
-def write_summary_report(store: StateStore, path: Path) -> Path:
-    """Report of the current state: the newest result of every book across all runs."""
-    mislabeled = [b for b in store.books() if b.mislabeled]
-    return _write(
-        "ebookprep report, all runs", store.latest_records(), store.all_skipped(), path, mislabeled,
-        store.excluded_sources(),
-    )
-
-
-def _write(
-    heading: str,
-    records: list[RecordEntry],
-    skipped: list[tuple[str, str]],
-    path: Path,
-    mislabeled: list[BookRow] = (),
-    excluded: list[ExcludedSource] = (),
-) -> Path:
-    done = [r for r in records if r.status == "done"]
-    failed = [r for r in records if r.flagged]
-    review = [r for r in done if r.needs_review]
-    retried = [r for r in records if r.retried]
-
-    lines = [
-        f"# {heading}",
-        "",
-        "| Result | Count |",
-        "|---|---|",
-        f"| Done | {len(done)} |",
-        f"| Failed (flagged) | {len(failed)} |",
-        f"| Needs review | {len(review)} |",
-        f"| Retried after silent calibre failure | {len(retried)} |",
-        f"| Repaired PDFs | {sum(len(r.repaired) for r in records)} |",
-        f"| Converted to EPUB | {sum(len(r.converted) for r in records)} |",
-        f"| Skipped input files | {len(skipped)} |",
-        "",
-    ]
-
-    lines += ["## Failed (flagged)", ""]
-    for r in failed:
-        lines += [f"- **{r.placement}/{r.record_name}**: {r.error}", *[f"  - source: `{s}`" for s in r.sources]]
-    lines.append("")
-
-    lines += ["## Needs review", ""]
-    for r in review:
-        reasons = ([f"grouped as {r.group_reason}"] if r.group_reason == "similar" else []) + list(r.notes)
-        lines += [f"- **{r.placement}/{r.record_name}** ({r.title}): {'; '.join(reasons)}"]
-        lines += [f"  - source: `{s}`" for s in r.sources]
-    lines.append("")
-
-    lines += ["## Retried, embedded XMP metadata removed", ""]
-    for r in retried:
-        lines.append(f"- **{r.placement}/{r.record_name}**: {r.status}")
-        for file_name, packet in r.removed_xmp:
-            lines += [f"  - removed from `{file_name}`:", "", "```xml", packet.strip(), "```", ""]
-    lines.append("")
-
-    lines += ["## Repaired PDFs", ""]
-    lines += [f"- `{source}`" for r in records for source in r.repaired]
-    lines.append("")
-
-    lines += ["## Converted to EPUB", ""]
-    lines += [f"- `{source}`" for r in records for source in r.converted]
-    lines.append("")
-
-    if mislabeled:
-        lines += ["## Content differs from the filename", ""]
-        lines += ["| Title from filename / .opf | Real content | Input file | Output folder |", "|---|---|---|---|"]
-        for book in mislabeled:
-            sources = "<br>".join(f"`{s}`" for s in book.sources)
-            built = f"`{book.built_folder}`" if book.built_folder else "not built yet"
-            lines.append(f"| {book.local_metadata.title} | {book.metadata.title} | {sources} | {built} |")
-        lines.append("")
-
-    if excluded:
-        lines += ["## Excluded duplicate files", "", "These input files are not built; another file was kept.", ""]
-        lines += ["| Excluded file | Kept file |", "|---|---|"]
-        lines += [f"| `{e.path}` | `{e.kept}` |" for e in excluded]
-        lines.append("")
-
-    lines += ["## Skipped input files", ""]
-    lines += [f"- `{p}`: {reason}" for p, reason in skipped]
-    lines.append("")
-
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text("\n".join(lines), encoding="utf-8")
-    return path

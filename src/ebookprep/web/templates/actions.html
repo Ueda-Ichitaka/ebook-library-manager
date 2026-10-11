@@ -1,0 +1,41 @@
+{# About this file: buttons for all pipeline commands, the running job and the job history. #}
+{% extends "base.html" %}
+{% block title %}Actions - ebookprep review{% endblock %}
+{% block content %}
+<h2>Actions</h2>
+{% if current %}
+<div class="card">
+  <p class="warn">Running: {{ commands[current.name].label if current.name in commands else current.name }}
+    (since {{ current.started_at }}) &middot; <a href="/jobs/{{ current.id }}">show log</a></p>
+</div>
+{% endif %}
+<div class="actions">
+  {% for name, command in commands.items() %}
+  <form class="card" method="post" action="/actions/start">
+    <input type="hidden" name="name" value="{{ name }}">
+    <h3>{{ command.label }}</h3>
+    <p class="muted">{{ command.description }}</p>
+    {% if command.supports_only %}
+    <label>Only these placements (optional, comma separated, e.g. IT/Android)
+      <input name="only" placeholder="all"></label>
+    {% endif %}
+    <p><button type="submit" {{ "disabled" if current }}>{{ command.label }}</button></p>
+  </form>
+  {% endfor %}
+</div>
+<h3>Recent jobs</h3>
+<table>
+  <tr><th>Job</th><th>Status</th><th>Started</th><th>Finished</th><th>Exit code</th></tr>
+  {% for job in jobs %}
+  <tr>
+    <td><a href="/jobs/{{ job.id }}">{{ commands[job.name].label if job.name in commands else job.name }}</a></td>
+    <td class="{{ 'ok' if job.status == 'succeeded' else 'warn' if job.status != 'running' else '' }}">{{ job.status }}</td>
+    <td class="muted">{{ job.started_at }}</td>
+    <td class="muted">{{ job.finished_at or "" }}</td>
+    <td>{{ job.exit_code if job.exit_code is not none else "" }}</td>
+  </tr>
+  {% else %}
+  <tr><td colspan="5" class="muted">No jobs yet.</td></tr>
+  {% endfor %}
+</table>
+{% endblock %}

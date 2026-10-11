@@ -10,10 +10,17 @@ files turned out to be different books.
 The duplicates view lists groups of files that may be the same book (see duplicates.py)
 with size, format and pages (as Kavita counts them, and estimated printed pages). The
 reviewer keeps one file, which excludes the others from the build, or dismisses the
-group. Excluded files are listed and can be restored. Accepted books are written to the output by the
+group. Excluded files are listed and can be restored.
+
+The actions page starts every pipeline command (identify, rescore, build, report, Kavita
+check) as a background job (see jobs.py) and shows its live log; the files page shows the
+state of every input file and the progress per placement (see progress.py); the report
+page shows the report data (see report.py). Accepted books are written to the output by the
 build stage. The UI has no login and is meant to be reached only from the local machine.
 """
 
+import html
+from collections.abc import Callable
 from pathlib import Path
 
 from fastapi import FastAPI, Form, HTTPException, Request
@@ -21,9 +28,14 @@ from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
+from ebookprep.commands import COMMANDS, CommandSettings, command_argv
+from ebookprep.config import Config, load_config
 from ebookprep.duplicates import DuplicateGroup, find_duplicates
 from ebookprep.fileinfo import FileInfo, file_info
+from ebookprep.jobs import JobBusy, JobRunner
 from ebookprep.metadata import BookMetadata
+from ebookprep.progress import STATES, file_progress, summarize
+from ebookprep.report import summary_report
 from ebookprep.scoring import fill_gaps
 from ebookprep.state import BookRow, StateStore
 
@@ -31,8 +43,28 @@ _HERE = Path(__file__).parent
 _MEDIA_TYPES = {".pdf": "application/pdf", ".epub": "application/epub+zip"}
 
 
-def create_app(work_root: Path, input_root: Path) -> FastAPI:
+LOG_TAIL_BYTES = 50_000
+# htmx stops polling an element when the response has this status
+HTMX_STOP_POLLING = 286
+
+
+def create_app(
+    work_root: Path,
+    input_root: Path,
+    output_root: Path | None = None,
+    config_path: Path = Path("config.toml"),
+    kavita_url: str = "http://127.0.0.1:5000",
+    command_builder: Callable[..., list[str]] = command_argv,
+) -> FastAPI:
     store = StateStore(work_root / "state.db")
+    runner = JobRunner(store, work_root / "jobs")
+    settings = CommandSettings(
+        input=input_root,
+        output=output_root or input_root.parent / "output",
+        work=work_root,
+        config=config_path,
+        kavita_url=kavita_url,
+    )
     templates = Jinja2Templates(directory=_HERE / "templates")
     app = FastAPI(title="ebookprep review")
     app.mount("/static", StaticFiles(directory=_HERE / "static"), name="static")
@@ -171,6 +203,66 @@ def create_app(work_root: Path, input_root: Path) -> FastAPI:
     def restore(path: str = Form("")):
         store.restore_source(path)
         return RedirectResponse("/excluded", status_code=303)
+
+    def config() -> Config:
+        return load_config(config_path) if config_path.is_file() else Config()
+
+    @app.get("/actions", response_class=HTMLResponse)
+    def actions(request: Request):
+        return templates.TemplateResponse(
+            request, "actions.html", {"commands": COMMANDS, "current": runner.current(), "jobs": runner.history(20)}
+        )
+
+    @app.post("/actions/start")
+    def start(name: str = Form(""), only: str = Form("")):
+        if name not in COMMANDS:
+            raise HTTPException(status_code=404, detail="no such command")
+        placements = tuple(p.strip() for p in only.split(",") if p.strip())
+        try:
+            job_id = runner.start(name, command_builder(name, settings, only=placements))
+        except JobBusy as busy:
+            return HTMLResponse(f"Another job is running: {html.escape(str(busy))}", status_code=409)
+        return RedirectResponse(f"/jobs/{job_id}", status_code=303)
+
+    def get_job(job_id: int):
+        try:
+            return runner.job(job_id)
+        except KeyError:
+            raise HTTPException(status_code=404, detail="no such job") from None
+
+    @app.get("/jobs/{job_id}", response_class=HTMLResponse)
+    def job_page(request: Request, job_id: int):
+        job = get_job(job_id)
+        label = COMMANDS[job.name].label if job.name in COMMANDS else job.name
+        return templates.TemplateResponse(request, "job.html", {"job": job, "label": label})
+
+    @app.get("/jobs/{job_id}/log", response_class=HTMLResponse)
+    def job_log(job_id: int):
+        job = get_job(job_id)
+        text = html.escape(runner.log(job_id, tail_bytes=LOG_TAIL_BYTES), quote=False)
+        body = f'<p class="muted">status: {job.status}</p><pre class="log">{text}</pre>'
+        status = 200 if job.status == "running" else HTMX_STOP_POLLING
+        return HTMLResponse(body, status_code=status, headers={"X-Job-Status": job.status})
+
+    @app.post("/jobs/{job_id}/stop")
+    def stop_job(job_id: int):
+        get_job(job_id)
+        runner.stop(job_id)
+        return RedirectResponse(f"/jobs/{job_id}", status_code=303)
+
+    @app.get("/files", response_class=HTMLResponse)
+    def files(request: Request, state: str = ""):
+        progress = file_progress(input_root, store, config())
+        shown = [f for f in progress if not state or f.state == state]
+        return templates.TemplateResponse(
+            request,
+            "files.html",
+            {"summary": summarize(progress), "files": shown, "states": STATES, "state": state},
+        )
+
+    @app.get("/report", response_class=HTMLResponse)
+    def report(request: Request):
+        return templates.TemplateResponse(request, "report.html", {"report": summary_report(store)})
 
     @app.get("/books/{book_id}/files/{index}")
     def source_file(book_id: int, index: int):

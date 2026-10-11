@@ -266,3 +266,114 @@ def test_books_whose_files_are_all_excluded_leave_the_review_queue(setup):
     store.exclude_sources(["IT/Android/Other.pdf"], kept="IT/Android/x.pdf", group="g")
 
     assert "Other Book" not in client.get("/").text
+
+
+# --- actions, jobs, files overview, report
+
+
+def fake_commands(name, settings, only=()):
+    import sys
+
+    if name == "identify":
+        return [sys.executable, "-c", "import time; time.sleep(5)"]
+    return [sys.executable, "-c", f"print('ran {name}', {list(only)!r})"]
+
+
+@pytest.fixture
+def control(tmp_path):
+    input_root = tmp_path / "input"
+    (input_root / "IT" / "Android").mkdir(parents=True)
+    make_pdf(input_root / "IT/Android/Beginning Android Games - Robert Green.pdf")
+    (input_root / "IT/Android/new.pdf").write_bytes(b"%PDF-1.4")
+    store = StateStore(tmp_path / "work" / "state.db")
+    store.add_book(new_book("k1", ("IT/Android/Beginning Android Games - Robert Green.pdf",)))
+    app = create_app(work_root=tmp_path / "work", input_root=input_root, output_root=tmp_path / "output",
+                     command_builder=fake_commands)
+    return TestClient(app), store
+
+
+def wait_for_job(client, job_id, timeout=20):
+    import time
+
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        page = client.get(f"/jobs/{job_id}/log")
+        if "running" not in page.headers.get("x-job-status", "running"):
+            return page
+        time.sleep(0.05)
+    raise AssertionError("job did not finish")
+
+
+def test_actions_page_offers_every_command(control):
+    client, _ = control
+
+    page = client.get("/actions")
+
+    for name in ("identify", "rescore", "build", "report", "kavita-check", "kavita-scan"):
+        assert f'value="{name}"' in page.text, name
+
+
+def test_starting_a_command_runs_it_as_a_job(control):
+    client, _ = control
+
+    response = client.post("/actions/start", data={"name": "build", "only": "IT/Android"}, follow_redirects=False)
+
+    assert response.status_code == 303
+    job_id = int(response.headers["location"].rsplit("/", 1)[1])
+    log = wait_for_job(client, job_id)
+    assert "ran build ['IT/Android']" in log.text
+    assert log.headers["x-job-status"] == "succeeded"
+    assert "<h2>Build</h2>" in client.get(f"/jobs/{job_id}").text
+
+
+def test_only_one_job_at_a_time_and_stop(control):
+    client, _ = control
+    first = client.post("/actions/start", data={"name": "identify"}, follow_redirects=False)
+    job_id = int(first.headers["location"].rsplit("/", 1)[1])
+
+    busy = client.post("/actions/start", data={"name": "build"})
+    assert busy.status_code == 409 and "identify" in busy.text
+
+    client.post(f"/jobs/{job_id}/stop")
+    assert wait_for_job(client, job_id).headers["x-job-status"] == "stopped"
+
+
+def test_unknown_command_is_rejected(control):
+    client, _ = control
+
+    assert client.post("/actions/start", data={"name": "rm -rf"}).status_code == 404
+
+
+def test_files_overview_shows_progress_and_states(control):
+    client, _ = control
+
+    page = client.get("/files")
+
+    assert "waiting for review" in page.text and "not identified yet" in page.text
+    assert "IT/Android/new.pdf" in page.text
+    assert "2 files" in page.text
+    filtered = client.get("/files?state=not identified yet")
+    assert "IT/Android/new.pdf" in filtered.text
+    assert "Beginning Android Games - Robert Green.pdf" not in filtered.text
+
+
+def test_report_page_shows_report_data(control):
+    client, store = control
+    store.exclude_sources(["IT/Android/x.epub"], kept="IT/Android/x.pdf", group="g")
+
+    page = client.get("/report")
+
+    assert "Failed (flagged)" in page.text and "Excluded duplicate files" in page.text
+    assert "IT/Android/x.epub" in page.text
+
+
+def test_review_command_passes_paths_for_the_actions(tmp_path, monkeypatch):
+    from ebookprep.__main__ import main
+
+    started = {}
+    monkeypatch.setattr("uvicorn.run", lambda app, host, port: started.update(app=app))
+
+    main(["review", "--input", str(tmp_path / "in"), "--work", str(tmp_path / "work"), "--output",
+          str(tmp_path / "out"), "--config", str(tmp_path / "config.toml"), "--kavita-url", "http://kavita:5000"])
+
+    assert TestClient(started["app"]).get("/actions").status_code == 200

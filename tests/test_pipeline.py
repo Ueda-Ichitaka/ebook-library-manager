@@ -290,7 +290,7 @@ def test_book_with_all_files_excluded_is_removed_from_output(tmp_path):
 
 
 def test_summary_report_lists_excluded_files(tmp_path):
-    from ebookprep.state import write_summary_report
+    from ebookprep.report import write_summary_report
 
     source, output, work, store = identified(tmp_path)
     store.exclude_sources(["IT/Android/x.epub"], kept="IT/Android/x.pdf", group="g")

@@ -1,0 +1,37 @@
+{# About this file: progress overview: state of every input file, totals per placement. #}
+{% extends "base.html" %}
+{% block title %}Files - ebookprep review{% endblock %}
+{% block content %}
+<h2>Files</h2>
+<div class="card counts">
+  <span>{{ summary.total }} files &middot; {{ summary.done_percent }}% done</span>
+  {% for s in states %}<span><a href="/files?state={{ s }}">{{ s }}: {{ summary.counts[s] }}</a></span>{% endfor %}
+</div>
+<table>
+  <tr><th>Placement</th><th>Files</th><th>Done</th><th>Waiting for review</th><th>Not identified</th><th>Failed</th><th></th></tr>
+  {% for placement, totals in summary.by_placement.items() %}
+  <tr>
+    <td>{{ placement }}</td>
+    <td>{{ totals.total }}</td>
+    <td><div class="bar"><span style="width: {{ totals.done_percent }}%"></span></div>{{ totals.done_percent }}%</td>
+    <td>{{ totals.counts["waiting for review"] or "" }}</td>
+    <td>{{ totals.counts["not identified yet"] or "" }}</td>
+    <td class="warn">{{ totals.counts["build failed"] or "" }}</td>
+    <td></td>
+  </tr>
+  {% endfor %}
+</table>
+<h3>{{ state or "All files" }} ({{ files | length }})</h3>
+<p>{% if state %}<a href="/files">show all</a>{% endif %}</p>
+<table>
+  <tr><th>File</th><th>State</th><th>Details</th></tr>
+  {% for f in files %}
+  <tr>
+    <td>{% if f.book_id %}<a href="/books/{{ f.book_id }}">{{ f.path }}</a>{% else %}{{ f.path }}{% endif %}</td>
+    <td class="{{ 'ok' if f.state == 'built' else 'warn' if f.state in ('build failed', 'waiting for review') else '' }}">
+      {{ f.state }}{% if f.mislabeled %} (content differs from filename){% endif %}</td>
+    <td class="muted">{{ f.detail }}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% endblock %}

@@ -1,9 +1,10 @@
 """About this file: tests for ebookprep.state, the SQLite store of pipeline results, and
-the Markdown report generated from it."""
+the Markdown reports generated from it (ebookprep.report)."""
 
 import sqlite3
 
-from ebookprep.state import RecordEntry, StateStore, write_report, write_summary_report
+from ebookprep.report import write_report, write_summary_report
+from ebookprep.state import RecordEntry, StateStore
 
 
 def entry(**overrides) -> RecordEntry:

@@ -36,12 +36,22 @@
     button.secondary { background: transparent; color: var(--accent); }
     .cover { max-width: 70px; max-height: 100px; }
     .warn { color: var(--warn); }
+    .ok { color: var(--ok); }
+    pre.log { max-height: 480px; overflow: auto; font-size: 12px; background: var(--bg); padding: 8px;
+              border: 1px solid var(--line); border-radius: 6px; white-space: pre-wrap; }
+    .bar { height: 8px; background: var(--line); border-radius: 4px; overflow: hidden; min-width: 120px; }
+    .bar > span { display: block; height: 100%; background: var(--ok); }
+    .actions { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
+    .actions form { margin: 0; }
     .excerpt { max-height: 240px; overflow: auto; font-size: 13px; white-space: pre-wrap; }
   </style>
 </head>
 <body>
   <header>
     <a href="/">ebookprep review</a>
+    <a class="muted" href="/actions">actions</a>
+    <a class="muted" href="/files">files</a>
+    <a class="muted" href="/report">report</a>
     <a class="muted" href="/?status=review">review queue</a>
     <a class="muted" href="/?status=accepted">accepted</a>
     <a class="muted" href="/?status=all">all</a>

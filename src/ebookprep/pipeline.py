@@ -29,7 +29,8 @@ from ebookprep.identify import placement_selected, relative
 from ebookprep.naming import unique_book_name
 from ebookprep.scan import BookFile, scan_input
 from ebookprep.series import series_names
-from ebookprep.state import BookRow, RecordEntry, StateStore, write_report
+from ebookprep.report import write_report
+from ebookprep.state import BookRow, RecordEntry, StateStore
 
 
 def build_accepted(

@@ -11,3 +11,4 @@ input/
 # Login of the local Kavita preview (filled in by hand)
 kavita.env
 output/
+work/

@@ -1,0 +1,45 @@
+{# About this file: the report data (newest result of every book) as a page. #}
+{% extends "base.html" %}
+{% block title %}Report - ebookprep review{% endblock %}
+{% block content %}
+<h2>{{ report.heading }}</h2>
+<table class="card">
+  {% for label, count in report.counts %}<tr><td>{{ label }}</td><td>{{ count }}</td></tr>{% endfor %}
+</table>
+
+<h3>Failed (flagged)</h3>
+<ul>{% for r in report.failed %}<li><b>{{ r.placement }}/{{ r.record_name }}</b>: {{ r.error }}
+  <br><span class="muted">{{ r.sources | join(", ") }}</span></li>{% else %}<li class="muted">none</li>{% endfor %}</ul>
+
+<h3>Content differs from the filename</h3>
+<table>
+  <tr><th>Title from filename / .opf</th><th>Real content</th><th>Input file</th><th>Output folder</th></tr>
+  {% for b in report.mislabeled %}
+  <tr><td>{{ b.local_metadata.title }}</td><td>{{ b.metadata.title }}</td><td class="muted">{{ b.sources | join(", ") }}</td>
+      <td class="muted">{{ b.built_folder or "not built yet" }}</td></tr>
+  {% else %}<tr><td colspan="4" class="muted">none</td></tr>{% endfor %}
+</table>
+
+<h3>Excluded duplicate files</h3>
+<table>
+  <tr><th>Excluded file</th><th>Kept file</th></tr>
+  {% for e in report.excluded %}<tr><td>{{ e.path }}</td><td class="muted">{{ e.kept }}</td></tr>
+  {% else %}<tr><td colspan="2" class="muted">none</td></tr>{% endfor %}
+</table>
+
+<h3>Retried, embedded XMP metadata removed</h3>
+{% for r in report.retried %}
+<div class="card"><b>{{ r.placement }}/{{ r.record_name }}</b>: {{ r.status }}
+  {% for file_name, packet in r.removed_xmp %}<p class="muted">removed from {{ file_name }}:</p><pre class="log">{{ packet }}</pre>{% endfor %}
+</div>
+{% else %}<p class="muted">none</p>{% endfor %}
+
+<h3>Repaired PDFs ({{ report.repaired | length }})</h3>
+<ul>{% for s in report.repaired %}<li class="muted">{{ s }}</li>{% endfor %}</ul>
+
+<h3>Converted to EPUB ({{ report.converted | length }})</h3>
+<ul>{% for s in report.converted %}<li class="muted">{{ s }}</li>{% endfor %}</ul>
+
+<h3>Skipped input files ({{ report.skipped | length }})</h3>
+<ul>{% for path, reason in report.skipped %}<li class="muted">{{ path }}: {{ reason }}</li>{% endfor %}</ul>
+{% endblock %}

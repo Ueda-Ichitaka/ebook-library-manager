@@ -4,7 +4,8 @@
   python -m ebookprep rescore --input DIR --work DIR
   python -m ebookprep build --input DIR --output DIR --work DIR [--config FILE] [--only PATH ...]
   python -m ebookprep report --work DIR
-  python -m ebookprep review --input DIR --work DIR [--host HOST] [--port PORT]
+  python -m ebookprep review --input DIR --work DIR [--output DIR] [--config FILE] [--kavita-url URL]
+                             [--host HOST] [--port PORT]
   python -m ebookprep kavita-check --output DIR --work DIR [--config FILE] [--url URL] [--scan]
 
 "identify" decides every new book's metadata (local sources, online lookup checked
@@ -14,7 +15,8 @@ made by the user and calibre .opf files are kept.
 "build" writes accepted books into the output library (see pipeline.py); its exit code
 is 1 when some books were skipped and flagged (see the report), else 0.
 "report" writes WORK/report.md with the newest result of every book across all runs.
-"review" starts the review web UI (default http://127.0.0.1:8000).
+"review" starts the review web UI (default http://127.0.0.1:8000); its actions page runs
+the other commands with the given paths.
 "kavita-check" asks a running Kavita (login from the environment variables
 KAVITA_USERNAME and KAVITA_PASSWORD) whether every built book is its own series named
 after its title; --scan rescans all libraries first. Exit code 1 on problems.
@@ -33,7 +35,8 @@ from ebookprep.kavita import KavitaClient
 from ebookprep.kavita_verify import expected_files, verify
 from ebookprep.pipeline import build_accepted
 from ebookprep.sources.registry import default_sources
-from ebookprep.state import StateStore, write_summary_report
+from ebookprep.report import write_summary_report
+from ebookprep.state import StateStore
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -52,6 +55,10 @@ def main(argv: list[str] | None = None) -> int:
     review_cmd = commands.add_parser("review", help="start the review web UI")
     review_cmd.add_argument("--input", type=Path, required=True, help="input library (only read)")
     review_cmd.add_argument("--work", type=Path, required=True, help="work folder of the pipeline")
+    review_cmd.add_argument("--output", type=Path, default=None, help="output library (for the actions)")
+    review_cmd.add_argument("--config", type=Path, default=Path("config.toml"), help="config file")
+    review_cmd.add_argument("--kavita-url", default=os.environ.get("KAVITA_URL", "http://127.0.0.1:5000"),
+                            help="Kavita URL (for the Kavita check action)")
     review_cmd.add_argument("--host", default="127.0.0.1", help="address to listen on (default: 127.0.0.1)")
     review_cmd.add_argument("--port", type=int, default=8000, help="port (default: 8000)")
     check_cmd = commands.add_parser("kavita-check", help="check the series a running Kavita shows")
@@ -75,7 +82,14 @@ def main(argv: list[str] | None = None) -> int:
 
         from ebookprep.web import create_app
 
-        uvicorn.run(create_app(work_root=args.work, input_root=args.input), host=args.host, port=args.port)
+        app = create_app(
+            work_root=args.work,
+            input_root=args.input,
+            output_root=args.output,
+            config_path=args.config,
+            kavita_url=args.kavita_url,
+        )
+        uvicorn.run(app, host=args.host, port=args.port)
         return 0
 
     if args.command == "report":
