@@ -6,7 +6,8 @@ format gets its own record, named "<name> (2)" and so on. MOBI/AZW files are con
 to EPUB, which Kavita can read, and the original is kept in the same record.
 
 Each record is built in a work folder: PDFs are repaired first, then the files go into a
-temporary calibre library, get the metadata (series = title) and are exported. Every
+temporary calibre library, get the metadata (series = title, or the given series name
+when titles clash, see series.py) and are exported. Every
 exported PDF/EPUB is then checked the way Kavita reads it. calibre sometimes fails to
 write metadata without reporting an error, so a failed check is retried once: for PDFs
 the existing XMP packet is removed first (and returned for the report), then the
@@ -94,7 +95,10 @@ def build_record(
     dest: Path,
     work_dir: Path,
     rewrite: Callable[[Path, Path], None] = write_metadata_from_opf,
+    series: str | None = None,
 ) -> RecordOutcome:
+    """Builds one record into dest; series defaults to the title (see series.py)."""
+    expected_series = (series or metadata.title).strip()
     work_dir.mkdir(parents=True, exist_ok=True)
     tmp = Path(tempfile.mkdtemp(prefix="record-", dir=work_dir))
     state = _State()
@@ -105,9 +109,9 @@ def build_record(
             book_id = library.add(prepared[0])
             for extra in prepared[1:]:
                 library.add_format(book_id, extra)
-            library.set_metadata(book_id, metadata, cover=cover)
+            library.set_metadata(book_id, metadata, cover=cover, series=series)
             exported = library.export(book_id, tmp / "export", plan.name)
-        _verify_with_retry(exported, metadata, rewrite, state)
+        _verify_with_retry(exported, expected_series, rewrite, state)
         outputs = _move_into_place(exported, dest)
         return state.outcome(plan, RecordStatus.DONE, outputs=outputs)
     except (_BuildFailed, CalibreError, PdfRepairError) as error:
@@ -163,9 +167,9 @@ def _prepare(plan: RecordPlan, folder: Path, state: _State) -> list[Path]:
 
 
 def _verify_with_retry(
-    exported: ExportedRecord, metadata: BookMetadata, rewrite: Callable[[Path, Path], None], state: _State
+    exported: ExportedRecord, expected_series: str, rewrite: Callable[[Path, Path], None], state: _State
 ) -> None:
-    failing = _failing_files(exported, metadata)
+    failing = _failing_files(exported, expected_series)
     if not failing:
         return
 
@@ -179,14 +183,13 @@ def _verify_with_retry(
                 state.removed_xmp.append((book.name, packet))
         rewrite(book, exported.opf)
 
-    still_failing = _failing_files(exported, metadata)
+    still_failing = _failing_files(exported, expected_series)
     if still_failing:
         details = "; ".join(f"{book.name}: {_describe(kavita_view(book))}" for book in still_failing)
         raise _BuildFailed(f"series not written after retry: {details}")
 
 
-def _failing_files(exported: ExportedRecord, metadata: BookMetadata) -> list[Path]:
-    expected = metadata.title.strip()
+def _failing_files(exported: ExportedRecord, expected: str) -> list[Path]:
     failing = []
     for book in exported.books:
         if book.suffix.lower() not in KAVITA_FORMATS:

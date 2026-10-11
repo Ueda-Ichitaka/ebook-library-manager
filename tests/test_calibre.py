@@ -141,3 +141,13 @@ def test_write_metadata_from_opf(tmp_path):
 def test_failing_command_raises(tmp_path):
     with temporary_library(tmp_path) as library, pytest.raises(CalibreError, match="no such file|exist"):
         library.add(tmp_path / "missing.pdf")
+
+
+def test_series_can_differ_from_title(tmp_path):
+    with temporary_library(tmp_path) as library:
+        book_id = library.add(make_pdf(tmp_path / "a.pdf"))
+        library.set_metadata(book_id, BookMetadata(title="Wicca", authors=("Scott Cunningham",)), series="Wicca (Scott Cunningham)")
+        exported = library.export(book_id, tmp_path / "out", "Wicca - Scott Cunningham")
+
+    view = kavita_view(exported.books[0])
+    assert (view.title, view.series) == ("Wicca", "Wicca (Scott Cunningham)")

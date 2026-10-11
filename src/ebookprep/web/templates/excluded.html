@@ -1,0 +1,21 @@
+{# About this file: input files excluded as duplicates, with restore. #}
+{% extends "base.html" %}
+{% block title %}Excluded files - ebookprep review{% endblock %}
+{% block content %}
+<h2>Excluded files</h2>
+<p class="muted">These input files are not built because another file was kept. Restoring one builds it again.</p>
+<table>
+  <tr><th>Excluded file</th><th>Kept file</th><th>Since</th><th></th></tr>
+  {% for e in excluded %}
+  <tr>
+    <td>{{ e.path }}</td>
+    <td class="muted">{{ e.kept }}</td>
+    <td class="muted">{{ e.excluded_at }}</td>
+    <td><form method="post" action="/excluded/restore"><input type="hidden" name="path" value="{{ e.path }}">
+      <button class="secondary" type="submit">Restore</button></form></td>
+  </tr>
+  {% else %}
+  <tr><td colspan="4" class="muted">No excluded files.</td></tr>
+  {% endfor %}
+</table>
+{% endblock %}

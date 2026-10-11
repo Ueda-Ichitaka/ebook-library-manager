@@ -181,3 +181,14 @@ def test_existing_output_is_never_overwritten(tmp_path):
     assert "exists" in outcome.error
     assert (dest / f"{NAME}.pdf").read_bytes() == b"keep me"
     assert sorted(p.name for p in dest.iterdir()) == [f"{NAME}.pdf"]
+
+
+@calibre
+def test_series_name_is_written_and_verified(tmp_path):
+    src = make_pdf(tmp_path / "in.pdf")
+    dest = tmp_path / "out" / NAME
+
+    outcome = build_record(RecordPlan(NAME, (BookFile(src),)), META, dest, tmp_path / "work", series="Black Hat Go (Tom Steele)")
+
+    assert outcome.status is RecordStatus.DONE
+    assert kavita_view(dest / f"{NAME}.pdf").series == "Black Hat Go (Tom Steele)"

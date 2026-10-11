@@ -146,3 +146,30 @@ def test_kavita_check_needs_credentials(tmp_path, monkeypatch, capsys):
 
     assert exit_code == 2
     assert "KAVITA_USERNAME" in capsys.readouterr().err
+
+
+def test_expected_series_is_the_built_series(tmp_path):
+    output = tmp_path / "output"
+    store = StateStore(tmp_path / "state.db")
+    (output / "S/W/Wicca - A").mkdir(parents=True)
+    (output / "S/W/Wicca - A/Wicca - A.pdf").write_bytes(b"x")
+    metadata = BookMetadata(title="Wicca", authors=("A",))
+    book_id = store.add_book(
+        NewBook(key="k", placement="S/W", group_reason="single", book_folder=None, sources=("w.pdf",),
+                local_metadata=metadata, local_source="filename", local_notes=(), evidence_excerpt="",
+                evidence_isbns=(), lookup_errors=(), status="accepted", decided_by="user", review_reasons=(),
+                metadata=metadata)
+    )
+    store.mark_built(book_id, metadata, "S/W/Wicca - A", series="Wicca (A)")
+
+    assert expected_files(store, output, mislabeled_folder="_mislabeled") == {"S/W/Wicca - A/Wicca - A.pdf": "Wicca (A)"}
+
+
+def test_older_spelling_kept_by_kavita_is_only_noted():
+    kavita = FakeKavita({"Egils Saga": ["/library/S/P/Egils saga - X/Egils saga - X.pdf"]})
+
+    result = verify(kavita, {"S/P/Egils saga - X/Egils saga - X.pdf": "Egils saga"}, library_root="/library")
+
+    assert result.ok
+    assert result.wrong_name == []
+    assert result.outdated_name == [("S/P/Egils saga - X/Egils saga - X.pdf", "Egils saga", "Egils Saga")]

@@ -169,3 +169,100 @@ def test_mislabeled_book_is_marked_and_listed(setup):
 
     assert "Content differs from the filename" in page.text
     assert "Beginning Android Games" in listing.text and "Other Book" not in listing.text
+
+
+# --- duplicates view
+
+
+@pytest.fixture
+def duplicates(tmp_path):
+    from conftest import make_epub
+
+    input_root = tmp_path / "input"
+    folder = input_root / "IT" / "Android"
+    folder.mkdir(parents=True)
+    make_pdf(folder / "Spark.pdf", title="Spark")
+    body = "<p>" + " ".join(["word"] * 1000) + "</p>"
+    make_epub(folder / "Spark.epub", title="Spark", body=body)
+    store = StateStore(tmp_path / "work" / "state.db")
+    spark = BookMetadata(title="Apache Spark Graph Processing", authors=("Rindra Ramamonjison",))
+    book_id = store.add_book(
+        new_book("dup", ("IT/Android/Spark.pdf", "IT/Android/Spark.epub"), status="accepted", candidates=(),
+                 metadata=spark, local_metadata=spark)
+    )
+    client = TestClient(create_app(work_root=tmp_path / "work", input_root=input_root))
+    return client, store, book_id
+
+
+def group_url(client):
+    page = client.get("/duplicates")
+    return page.text.split('href="/duplicates/')[1].split('"')[0]
+
+
+def test_duplicates_are_listed_and_counted(duplicates):
+    client, *_ = duplicates
+
+    assert "Possible duplicates: 1" in client.get("/").text
+    listing = client.get("/duplicates")
+    assert "Apache Spark Graph Processing" in listing.text and "files of one book" in listing.text
+
+
+def test_duplicate_detail_shows_file_facts(duplicates):
+    client, _, book_id = duplicates
+
+    page = client.get(f"/duplicates/{group_url(client)}")
+
+    assert page.status_code == 200
+    for expected in ("IT/Android/Spark.pdf", "IT/Android/Spark.epub", "PDF", "EPUB", "1000 words",
+                     f'href="/books/{book_id}/files/0"', 'name="keep"', "Not duplicates"):
+        assert expected in page.text, expected
+
+
+def test_keeping_one_file_excludes_the_others(duplicates):
+    client, store, _ = duplicates
+    key = group_url(client)
+
+    response = client.post(f"/duplicates/{key}/keep", data={"keep": "IT/Android/Spark.pdf"}, follow_redirects=False)
+
+    assert response.status_code == 303 and response.headers["location"] == "/duplicates"
+    assert store.excluded_paths() == {"IT/Android/Spark.epub"}
+    assert "Possible duplicates: 0" in client.get("/").text
+
+
+def test_keep_needs_a_file_of_the_group(duplicates):
+    client, store, _ = duplicates
+    key = group_url(client)
+
+    assert client.post(f"/duplicates/{key}/keep", data={"keep": "IT/elsewhere.pdf"}).status_code == 422
+    assert store.excluded_paths() == set()
+
+
+def test_dismissed_group_disappears(duplicates):
+    client, store, _ = duplicates
+    key = group_url(client)
+
+    client.post(f"/duplicates/{key}/dismiss")
+
+    assert store.dismissed_duplicates() == {key}
+    assert client.get(f"/duplicates/{key}").status_code == 404
+
+
+def test_excluded_files_can_be_restored(duplicates):
+    client, store, _ = duplicates
+    client.post(f"/duplicates/{group_url(client)}/keep", data={"keep": "IT/Android/Spark.pdf"})
+
+    page = client.get("/excluded")
+    assert "IT/Android/Spark.epub" in page.text and "IT/Android/Spark.pdf" in page.text
+
+    response = client.post("/excluded/restore", data={"path": "IT/Android/Spark.epub"}, follow_redirects=False)
+
+    assert response.status_code == 303
+    assert store.excluded_paths() == set()
+
+
+def test_books_whose_files_are_all_excluded_leave_the_review_queue(setup):
+    client, store, first, second, _ = setup
+
+    store.exclude_sources(["IT/Android/Other.pdf"], kept="IT/Android/x.pdf", group="g")
+
+    assert "Other Book" not in client.get("/").text

@@ -2,12 +2,16 @@
 
 The expected state comes from the SQLite state: every PDF/EPUB of a built book (outside
 the mislabeled folder, which is no Kavita library) should appear in Kavita as a series of
-its own, named exactly like the book's title. The check reports
+its own, named like the series the build wrote (the title, or "Title (Author)" when titles
+clash, see series.py). The check reports
 - missing: built files Kavita doesn't show,
 - merged: series that contain files of more than one book (the original problem: books
   grouped into a series named after their folder); a built file belongs to its book
   folder, any other file counts as a book of its own,
 - wrong_name: files whose series isn't named after the book's title,
+- outdated_name (only noted, not a problem): the series name differs only in case or
+  punctuation; Kavita matches series by normalized name and keeps the display name it
+  had from an earlier scan,
 - unexpected: files Kavita shows that weren't built (e.g. leftovers in the output).
 """
 
@@ -15,6 +19,7 @@ from dataclasses import dataclass, field
 from pathlib import Path, PurePosixPath
 from typing import Protocol
 
+from ebookprep.series import kavita_normalize
 from ebookprep.state import StateStore
 
 KAVITA_FORMATS = (".pdf", ".epub")
@@ -35,6 +40,8 @@ class VerifyResult:
     merged: list[tuple[str, list[str]]] = field(default_factory=list)
     # (file, expected series name, actual series name)
     wrong_name: list[tuple[str, str, str]] = field(default_factory=list)
+    # (file, expected series name, older spelling Kavita still shows)
+    outdated_name: list[tuple[str, str, str]] = field(default_factory=list)
     unexpected: list[str] = field(default_factory=list)
 
     @property
@@ -51,7 +58,7 @@ def expected_files(store: StateStore, output_root: Path, mislabeled_folder: str)
         folder = output_root.joinpath(*book.built_folder.split("/"))
         for path in sorted(folder.iterdir()) if folder.is_dir() else []:
             if path.suffix.lower() in KAVITA_FORMATS:
-                expected[f"{book.built_folder}/{path.name}"] = book.metadata.title
+                expected[f"{book.built_folder}/{path.name}"] = book.built_series or book.metadata.title
     return expected
 
 
@@ -71,7 +78,8 @@ def verify(kavita: SeriesSource, expected: dict[str, str], library_root: str) ->
             if file not in expected:
                 result.unexpected.append(file)
             elif expected[file].strip() != name:
-                result.wrong_name.append((file, expected[file], name))
+                same_series = kavita_normalize(expected[file]) == kavita_normalize(name)
+                (result.outdated_name if same_series else result.wrong_name).append((file, expected[file], name))
 
     result.missing = sorted(set(expected) - seen)
     return result

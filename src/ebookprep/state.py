@@ -6,6 +6,10 @@ and its status: "accepted" (calibre sidecar, automatic on strict evidence, or ap
 the user) or "review". The build stage builds accepted books whose metadata differs from
 what was last built, and records what it built.
 
+Duplicates: when the reviewer keeps one file of a group of possible duplicates, the other
+files are recorded as excluded (with the kept file); the build leaves them out, and they
+can be restored. Dismissed duplicate groups are remembered by their key.
+
 Records: every build run is recorded with the outcome of each calibre record it built
 (sources, outputs, metadata used, repairs, conversions, retries with the removed XMP
 packets, errors) and the input files it skipped. The review web UI reads and writes the
@@ -75,6 +79,8 @@ CREATE TABLE IF NOT EXISTS books (
     mislabeled INTEGER NOT NULL DEFAULT 0,
     built_metadata TEXT,
     built_folder TEXT,
+    built_series TEXT,
+    built_sources TEXT,
     updated_at TEXT NOT NULL
 );
 CREATE TABLE IF NOT EXISTS candidates (
@@ -89,6 +95,16 @@ CREATE TABLE IF NOT EXISTS candidates (
     title_in_text INTEGER NOT NULL,
     author_in_text INTEGER NOT NULL,
     auto_acceptable INTEGER NOT NULL
+);
+CREATE TABLE IF NOT EXISTS excluded_sources (
+    path TEXT PRIMARY KEY,
+    kept TEXT NOT NULL,
+    duplicate_group TEXT NOT NULL,
+    excluded_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS dismissed_duplicates (
+    duplicate_group TEXT PRIMARY KEY,
+    dismissed_at TEXT NOT NULL
 );
 CREATE TABLE IF NOT EXISTS skipped (
     run_id INTEGER NOT NULL REFERENCES runs(id),
@@ -186,6 +202,10 @@ class BookRow:
     mislabeled: bool
     built_metadata: BookMetadata | None
     built_folder: str | None
+    # the series name written by the last build (title, or "Title (Author)" on a clash)
+    built_series: str | None = None
+    # the source files the last build used (all sources minus excluded duplicates)
+    built_sources: tuple[str, ...] | None = None
 
     @property
     def needs_build(self) -> bool:
@@ -193,6 +213,15 @@ class BookRow:
 
 
 _BOOK_JSON_FIELDS = ("sources", "local_notes", "evidence_isbns", "lookup_errors", "review_reasons")
+_BOOK_OPTIONAL_JSON_FIELDS = ("built_sources",)
+
+
+@dataclass(frozen=True)
+class ExcludedSource:
+    path: str
+    kept: str
+    group: str
+    excluded_at: str
 _BOOK_METADATA_FIELDS = ("local_metadata", "metadata", "built_metadata")
 
 
@@ -395,12 +424,64 @@ class StateStore:
                 "UPDATE books SET mislabeled = ?, updated_at = ? WHERE id = ?", (int(mislabeled), _now(), book_id)
             )
 
-    def mark_built(self, book_id: int, metadata: BookMetadata, folder: str) -> None:
+    def mark_built(
+        self,
+        book_id: int,
+        metadata: BookMetadata,
+        folder: str,
+        series: str | None = None,
+        sources: tuple[str, ...] | None = None,
+    ) -> None:
+        if sources is None:
+            sources = self.book(book_id).sources
         with self._connect() as db:
             db.execute(
-                "UPDATE books SET built_metadata = ?, built_folder = ?, updated_at = ? WHERE id = ?",
-                (metadata_to_json(metadata), folder, _now(), book_id),
+                "UPDATE books SET built_metadata = ?, built_folder = ?, built_series = ?, built_sources = ?, "
+                "updated_at = ? WHERE id = ?",
+                (metadata_to_json(metadata), folder, series or metadata.title,
+                 json.dumps(list(sources), ensure_ascii=False), _now(), book_id),
             )
+
+    def clear_built(self, book_id: int) -> None:
+        """Forgets the book's build, after its folder was removed from the output."""
+        with self._connect() as db:
+            db.execute(
+                "UPDATE books SET built_metadata = NULL, built_folder = NULL, built_series = NULL, "
+                "built_sources = NULL, updated_at = ? WHERE id = ?",
+                (_now(), book_id),
+            )
+
+    # --- duplicates
+
+    def exclude_sources(self, paths: list[str], kept: str, group: str) -> None:
+        with self._connect() as db:
+            db.executemany(
+                "INSERT OR REPLACE INTO excluded_sources (path, kept, duplicate_group, excluded_at) VALUES (?, ?, ?, ?)",
+                [(path, kept, group, _now()) for path in paths],
+            )
+
+    def restore_source(self, path: str) -> None:
+        with self._connect() as db:
+            db.execute("DELETE FROM excluded_sources WHERE path = ?", (path,))
+
+    def excluded_sources(self) -> list[ExcludedSource]:
+        with self._connect() as db:
+            rows = db.execute("SELECT * FROM excluded_sources ORDER BY path").fetchall()
+        return [ExcludedSource(r["path"], r["kept"], r["duplicate_group"], r["excluded_at"]) for r in rows]
+
+    def excluded_paths(self) -> set[str]:
+        return {e.path for e in self.excluded_sources()}
+
+    def dismiss_duplicates(self, group: str) -> None:
+        with self._connect() as db:
+            db.execute(
+                "INSERT OR IGNORE INTO dismissed_duplicates (duplicate_group, dismissed_at) VALUES (?, ?)",
+                (group, _now()),
+            )
+
+    def dismissed_duplicates(self) -> set[str]:
+        with self._connect() as db:
+            return {r[0] for r in db.execute("SELECT duplicate_group FROM dismissed_duplicates")}
 
     @contextmanager
     def _connect(self) -> Iterator[sqlite3.Connection]:
@@ -419,6 +500,8 @@ def _book_from_row(row: sqlite3.Row) -> BookRow:
         value = row[f.name]
         if f.name in _BOOK_JSON_FIELDS:
             value = tuple(tuple(v) if isinstance(v, list) else v for v in json.loads(value))
+        elif f.name in _BOOK_OPTIONAL_JSON_FIELDS:
+            value = tuple(json.loads(value)) if value is not None else None
         elif f.name in _BOOK_METADATA_FIELDS:
             value = metadata_from_json(value)
         elif f.name == "mislabeled":
@@ -445,6 +528,18 @@ def _migrate(db: sqlite3.Connection) -> None:
     columns = {row[1] for row in db.execute("PRAGMA table_info(books)")}
     if "mislabeled" not in columns:
         db.execute("ALTER TABLE books ADD COLUMN mislabeled INTEGER NOT NULL DEFAULT 0")
+    if "built_sources" not in columns:
+        db.execute("ALTER TABLE books ADD COLUMN built_sources TEXT")
+        if "built_metadata" in columns:
+            # books built before exclusions existed were built from all their sources
+            db.execute("UPDATE books SET built_sources = sources WHERE built_metadata IS NOT NULL")
+    if "built_series" not in columns:
+        db.execute("ALTER TABLE books ADD COLUMN built_series TEXT")
+        if "built_metadata" in columns:
+            # books built before series names existed were built with series = title
+            db.execute(
+                "UPDATE books SET built_series = json_extract(built_metadata, '$.title') WHERE built_metadata IS NOT NULL"
+            )
 
 
 def _entry_from_row(row: sqlite3.Row) -> RecordEntry:
@@ -471,7 +566,10 @@ def write_report(store: StateStore, run_id: int, path: Path) -> Path:
 def write_summary_report(store: StateStore, path: Path) -> Path:
     """Report of the current state: the newest result of every book across all runs."""
     mislabeled = [b for b in store.books() if b.mislabeled]
-    return _write("ebookprep report, all runs", store.latest_records(), store.all_skipped(), path, mislabeled)
+    return _write(
+        "ebookprep report, all runs", store.latest_records(), store.all_skipped(), path, mislabeled,
+        store.excluded_sources(),
+    )
 
 
 def _write(
@@ -480,6 +578,7 @@ def _write(
     skipped: list[tuple[str, str]],
     path: Path,
     mislabeled: list[BookRow] = (),
+    excluded: list[ExcludedSource] = (),
 ) -> Path:
     done = [r for r in records if r.status == "done"]
     failed = [r for r in records if r.flagged]
@@ -535,6 +634,12 @@ def _write(
             sources = "<br>".join(f"`{s}`" for s in book.sources)
             built = f"`{book.built_folder}`" if book.built_folder else "not built yet"
             lines.append(f"| {book.local_metadata.title} | {book.metadata.title} | {sources} | {built} |")
+        lines.append("")
+
+    if excluded:
+        lines += ["## Excluded duplicate files", "", "These input files are not built; another file was kept.", ""]
+        lines += ["| Excluded file | Kept file |", "|---|---|"]
+        lines += [f"| `{e.path}` | `{e.kept}` |" for e in excluded]
         lines.append("")
 
     lines += ["## Skipped input files", ""]

@@ -231,3 +231,71 @@ def test_mislabeled_book_is_built_outside_the_library_structure(tmp_path):
     folder = output / "_mislabeled" / "IT" / "Security" / "Moral Design and Technology - Bart Wernaart"
     assert (folder / "Moral Design and Technology - Bart Wernaart.pdf").is_file()
     assert store.book(knoppix.id).built_folder == "_mislabeled/IT/Security/Moral Design and Technology - Bart Wernaart"
+
+
+def test_same_title_in_one_library_gets_author_in_series_and_rebuilds(tmp_path):
+    source, output, work, store = identified(tmp_path)
+    accept_all(store)
+    build_accepted(source, output, work, CONFIG, **QUIET)
+    knoppix = next(b for b in store.books() if "Knoppix" in b.sources[0])
+    android = next(b for b in store.books() if "A Book" in b.sources[0])
+
+    store.decide(knoppix.id, BookMetadata(title="A Book: The Subtitle", authors=("Kyle Rankin",)), "user")
+    run_id = build_accepted(source, output, work, CONFIG, **QUIET)
+
+    android_pdf = output / "IT/Android/A Book - Author One/A Book - Author One.pdf"
+    knoppix_pdf = output / "IT/Security/A Book - Kyle Rankin/A Book - Kyle Rankin.pdf"
+    assert kavita_view(android_pdf).series == "A Book: The Subtitle (Author One)"
+    assert kavita_view(knoppix_pdf).series == "A Book: The Subtitle (Kyle Rankin)"
+    assert store.book(android.id).built_series == "A Book: The Subtitle (Author One)"
+    assert {r.book_name for r in store.records(run_id)} == {"A Book - Author One", "A Book - Kyle Rankin"}
+
+
+# --- excluded duplicate files
+
+
+def test_excluded_file_is_left_out_and_restore_brings_it_back(tmp_path):
+    source, output, work, store = identified(tmp_path)
+    accept_all(store)
+    build_accepted(source, output, work, CONFIG, **QUIET)
+    folder = output / "IT/Android/A Book - Author One"
+    epub = "IT/Android/A Book_ The Subtitle - Author One.epub"
+    pdf = "IT/Android/A Book_ The Subtitle - Author One.pdf"
+
+    store.exclude_sources([epub], kept=pdf, group="g")
+    build_accepted(source, output, work, CONFIG, **QUIET)
+
+    assert sorted(p.suffix for p in folder.iterdir()) == [".jpg", ".opf", ".pdf"]
+    android = next(b for b in store.books() if "A Book" in b.sources[0])
+    assert store.book(android.id).built_sources == (pdf,)
+
+    store.restore_source(epub)
+    build_accepted(source, output, work, CONFIG, **QUIET)
+
+    assert sorted(p.suffix for p in folder.iterdir()) == [".epub", ".jpg", ".opf", ".pdf"]
+
+
+def test_book_with_all_files_excluded_is_removed_from_output(tmp_path):
+    source, output, work, store = identified(tmp_path)
+    accept_all(store)
+    build_accepted(source, output, work, CONFIG, **QUIET)
+    knoppix = next(b for b in store.books() if "Knoppix" in b.sources[0])
+
+    store.exclude_sources(list(knoppix.sources), kept="IT/Security/elsewhere.pdf", group="g")
+    build_accepted(source, output, work, CONFIG, **QUIET)
+
+    assert not (output / "IT/Security/Knoppix Hacks - Kyle Rankin").exists()
+    assert store.book(knoppix.id).built_folder is None
+    assert (output / "IT/Security/Pentesting").is_dir()
+
+
+def test_summary_report_lists_excluded_files(tmp_path):
+    from ebookprep.state import write_summary_report
+
+    source, output, work, store = identified(tmp_path)
+    store.exclude_sources(["IT/Android/x.epub"], kept="IT/Android/x.pdf", group="g")
+
+    report = write_summary_report(store, work / "report.md").read_text()
+
+    assert "## Excluded duplicate files" in report
+    assert "`IT/Android/x.epub`" in report and "`IT/Android/x.pdf`" in report

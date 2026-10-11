@@ -4,12 +4,18 @@
 #   ./work/report.md with the newest result of every book across all runs. State, reports
 #   and temporary files go to ./work. Extra arguments are passed on, e.g.
 #     docker compose run --rm identify --only IT/Android
+# "kavita-check" asks the local Kavita (login from ./kavita.env) whether every built book
+#   is its own series named after its title; add --scan to rescan the libraries first.
 # "review" serves the review web UI at http://localhost:8000 (local machine only).
 # "tests" runs the pytest suite inside the pinned calibre/Python image.
 # "kavita" is a local Kavita (same version as the server) showing ./output read-only at
 #   http://localhost:5000, to see the result the way the server will show it. Its
 #   configuration (admin user, libraries, database) lives in ./kavita-config, which is
 #   git-ignored. It runs as the host user, so those files stay owned by you.
+# Profile "e2e": end-to-end test against a fresh Kavita (in-memory config, new on every run):
+#   docker compose --profile e2e build e2e
+#   docker compose --profile e2e run --rm e2e
+#   docker compose --profile e2e rm -sf kavita-e2e
 # Source and tests are mounted read-only, so code changes are picked up without rebuilding.
 
 x-ebookprep: &ebookprep
@@ -44,6 +50,14 @@ services:
     <<: *ebookprep
     entrypoint: ["python", "-m", "ebookprep", "report", "--work", "/data/work"]
 
+  kavita-check:
+    <<: *ebookprep
+    env_file: kavita.env
+    depends_on:
+      - kavita
+    entrypoint: ["python", "-m", "ebookprep", "kavita-check", "--output", "/data/output", "--work", "/data/work",
+                 "--config", "/app/config.toml", "--url", "http://kavita:5000", "--library-root", "/library"]
+
   review:
     <<: *ebookprep
     entrypoint: ["python", "-m", "ebookprep", "review", "--input", "/data/input", "--work", "/data/work",
@@ -70,3 +84,32 @@ services:
       - ./kavita-config:/kavita/config
     ports:
       - "127.0.0.1:5000:5000"
+
+  kavita-e2e:
+    image: jvmilazz0/kavita:0.9.1   # assembly version 0.9.1.4, same as the server
+    profiles: ["e2e"]
+    tmpfs:
+      - /kavita/config
+    volumes:
+      - e2e-library:/library:ro
+
+  e2e:
+    build:
+      context: .
+      target: test
+    profiles: ["e2e"]
+    user: "0:0"   # writes into the shared Docker volume, which belongs to root
+    depends_on:
+      - kavita-e2e
+    environment:
+      KAVITA_E2E_URL: http://kavita-e2e:5000
+      E2E_LIBRARY: /e2e/library
+    volumes:
+      - ./src:/app/src:ro
+      - ./tests:/app/tests:ro
+      - ./pytest.ini:/app/pytest.ini:ro
+      - e2e-library:/e2e/library
+    command: ["pytest", "-m", "kavita", "-v"]
+
+volumes:
+  e2e-library:

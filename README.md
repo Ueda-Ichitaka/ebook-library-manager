@@ -42,6 +42,7 @@ docker compose up review                                    # 2. review at http:
 docker compose run --rm build                               # 3. write accepted books to output/
 docker compose run --rm report                              # work/report.md, all runs
 docker compose up -d kavita                                 # look at output/ in Kavita at :5000
+docker compose run --rm kavita-check --scan                 # 4. rescan Kavita and verify every book
 ```
 
 **1. Identify.** Every new book (a group of files that are the same book) gets
@@ -82,6 +83,21 @@ title, new title, input file and output folder.
 
 The UI has no login and only listens on localhost.
 
+**Duplicates.** The review UI's "duplicates" page lists groups of files that may be the
+same book:
+- the files of one book (e.g. a PDF and an EPUB);
+- books anywhere in the library with the same ISBN;
+- books with the same title and first author.
+
+For each file, a group shows path, format, size, Kavita pages and estimated printed pages.
+For an EPUB, Kavita counts one page per HTML document, so an EPUB made of a few large
+documents shows only a few pages and coarse reading progress. Printed pages are estimated
+at 250 words per page.
+
+"Keep" excludes the group's other files from the build. They stay untouched in `input/`,
+are listed in the report, and can be restored on the "excluded files" page. "Not
+duplicates" hides the group.
+
 **3. Build.** Only accepted books are written to `output/`, and only when their metadata
 changed since the last build. Each build of a book works like this:
 1. Damaged PDFs are repaired, and MOBI/AZW files are converted to EPUB (the original is
@@ -94,11 +110,30 @@ changed since the last build. Each build of a book works like this:
    and flags the book.
 4. A rebuild replaces the book's previous folder only after the new build succeeded.
 
+The series is the title. Kavita would merge books with the same title and a common format
+within a library, so only for such a clash the series becomes "Title (First author)", for
+example "Wicca (Scott Cunningham)". Files excluded as duplicates are left out: a book that
+loses files is rebuilt, and a book whose files are all excluded is removed from `output/`.
+
 The exit code of `build` is 1 if any book was flagged; details are in the report.
 
 `sources` in `config.toml` selects the online sources and their order. calibre's
 Amazon.com source is off by default: it starts a browser for every book and returned no
 results from this network.
+
+**4. Check in Kavita.** `kavita-check` logs in to the local Kavita using the login in
+`kavita.env` (git-ignored, filled in by you). With `--scan` it rescans the libraries
+first. It then compares Kavita's series with the built books:
+- every built PDF/EPUB must be there;
+- each book must be its own series, named exactly after its title;
+- no series may contain files of several books (the original problem);
+- nothing unexpected may show up.
+
+Kavita runs only one scan at a time and postpones scans requested meanwhile by hours, so
+libraries are scanned one after another.
+
+The Kavita preview's configuration (admin account, libraries) lives in `kavita-config/`
+(git-ignored).
 
 The optional `openlibrary_contact` in `config.toml` (e.g. your email address) is sent to
 Open Library and raises its rate limit to 3 requests per second.
@@ -110,6 +145,16 @@ Everything runs in Docker with pinned calibre and Python versions:
 ```sh
 docker compose build tests
 docker compose run --rm tests
+```
+
+The end-to-end test runs the real pipeline into a fresh Kavita 0.9.1.4 (the server's
+version) and checks Kavita's series through its API. As a negative control, untreated
+PDFs in a category folder must show up merged into a folder-named series:
+
+```sh
+docker compose --profile e2e build e2e
+docker compose --profile e2e run --rm e2e
+docker compose --profile e2e rm -sf kavita-e2e      # removes the test Kavita and its data
 ```
 
 ## Code
@@ -133,4 +178,9 @@ docker compose run --rm tests
 | `identify.py` | identify stage: decides each book's metadata |
 | `pipeline.py` | build stage: writes accepted books to output |
 | `web/` | review web UI (FastAPI, htmx) |
+| `series.py` | Kavita series names, "Title (Author)" on title clashes |
+| `duplicates.py` | finds groups of possible duplicate files |
+| `fileinfo.py` | size, format, Kavita pages and printed pages of a file |
+| `kavita.py` | Kavita API client (login, libraries, sequential scans, series) |
+| `kavita_verify.py` | compares Kavita's series with the built books |
 | `__main__.py` | command line |

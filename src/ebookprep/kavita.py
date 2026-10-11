@@ -6,6 +6,10 @@ scanning all libraries and waiting until the scan is committed, and listing ever
 with the files it consists of. Endpoints and payloads were taken from Kavita's
 openapi.json and checked against a running Kavita. A scan is complete when the library's
 lastScanned changes; Kavita sets it after the scan's results are saved.
+
+Kavita runs one scan at a time and postpones a scan requested while another runs by
+hours. Creating a library starts its first scan, so the client waits for that scan before
+returning, and rescans libraries one after another instead of using scan-all.
 """
 
 import json
@@ -54,8 +58,9 @@ class KavitaClient:
     def libraries(self) -> list[dict]:
         return self._request("GET", "/api/Library/libraries")
 
-    def create_book_library(self, name: str, folders: list[str]) -> dict:
-        return self._request(
+    def create_book_library(self, name: str, folders: list[str], timeout: float = 1800, poll: float = 2) -> dict:
+        """Creates a Book library like Kavita's UI does and waits for its first scan."""
+        library = self._request(
             "POST",
             "/api/Library/create",
             {
@@ -67,17 +72,23 @@ class KavitaClient:
                 "metadataProvider": METADATA_PROVIDER_DEFAULT,
             },
         )
+        self._wait_until_scanned(library["id"], library["lastScanned"], name, timeout, poll)
+        return library
 
     def scan_all_and_wait(self, timeout: float = 1800, poll: float = 2) -> None:
-        before = {lib["id"]: lib["lastScanned"] for lib in self.libraries()}
-        self._request("POST", "/api/Library/scan-all?force=true")
+        """Rescans every library, one after another, each within timeout seconds."""
+        for library in self.libraries():
+            self._request("POST", f"/api/Library/scan?libraryId={library['id']}&force=true")
+            self._wait_until_scanned(library["id"], library["lastScanned"], library["name"], timeout, poll)
+
+    def _wait_until_scanned(self, library_id: int, before: str, name: str, timeout: float, poll: float) -> None:
         deadline = self.clock() + timeout
         while self.clock() < deadline:
             self.sleep(poll)
-            now = {lib["id"]: lib["lastScanned"] for lib in self.libraries()}
-            if all(now.get(i) != scanned for i, scanned in before.items()):
+            current = next((l for l in self.libraries() if l["id"] == library_id), None)
+            if current is not None and current["lastScanned"] != before:
                 return
-        raise KavitaError(f"Kavita didn't finish scanning within {timeout} seconds")
+        raise KavitaError(f"Kavita didn't finish scanning library {name!r} within {timeout} seconds")
 
     # --- series
 

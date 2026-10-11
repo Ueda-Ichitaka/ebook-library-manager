@@ -2,7 +2,7 @@
 
 Each book record is processed in its own temporary calibre library, which is deleted
 afterwards, so only one book is ever loaded at a time. calibredb adds the files, sets
-the metadata (the series is always the book's title) and exports the record into a
+the metadata (the series is the book's title, or a given series name) and exports the record into a
 folder: the book file(s), a .opf file and a .jpg cover, all with the same name.
 ebook-convert turns MOBI/AZW into EPUB, and ebook-meta re-writes metadata from an .opf
 file. A command that exits with an error raises CalibreError; note that calibre's PDF
@@ -50,12 +50,15 @@ class CalibreLibrary:
     def add_format(self, book_id: int, file: Path) -> None:
         self._calibredb("add_format", str(book_id), str(file))
 
-    def set_metadata(self, book_id: int, metadata: BookMetadata, cover: Path | None = None) -> None:
+    def set_metadata(
+        self, book_id: int, metadata: BookMetadata, cover: Path | None = None, series: str | None = None
+    ) -> None:
+        """Sets the metadata; the series is the title unless another series name is given."""
         fields = [
             ("title", metadata.title),
             ("sort", metadata.title),
             ("authors", " & ".join(metadata.authors)),
-            ("series", metadata.title),
+            ("series", series or metadata.title),
             ("series_index", "1"),
             ("identifiers", f"isbn:{metadata.isbn}" if metadata.isbn else ""),
             ("publisher", metadata.publisher or ""),

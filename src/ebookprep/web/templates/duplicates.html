@@ -1,0 +1,19 @@
+{# About this file: list of groups of possible duplicate files. #}
+{% extends "base.html" %}
+{% block title %}Possible duplicates - ebookprep review{% endblock %}
+{% block content %}
+<h2>Possible duplicates</h2>
+<table>
+  <tr><th>Book</th><th>Why</th><th>Files</th><th>Placements</th></tr>
+  {% for group in groups %}
+  <tr>
+    <td><a href="/duplicates/{{ group.key }}">{{ group.title }}</a></td>
+    <td>{{ group.reasons | join(", ") }}</td>
+    <td>{{ group.files | length }}</td>
+    <td class="muted">{{ group.files | map(attribute="placement") | unique | join(", ") }}</td>
+  </tr>
+  {% else %}
+  <tr><td colspan="4" class="muted">No possible duplicates left.</td></tr>
+  {% endfor %}
+</table>
+{% endblock %}

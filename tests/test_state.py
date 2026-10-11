@@ -168,3 +168,50 @@ def test_summary_report_lists_mislabeled_files(tmp_path):
     assert "The Complete Guide to Physical Security" in report and "Moral Design and Technology" in report
     assert "`IT/Physical Security/The Complete Guide to Physical Security.pdf`" in report
     assert "`_mislabeled/IT/Physical Security/Moral Design and Technology - Bart Wernaart`" in report
+
+
+# --- duplicates: excluded files and dismissed groups
+
+
+def test_exclude_and_restore_sources(tmp_path):
+    store = StateStore(tmp_path / "state.db")
+
+    store.exclude_sources(["IT/a.epub", "IT/b.pdf"], kept="IT/a.pdf", group="g1")
+
+    assert store.excluded_paths() == {"IT/a.epub", "IT/b.pdf"}
+    (first, second) = store.excluded_sources()
+    assert (first.path, first.kept, first.group) == ("IT/a.epub", "IT/a.pdf", "g1")
+
+    store.restore_source("IT/a.epub")
+
+    assert store.excluded_paths() == {"IT/b.pdf"}
+
+
+def test_dismissed_duplicate_groups(tmp_path):
+    store = StateStore(tmp_path / "state.db")
+
+    store.dismiss_duplicates("abc123")
+    store.dismiss_duplicates("abc123")
+
+    assert store.dismissed_duplicates() == {"abc123"}
+
+
+def test_built_sources_are_recorded_and_can_be_cleared(tmp_path):
+    from ebookprep.metadata import BookMetadata
+    from ebookprep.state import NewBook
+
+    store = StateStore(tmp_path / "state.db")
+    metadata = BookMetadata(title="T")
+    book_id = store.add_book(
+        NewBook(key="k", placement="IT/A", group_reason="single", book_folder=None, sources=("a.pdf", "a.epub"),
+                local_metadata=metadata, local_source="filename", local_notes=(), evidence_excerpt="",
+                evidence_isbns=(), lookup_errors=(), status="accepted", decided_by="user", review_reasons=(),
+                metadata=metadata)
+    )
+
+    store.mark_built(book_id, metadata, "IT/A/T", sources=("a.pdf",))
+    assert store.book(book_id).built_sources == ("a.pdf",)
+
+    store.clear_built(book_id)
+    book = store.book(book_id)
+    assert (book.built_folder, book.built_metadata, book.built_series, book.built_sources) == (None, None, None, None)

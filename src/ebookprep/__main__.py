@@ -122,6 +122,8 @@ def _kavita_check(args: argparse.Namespace) -> int:
         print(f"wrong name: {file} is in series {actual!r}, expected {wanted!r}")
     for file in result.missing:
         print(f"missing: {file}")
+    for file, wanted, actual in result.outdated_name:
+        print(f"note: Kavita shows the older spelling {actual!r} instead of {wanted!r} for {file}")
     for file in result.unexpected:
         print(f"unexpected: {file}")
     print("OK: every built book is its own series named after its title" if result.ok else "PROBLEMS found")

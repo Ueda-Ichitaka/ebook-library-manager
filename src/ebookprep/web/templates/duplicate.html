@@ -1,0 +1,36 @@
+{# About this file: one group of possible duplicates: file facts and the keep/dismiss decision. #}
+{% extends "base.html" %}
+{% block title %}{{ group.title }} - duplicates - ebookprep review{% endblock %}
+{% block content %}
+<h2>{{ group.title }}</h2>
+<p class="muted">Possible duplicates: {{ group.reasons | join(", ") }}</p>
+<form class="card" method="post" action="/duplicates/{{ group.key }}/keep">
+  <table>
+    <tr><th>Keep</th><th>File</th><th>Format</th><th>Size</th><th>Kavita pages</th><th>Printed pages</th><th>Book</th></tr>
+    {% for row in rows %}
+    <tr>
+      <td><input type="radio" name="keep" value="{{ row.file.path }}" {{ "checked" if loop.first }}></td>
+      <td><a href="/books/{{ row.file.book_id }}/files/{{ row.index }}" target="_blank">{{ row.file.path }}</a></td>
+      {% if row.info %}
+      <td>{{ row.info.format }}</td>
+      <td>{{ "%.1f" | format(row.info.size_bytes / 1048576) }} MB</td>
+      <td>{{ row.info.kavita_pages if row.info.kavita_pages is not none else "?" }}
+        {% if row.info.kavita_pages and row.info.printed_pages and row.info.printed_pages > 10 * row.info.kavita_pages %}
+        <br><span class="warn">few Kavita pages: reading progress is coarse</span>{% endif %}</td>
+      <td>{% if row.info.printed_pages is not none %}{{ "~" if row.info.words is not none }}{{ row.info.printed_pages }}{% else %}?{% endif %}
+        {% if row.info.words is not none %}<br><span class="muted">{{ row.info.words }} words</span>{% endif %}</td>
+      {% else %}
+      <td colspan="4" class="warn">file not found in the input</td>
+      {% endif %}
+      <td><a href="/books/{{ row.book.id }}">{{ row.book.metadata.title }}</a>
+        <br><span class="muted">{{ row.book.placement }} &middot; {{ row.book.status }}</span></td>
+    </tr>
+    {% endfor %}
+  </table>
+  <p><button type="submit">Keep selected file, exclude the others from the build</button></p>
+</form>
+<form method="post" action="/duplicates/{{ group.key }}/dismiss">
+  <button class="secondary" type="submit">Not duplicates: keep all files</button>
+</form>
+<p class="muted">Excluded files stay untouched in the input and can be restored under "excluded files".</p>
+{% endblock %}

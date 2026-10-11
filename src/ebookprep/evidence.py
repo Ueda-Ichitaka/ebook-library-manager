@@ -93,21 +93,35 @@ def _pdf_text(path: Path, pages: int) -> str:
     return result.stdout.decode("utf-8", errors="replace") if result.returncode == 0 else ""
 
 
-class _TextCollector(HTMLParser):
+class TextCollector(HTMLParser):
+    """Collects the readable text of an HTML document (not head, style or script)."""
+
+    SKIPPED = frozenset({"head", "style", "script"})
+
     def __init__(self) -> None:
         super().__init__(convert_charrefs=True)
         self.parts: list[str] = []
+        self._skipping = 0
+
+    def handle_starttag(self, tag: str, attrs) -> None:
+        if tag in self.SKIPPED:
+            self._skipping += 1
+
+    def handle_endtag(self, tag: str) -> None:
+        if tag in self.SKIPPED and self._skipping:
+            self._skipping -= 1
 
     def handle_data(self, data: str) -> None:
-        self.parts.append(data)
+        if not self._skipping:
+            self.parts.append(data)
 
 
 def _epub_text(path: Path) -> str:
     try:
         with zipfile.ZipFile(path) as epub:
             text = ""
-            for name in _spine_documents(epub):
-                collector = _TextCollector()
+            for name in spine_documents(epub):
+                collector = TextCollector()
                 collector.feed(epub.read(name).decode("utf-8", errors="replace"))
                 text += " " + " ".join(collector.parts)
                 if len(text) >= EPUB_CHARS:
@@ -117,7 +131,8 @@ def _epub_text(path: Path) -> str:
         return ""
 
 
-def _spine_documents(epub: zipfile.ZipFile) -> list[str]:
+def spine_documents(epub: zipfile.ZipFile) -> list[str]:
+    """The EPUB's HTML documents in reading order (Kavita counts each as one page)."""
     container = ET.fromstring(epub.read("META-INF/container.xml"))
     rootfile = container.find(f".//{_CONTAINER}rootfile")
     if rootfile is None:
