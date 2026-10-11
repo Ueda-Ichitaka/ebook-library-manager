@@ -1,0 +1,6 @@
+# About this file: pinned runtime dependencies of the ebookprep tool.
+pikepdf==10.16.0
+fastapi==0.143.0
+uvicorn==0.54.0
+jinja2==3.1.6
+python-multipart==0.0.32

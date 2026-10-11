@@ -1,2 +1,13 @@
+# About this file: files git ignores in this project.
+
+# Local Kavita preview configuration: admin account, libraries, database, caches.
+kavita-config/
+
+# Python caches
+__pycache__/
 reference data/
 input/
+
+# Login of the local Kavita preview (filled in by hand)
+kavita.env
+output/

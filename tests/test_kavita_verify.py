@@ -1,0 +1,148 @@
+"""About this file: tests for ebookprep.kavita_verify, which compares the series a real
+Kavita shows with the books that were built. Kavita is replaced by a fake client here;
+the end-to-end test (test_kavita_e2e.py) runs against a real Kavita."""
+
+from ebookprep.kavita_verify import expected_files, verify
+from ebookprep.metadata import BookMetadata
+from ebookprep.state import NewBook, StateStore
+
+
+class FakeKavita:
+    def __init__(self, series: dict[str, list[str]]):
+        self.series = [{"id": i, "name": name} for i, name in enumerate(series)]
+        self.files = {i: paths for i, paths in enumerate(series.values())}
+
+    def all_series(self):
+        return self.series
+
+    def series_files(self, series_id):
+        return self.files[series_id]
+
+
+EXPECTED = {
+    "IT/Android/A Book - Author/A Book - Author.pdf": "A Book: The Subtitle",
+    "IT/Android/A Book - Author/A Book - Author.epub": "A Book: The Subtitle",
+    "IT/Android/Other - X/Other - X.pdf": "Other",
+}
+
+
+def test_every_book_on_its_own_is_ok():
+    kavita = FakeKavita(
+        {
+            "A Book: The Subtitle": ["/library/IT/Android/A Book - Author/A Book - Author.pdf"],
+            "A Book: The Subtitle ": ["/library/IT/Android/A Book - Author/A Book - Author.epub"],
+            "Other": ["/library/IT/Android/Other - X/Other - X.pdf"],
+        }
+    )
+
+    result = verify(kavita, EXPECTED, library_root="/library")
+
+    assert result.ok
+    assert (result.checked_files, result.series) == (3, 3)
+
+
+def test_folder_named_series_with_several_books_is_reported():
+    kavita = FakeKavita(
+        {
+            "Android": [
+                "/library/IT/Android/A Book - Author/A Book - Author.pdf",
+                "/library/IT/Android/Other - X/Other - X.pdf",
+            ],
+            "A Book: The Subtitle": ["/library/IT/Android/A Book - Author/A Book - Author.epub"],
+        }
+    )
+
+    result = verify(kavita, EXPECTED, library_root="/library")
+
+    assert not result.ok
+    assert [name for name, _ in result.merged] == ["Android"]
+    assert ("IT/Android/Other - X/Other - X.pdf", "Other", "Android") in result.wrong_name
+
+
+def test_missing_files_are_reported():
+    kavita = FakeKavita({"Other": ["/library/IT/Android/Other - X/Other - X.pdf"]})
+
+    result = verify(kavita, EXPECTED, library_root="/library")
+
+    assert sorted(result.missing) == [
+        "IT/Android/A Book - Author/A Book - Author.epub",
+        "IT/Android/A Book - Author/A Book - Author.pdf",
+    ]
+
+
+def test_files_kavita_shows_that_were_not_built_are_reported():
+    kavita = FakeKavita(
+        {
+            "Other": ["/library/IT/Android/Other - X/Other - X.pdf"],
+            "Stray": ["/library/IT/Android/stray.pdf"],
+        }
+    )
+
+    result = verify(kavita, {"IT/Android/Other - X/Other - X.pdf": "Other"}, library_root="/library")
+
+    assert result.unexpected == ["IT/Android/stray.pdf"]
+    assert not result.ok
+
+
+def test_expected_files_come_from_built_books_outside_the_mislabeled_folder(tmp_path):
+    output = tmp_path / "output"
+    store = StateStore(tmp_path / "state.db")
+    for key, folder, mislabeled in (("a", "IT/Android/A - X", False), ("b", "_mislabeled/IT/Android/B - Y", True)):
+        book_dir = output / folder
+        book_dir.mkdir(parents=True)
+        name = folder.rsplit("/", 1)[1]
+        for suffix in (".pdf", ".epub", ".opf", ".jpg", ".mobi"):
+            (book_dir / f"{name}{suffix}").write_bytes(b"x")
+        metadata = BookMetadata(title=f"Title {key}")
+        book_id = store.add_book(
+            NewBook(key=key, placement="IT/Android", group_reason="single", book_folder=None, sources=(f"{key}.pdf",),
+                    local_metadata=metadata, local_source="filename", local_notes=(), evidence_excerpt="",
+                    evidence_isbns=(), lookup_errors=(), status="accepted", decided_by="user", review_reasons=(),
+                    metadata=metadata, mislabeled=mislabeled)
+        )
+        store.mark_built(book_id, metadata, folder)
+
+    assert expected_files(store, output, mislabeled_folder="_mislabeled") == {
+        "IT/Android/A - X/A - X.pdf": "Title a",
+        "IT/Android/A - X/A - X.epub": "Title a",
+    }
+
+
+def test_kavita_check_command(tmp_path, monkeypatch, capsys):
+    from ebookprep.__main__ import main
+
+    calls = []
+
+    class Client(FakeKavita):
+        def __init__(self):
+            super().__init__({"Android": ["/library/IT/Android/x.pdf", "/library/IT/Android/y.pdf"]})
+
+        def scan_all_and_wait(self):
+            calls.append("scan")
+
+    monkeypatch.setattr("ebookprep.__main__.connect_kavita", lambda url, user, password: calls.append((url, user)) or Client())
+    monkeypatch.setenv("KAVITA_USERNAME", "admin")
+    monkeypatch.setenv("KAVITA_PASSWORD", "secret")
+    config = tmp_path / "config.toml"
+    config.write_text("", encoding="utf-8")
+
+    exit_code = main(["kavita-check", "--output", str(tmp_path / "out"), "--work", str(tmp_path / "work"),
+                      "--config", str(config), "--url", "http://kavita:5000", "--scan"])
+
+    out = capsys.readouterr().out
+    assert exit_code == 1
+    assert calls == [("http://kavita:5000", "admin"), "scan"]
+    assert "merged" in out and "Android" in out
+    assert "secret" not in out
+
+
+def test_kavita_check_needs_credentials(tmp_path, monkeypatch, capsys):
+    from ebookprep.__main__ import main
+
+    monkeypatch.delenv("KAVITA_USERNAME", raising=False)
+    monkeypatch.delenv("KAVITA_PASSWORD", raising=False)
+
+    exit_code = main(["kavita-check", "--output", str(tmp_path), "--work", str(tmp_path)])
+
+    assert exit_code == 2
+    assert "KAVITA_USERNAME" in capsys.readouterr().err

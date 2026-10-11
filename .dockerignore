@@ -1,0 +1,11 @@
+# About this file: keeps the Docker build context small. Only the files the image
+# needs are sent; the book folders (input, output, reference data) never are.
+*
+!Dockerfile
+!requirements.txt
+!requirements-dev.txt
+!pytest.ini
+!config.toml
+!src/
+!tests/
+**/__pycache__

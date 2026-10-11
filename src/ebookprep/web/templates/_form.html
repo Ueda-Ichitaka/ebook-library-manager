@@ -1,0 +1,14 @@
+{# About this file: the metadata form of a book; replaced in place when a candidate is used. #}
+<form id="metadata-form" class="card" method="post" action="/books/{{ book.id }}/accept">
+  <label>Title (the series in Kavita is set to this title)
+    <input name="title" value="{{ form.title }}" required></label>
+  <label>Authors (one per line)
+    <textarea name="authors" rows="3">{{ form.authors | join("\n") }}</textarea></label>
+  <label>ISBN <input name="isbn" value="{{ form.isbn or '' }}"></label>
+  <label>Publisher <input name="publisher" value="{{ form.publisher or '' }}"></label>
+  <label>Language <input name="language" value="{{ form.language or '' }}"></label>
+  <label>Published <input name="pubdate" value="{{ form.pubdate or '' }}"></label>
+  <label>Tags (comma separated) <input name="tags" value="{{ form.tags | join(', ') }}"></label>
+  <label>Description <textarea name="comments" rows="4">{{ form.comments or '' }}</textarea></label>
+  <p><button type="submit">Accept</button></p>
+</form>

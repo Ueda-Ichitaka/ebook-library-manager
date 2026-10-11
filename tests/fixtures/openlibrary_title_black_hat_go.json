@@ -1,0 +1,31 @@
+{
+    "numFound": 1,
+    "start": 0,
+    "numFoundExact": true,
+    "num_found": 1,
+    "documentation_url": "https://openlibrary.org/dev/docs/api/search",
+    "q": "",
+    "offset": null,
+    "docs": [
+        {
+            "author_name": [
+                "Tom Steele",
+                "Chris Patten",
+                "Dan Kottmann"
+            ],
+            "cover_i": 11872212,
+            "first_publish_year": 2020,
+            "isbn": [
+                "1593278659",
+                "9781593278656"
+            ],
+            "language": [
+                "eng"
+            ],
+            "publisher": [
+                "No Starch Press, Incorporated"
+            ],
+            "title": "Black Hat Go"
+        }
+    ]
+}

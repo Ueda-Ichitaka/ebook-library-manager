@@ -1,0 +1,25 @@
+{# About this file: overview page: counts and the list of books with the selected status. #}
+{% extends "base.html" %}
+{% block content %}
+<div class="card counts">
+  <span>Waiting for review: {{ counts.review }}</span>
+  <span>Accepted: {{ counts.accepted }}</span>
+  <span>Built: {{ counts.built }}</span>
+  <span>Accepted, not built yet: {{ counts.to_build }}</span>
+  <span><a href="/?status=mislabeled">Content differs from filename: {{ counts.mislabeled }}</a></span>
+</div>
+<table>
+  <tr><th>Placement</th><th>Title</th><th>Authors</th><th>Files</th><th>Why</th></tr>
+  {% for book in books %}
+  <tr>
+    <td class="muted">{{ book.placement }}</td>
+    <td><a href="/books/{{ book.id }}">{{ book.metadata.title }}</a></td>
+    <td>{{ book.metadata.authors | join(", ") }}</td>
+    <td>{{ book.sources | length }}</td>
+    <td class="reason">{{ book.review_reasons | join("; ") if book.status == "review" else book.decided_by }}</td>
+  </tr>
+  {% else %}
+  <tr><td colspan="5" class="muted">Nothing here.</td></tr>
+  {% endfor %}
+</table>
+{% endblock %}

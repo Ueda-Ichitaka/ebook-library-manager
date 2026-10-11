@@ -1,0 +1,20 @@
+# About this file: configuration of the ebookprep tool.
+# The output layout is Library/Category/Book/. Categories listed in topic_categories
+# hold topic folders instead, giving Library/Category/Topic/Book/ for those.
+# Entries are "Library/Category" paths relative to the input folder.
+topic_categories = ["IT/Security"]
+
+# Optional contact (e.g. your email address) sent to Open Library in the User-Agent
+# header. Open Library then allows 3 instead of 1 request per second. Leave empty to
+# send nothing.
+openlibrary_contact = ""
+
+# Top-level output folder for files whose content is a different book than their name
+# says. It sits outside the library folders, so Kavita doesn't show these books.
+mislabeled_folder = "_mislabeled"
+
+# Online metadata sources used by identify, in this order. Available: "calibre: Google",
+# "calibre: Amazon.com", "calibre: Edelweiss", "Open Library". Remove the line to use all.
+# calibre's Amazon.com source is off: it starts a browser for every book, is slow, and
+# returned no results from this network.
+sources = ["calibre: Google", "calibre: Edelweiss", "Open Library"]

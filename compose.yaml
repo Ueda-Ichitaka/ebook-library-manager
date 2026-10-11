@@ -1,0 +1,72 @@
+# About this file: docker compose services for the ebookprep tool.
+# "identify" decides the metadata of new books in ./input (read-only): accepted, or
+#   waiting for review. "rescore" re-decides stored books with the current rules. "build" writes accepted books into ./output. "report" writes
+#   ./work/report.md with the newest result of every book across all runs. State, reports
+#   and temporary files go to ./work. Extra arguments are passed on, e.g.
+#     docker compose run --rm identify --only IT/Android
+# "review" serves the review web UI at http://localhost:8000 (local machine only).
+# "tests" runs the pytest suite inside the pinned calibre/Python image.
+# "kavita" is a local Kavita (same version as the server) showing ./output read-only at
+#   http://localhost:5000, to see the result the way the server will show it. Its
+#   configuration (admin user, libraries, database) lives in ./kavita-config, which is
+#   git-ignored. It runs as the host user, so those files stay owned by you.
+# Source and tests are mounted read-only, so code changes are picked up without rebuilding.
+
+x-ebookprep: &ebookprep
+  build:
+    context: .
+    target: runtime
+  image: ebookprep:latest
+  user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
+  volumes:
+    - ./input:/data/input:ro
+    - ./output:/data/output
+    - ./work:/data/work
+    - ./src:/app/src:ro
+    - ./config.toml:/app/config.toml:ro
+
+services:
+  identify:
+    <<: *ebookprep
+    entrypoint: ["python", "-m", "ebookprep", "identify",
+                 "--input", "/data/input", "--work", "/data/work", "--config", "/app/config.toml"]
+
+  rescore:
+    <<: *ebookprep
+    entrypoint: ["python", "-m", "ebookprep", "rescore", "--input", "/data/input", "--work", "/data/work"]
+
+  build:
+    <<: *ebookprep
+    entrypoint: ["python", "-m", "ebookprep", "build", "--input", "/data/input",
+                 "--output", "/data/output", "--work", "/data/work", "--config", "/app/config.toml"]
+
+  report:
+    <<: *ebookprep
+    entrypoint: ["python", "-m", "ebookprep", "report", "--work", "/data/work"]
+
+  review:
+    <<: *ebookprep
+    entrypoint: ["python", "-m", "ebookprep", "review", "--input", "/data/input", "--work", "/data/work",
+                 "--host", "0.0.0.0", "--port", "8000"]
+    ports:
+      - "127.0.0.1:8000:8000"
+
+  tests:
+    build:
+      context: .
+      target: test
+    user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
+    volumes:
+      - ./src:/app/src:ro
+      - ./tests:/app/tests:ro
+      - ./pytest.ini:/app/pytest.ini:ro
+      - ./config.toml:/app/config.toml:ro
+
+  kavita:
+    image: jvmilazz0/kavita:0.9.1   # assembly version 0.9.1.4, same as the server
+    user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
+    volumes:
+      - ./output:/library:ro
+      - ./kavita-config:/kavita/config
+    ports:
+      - "127.0.0.1:5000:5000"
