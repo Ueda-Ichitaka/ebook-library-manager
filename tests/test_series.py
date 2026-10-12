@@ -7,13 +7,14 @@ from ebookprep.series import kavita_normalize, series_names
 from ebookprep.state import BookRow
 
 
-def book(book_id, placement, title, authors, sources, status="accepted", mislabeled=False) -> BookRow:
+def book(book_id, placement, title, authors, sources, status="accepted", mislabeled=False, target=None) -> BookRow:
     metadata = BookMetadata(title=title, authors=authors)
     return BookRow(
         id=book_id, key=str(book_id), placement=placement, group_reason="single", book_folder=None,
         sources=sources, local_metadata=metadata, local_source="filename", local_notes=(), evidence_excerpt="",
         evidence_isbns=(), lookup_errors=(), status=status, decided_by="user", review_reasons=(),
         metadata=metadata, mislabeled=mislabeled, built_metadata=None, built_folder=None,
+        target_placement=target,
     )
 
 
@@ -82,3 +83,12 @@ def test_books_waiting_for_review_and_mislabeled_books_are_not_counted():
     ]
 
     assert series_names(books) == {1: "Wicca", 3: "Wicca"}
+
+
+def test_moved_mislabeled_book_clashes_in_its_new_library():
+    books = [
+        book(1, "S/W", "Wicca", ("A",), ("w1.pdf",)),
+        book(2, "IT/Physical Security", "Wicca", ("B",), ("w2.pdf",), mislabeled=True, target="S/Pagan"),
+    ]
+
+    assert series_names(books) == {1: "Wicca (A)", 2: "Wicca (B)"}

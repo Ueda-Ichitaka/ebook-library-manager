@@ -1,4 +1,4 @@
-# ebookprep
+# Ebook Library Manager (ebookprep)
 
 Prepares the ebook library in `input/` for Kavita and writes the result to `output/`.
 Every book gets its own folder, embedded metadata whose series equals the book title,
@@ -74,29 +74,63 @@ placement>/`, outside the library folders, so Kavita doesn't show it. The folder
 set by `mislabeled_folder` in `config.toml`. The report lists these books with their old
 title, new title, input file and output folder.
 
+**Web UI.** `docker compose up -d review` serves the Ebook Library Manager at
+http://localhost:8000:
+- **Review Queue:** books waiting for review, in expandable sections per placement. A
+  checkbox hides image files (pictures saved as PDF, e.g. `Plan.jpg.pdf`). The Update
+  button brings the queue in step with decisions made in the duplicates view.
+- **Actions:** a button for every command (identify, re-decide, build, report, Kavita
+  check, Kavita rescan + check). Each runs as a background job, one at a time, with a live
+  log and a stop button.
+- **Files:** the state of every input file (skipped, not identified yet, waiting for
+  review, accepted, built, build failed, excluded duplicate) with progress per placement.
+- **Report:** the report with a table of contents.
+- **Mislabeled:** books whose file contains a different book than its name says. By
+  default they are built into `output/_mislabeled/`, outside the libraries. Here you can
+  move such a book to any category: the next build puts it there and Kavita shows it,
+  while `input/` stays untouched. You can also move it back, or mark it as not mislabeled
+  when the detection was wrong.
+- **Duplicates** and **Excluded Files:** see below.
+
 **2. Review.** The web UI lists the books waiting for review. On a book page you can:
 - open its files in the browser;
 - see the first-page text and the ISBNs found in it;
 - compare all candidates, with checks for ISBN, title and author;
 - copy a candidate into the form with "Use", correct any field, and "Accept";
-- split a group whose files are different books.
+- type or correct an ISBN and click "Look up ISBN". The sources are asked by that ISBN, the
+  results are checked against the book and added to the candidates, and the form is
+  filled with the best one, ready to check and accept;
+- split a group whose files are different books;
+- ignore a book that isn't one (e.g. a picture saved as PDF), which moves its files to the
+  skipped files; ignored files can be restored on the Excluded Files page. `build` keeps
+  unchanged copies of all ignored files in `output/_ignored/`, with the same paths as in
+  `input/` (folder name: `ignored_folder` in `config.toml`).
 
 The UI has no login and only listens on localhost.
 
 **Duplicates.** The review UI's "duplicates" page lists groups of files that may be the
-same book:
-- the files of one book (e.g. a PDF and an EPUB);
-- books anywhere in the library with the same ISBN;
-- books with the same title and first author.
+same book, in three sections:
+- **Certain:** the files of one book (e.g. a PDF and an EPUB), the same ISBN, or the same
+  title and a shared author (any author of either book).
+- **Likely:** the same main title (without subtitle, edition and remarks in parentheses,
+  e.g. "Serious Cryptography, 2nd Edition: …") and a shared author, or an unknown author.
+- **Possible:** a shared author and a title that starts like the other one (e.g. "Windows
+  Security Internals" / "… with PowerShell"), or the same main title by different authors.
+
+A group appears in the strictest section that finds it. A looser section lists it again
+only when it adds more books.
 
 For each file, a group shows path, format, size, Kavita pages and estimated printed pages.
 For an EPUB, Kavita counts one page per HTML document, so an EPUB made of a few large
 documents shows only a few pages and coarse reading progress. Printed pages are estimated
 at 250 words per page.
 
-"Keep" excludes the group's other files from the build. They stay untouched in `input/`,
-are listed in the report, and can be restored on the "excluded files" page. "Not
-duplicates" hides the group.
+Select the file(s) to keep: the group's other files are excluded from the build. If you
+keep several files, they stay a group until you keep only one or mark them as not
+duplicates. "Not duplicates" on a group whose files were only grouped by similar names
+splits it into separate books. Resolving a group also updates the review queue.
+Excluded files stay untouched in `input/`, are listed in the report, and can be restored
+on the Excluded Files page.
 
 **3. Build.** Only accepted books are written to `output/`, and only when their metadata
 changed since the last build. Each build of a book works like this:
@@ -177,10 +211,18 @@ docker compose --profile e2e rm -sf kavita-e2e      # removes the test Kavita an
 | `scoring.py` | checks candidates against evidence, auto-accept rule |
 | `identify.py` | identify stage: decides each book's metadata |
 | `pipeline.py` | build stage: writes accepted books to output |
-| `web/` | review web UI (FastAPI, htmx) |
+| `web/` | web UI "Ebook Library Manager" (FastAPI, htmx) |
+| `jobs.py` | runs commands as background jobs for the web UI |
+| `commands.py` | the commands the web UI can start |
+| `progress.py` | state of every input file for the Files page |
+| `report.py` | report data, Markdown and web page |
 | `series.py` | Kavita series names, "Title (Author)" on title clashes |
 | `duplicates.py` | finds groups of possible duplicate files |
 | `fileinfo.py` | size, format, Kavita pages and printed pages of a file |
 | `kavita.py` | Kavita API client (login, libraries, sequential scans, series) |
 | `kavita_verify.py` | compares Kavita's series with the built books |
 | `__main__.py` | command line |
+
+## License
+
+MIT, see [LICENSE](LICENSE).

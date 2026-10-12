@@ -18,3 +18,8 @@ mislabeled_folder = "_mislabeled"
 # calibre's Amazon.com source is off: it starts a browser for every book, is slow, and
 # returned no results from this network.
 sources = ["calibre: Google", "calibre: Edelweiss", "Open Library"]
+
+# Top-level output folder with unchanged copies of the files ignored in the review (e.g.
+# pictures saved as PDF), keeping their input paths. Outside the libraries, so Kavita
+# doesn't show them.
+ignored_folder = "_ignored"

@@ -1,19 +1,31 @@
-{# About this file: list of groups of possible duplicate files. #}
+{# About this file: groups of possible duplicate files, in sections from certain to possible. #}
 {% extends "base.html" %}
-{% block title %}Possible duplicates - ebookprep review{% endblock %}
+{% block title %}Possible Duplicates - Ebook Library Manager{% endblock %}
 {% block content %}
-<h2>Possible duplicates</h2>
-<table>
-  <tr><th>Book</th><th>Why</th><th>Files</th><th>Placements</th></tr>
-  {% for group in groups %}
-  <tr>
-    <td><a href="/duplicates/{{ group.key }}">{{ group.title }}</a></td>
-    <td>{{ group.reasons | join(", ") }}</td>
-    <td>{{ group.files | length }}</td>
-    <td class="muted">{{ group.files | map(attribute="placement") | unique | join(", ") }}</td>
-  </tr>
-  {% else %}
-  <tr><td colspan="4" class="muted">No possible duplicates left.</td></tr>
-  {% endfor %}
-</table>
+<h2>Possible Duplicates</h2>
+{% set explanations = {
+  "certain": "Files of one book, the same ISBN, or the same title and a shared author.",
+  "likely": "The same main title (without subtitle and edition) and a shared author, or an unknown author.",
+  "possible": "A shared author and a title that starts like the other one, or the same main title by different authors. Check these carefully.",
+} %}
+{% for tier in tiers %}
+{% set tier_groups = groups | selectattr("tier", "equalto", tier) | list %}
+<details id="{{ tier }}" {{ "open" if tier_groups }}>
+  <summary>{{ tier | capitalize }} ({{ tier_groups | length }})</summary>
+  <p class="muted">{{ explanations[tier] }}</p>
+  <table>
+    <tr><th>Book</th><th>Why</th><th>Files</th><th>Placements</th></tr>
+    {% for group in tier_groups %}
+    <tr>
+      <td><a href="/duplicates/{{ group.key }}">{{ group.title }}</a></td>
+      <td>{{ group.reasons | join(", ") }}</td>
+      <td>{{ group.files | length }}</td>
+      <td class="muted">{{ group.files | map(attribute="placement") | unique | join(", ") }}</td>
+    </tr>
+    {% else %}
+    <tr><td colspan="4" class="muted">None.</td></tr>
+    {% endfor %}
+  </table>
+</details>
+{% endfor %}
 {% endblock %}

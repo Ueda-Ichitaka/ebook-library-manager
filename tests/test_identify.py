@@ -297,3 +297,19 @@ def test_rescore_command(tmp_path, capsys):
 
     assert exit_code == 0
     assert "rescore:" in capsys.readouterr().out
+
+
+def test_log_names_books_and_explains_the_summary(tmp_path):
+    folder = tmp_path / "input" / "IT" / "Android"
+    folder.mkdir(parents=True)
+    make_pdf(folder / "Some Book - Some Author.pdf")
+    run(tmp_path, [FakeSource()])
+    make_pdf(folder / "Other Book - Other Author.pdf")
+    lines = []
+
+    identify(tmp_path / "input", tmp_path / "work", CONFIG, [FakeSource()], log=lines.append)
+
+    assert lines[0].startswith("[book 1 of 2] IT/Android/Other Book")
+    assert lines[-1] == (
+        "identify: 2 books in the input; 1 new (0 accepted, 1 waiting for review), 1 already known, 0 failed"
+    )

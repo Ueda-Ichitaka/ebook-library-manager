@@ -174,3 +174,33 @@ def test_local_full_name_wins_over_bare_surname():
     bare = candidate("Wicca: A Guide for the Solitary Practitioner", authors=("Cunningham",))
 
     assert decide(local, [bare], evidence).metadata.authors == ("Scott Cunningham",)
+
+
+@pytest.mark.parametrize(
+    ("local_title", "accepted_title", "authors"),
+    [
+        ("Müller", "Anorganische Strukturchemie", ("Ulrich Müller",)),
+        ("Holleman Wiberg", "Lehrbuch der anorganischen Chemie", ("A. F. Holleman", "Egon Wiberg", "Nils Wiberg")),
+        ("Janiak Meyer Gudat Kurz", "Riedel Moderne Anorganische Chemie", ("Christoph Janiak", "Dietrich Gudat", "Philipp Kurz", "H.-J. Meyer")),
+    ],
+)
+def test_filename_with_only_the_authors_is_not_mislabeled(local_title, accepted_title, authors):
+    assert not content_differs(local_title, accepted_title, authors)
+
+
+def test_filename_naming_other_authors_is_still_mislabeled():
+    assert content_differs("Huheey Keiter Keiter", "Trennungsmethoden der analytischen Chemie", ("Rudolf Bock",))
+
+
+@pytest.mark.parametrize(
+    ("local_title", "accepted_title", "authors"),
+    [
+        ("Janiak Meyer Gudat Kurz", "Riedel Moderne Anorganische Chemie",
+         ("Christoph Janiak", "Dietrich Gudat", "Hans-Jürgen Meyer")),
+        ("George R. R. Martin - Das Lied von Eis und Feuer 03", "Das Lied von Eis und Feuer 3: Der Thron der Sieben Königreiche",
+         ("George R. R. Martin",)),
+        ("DE201309", "Raspberry Pi: 45 Experimente mit Hard- und Software", ("Bert van Dam",)),
+    ],
+)
+def test_more_filenames_that_are_not_another_book(local_title, accepted_title, authors):
+    assert not content_differs(local_title, accepted_title, authors)

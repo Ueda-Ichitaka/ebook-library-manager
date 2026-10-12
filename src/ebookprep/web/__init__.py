@@ -1,27 +1,47 @@
-"""About this file: the review web UI (FastAPI, server-rendered pages with htmx).
+"""About this file: the web UI "Ebook Library Manager" (FastAPI, server-rendered pages with htmx).
 
 It works on the same SQLite state as the pipeline. The overview shows the review queue;
 a book page shows the book's files (which can be opened in the browser to check them),
 why it needs review, the evidence from its first pages, and every online candidate with
 its checks. The reviewer can copy a candidate into the form, correct any field and accept,
-which stores the decision ("user") and moves on to the next book; or split a group whose
-files turned out to be different books.
+which stores the decision ("user") and moves on to the next open book of the same
+placement (in queue order), or back to the queue when the placement is done; look up an ISBN typed
+into the form, which adds the results as candidates and fills the form with the best one; split a group whose
+files turned out to be different books; or ignore the book (e.g. a picture saved as PDF),
+which moves its files to the skipped files. The review queue is sectioned by placement
+and can hide such image files; that choice is kept in a cookie, so it holds on every page
+and for choosing the next book after accept or ignore. The Update button brings the queue in step with decisions
+made in the duplicates view (see duplicates.reconcile_reviews).
 
-The duplicates view lists groups of files that may be the same book (see duplicates.py)
+The duplicates view lists groups of files that may be the same book in sections from
+certain to possible (see duplicates.py)
 with size, format and pages (as Kavita counts them, and estimated printed pages). The
 reviewer keeps one file, which excludes the others from the build, or dismisses the
-group. Excluded files are listed and can be restored.
+group. Several files can be kept: the others are excluded and the kept ones stay a group
+until only one is kept or the group is dismissed. Dismissing a group of one book whose
+files were only grouped by similar names splits it into separate books. Excluded and
+ignored files are listed and can be restored.
+
+The mislabeled page lists the books whose file contains a different book than its name
+says. Each can be moved to another placement (the next build puts it there instead of
+the mislabeled folder; input stays untouched), moved back, or marked as not mislabeled.
 
 The actions page starts every pipeline command (identify, rescore, build, report, Kavita
 check) as a background job (see jobs.py) and shows its live log; the files page shows the
 state of every input file and the progress per placement (see progress.py); the report
 page shows the report data (see report.py). Accepted books are written to the output by the
 build stage. The UI has no login and is meant to be reached only from the local machine.
+Because a website open in the same browser could still send forms to it, every POST must
+come from the UI's own pages (Origin/Referer check), and placement values given to
+commands are validated so they can never be read as command-line options.
 """
 
 import html
+import re
 from collections.abc import Callable
+from dataclasses import replace
 from pathlib import Path
+from urllib.parse import urlsplit
 
 from fastapi import FastAPI, Form, HTTPException, Request
 from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
@@ -30,13 +50,17 @@ from fastapi.templating import Jinja2Templates
 
 from ebookprep.commands import COMMANDS, CommandSettings, command_argv
 from ebookprep.config import Config, load_config
-from ebookprep.duplicates import DuplicateGroup, find_duplicates
+from ebookprep.duplicates import TIERS, DuplicateGroup, find_duplicates, reconcile_reviews
+from ebookprep.filenames import is_valid_isbn
+from ebookprep.identify import REASON_SIMILAR_GROUP, evidence_of, stored_candidates
 from ebookprep.fileinfo import FileInfo, file_info
 from ebookprep.jobs import JobBusy, JobRunner
 from ebookprep.metadata import BookMetadata
 from ebookprep.progress import STATES, file_progress, summarize
 from ebookprep.report import summary_report
-from ebookprep.scoring import fill_gaps
+from ebookprep.scoring import assess, fill_gaps
+from ebookprep.sources import LookupQuery, MetadataSource, lookup_all, plain_date
+from ebookprep.sources.registry import default_sources
 from ebookprep.state import BookRow, StateStore
 
 _HERE = Path(__file__).parent
@@ -44,6 +68,15 @@ _MEDIA_TYPES = {".pdf": "application/pdf", ".epub": "application/epub+zip"}
 
 
 LOG_TAIL_BYTES = 50_000
+HIDE_IMAGES_COOKIE = "hide_images"
+# a placement like "IT/Security/Pentesting": path segments starting with a letter or digit
+_PLACEMENT = re.compile(r"[^\W_][\w .,&()'+-]*(/[^\W_][\w .,&()'+-]*)*")
+# a picture saved as PDF, e.g. "AZ Regal.jpg.pdf"
+_IMAGE_FILE = re.compile(r"\.(jpe?g|png|gif|bmp|tiff?|webp|heic)(\.pdf)?$", re.IGNORECASE)
+
+
+def is_image_file(path: str) -> bool:
+    return bool(_IMAGE_FILE.search(path))
 # htmx stops polling an element when the response has this status
 HTMX_STOP_POLLING = 286
 
@@ -55,6 +88,7 @@ def create_app(
     config_path: Path = Path("config.toml"),
     kavita_url: str = "http://127.0.0.1:5000",
     command_builder: Callable[..., list[str]] = command_argv,
+    sources_factory: Callable[[], list[MetadataSource]] | None = None,
 ) -> FastAPI:
     store = StateStore(work_root / "state.db")
     runner = JobRunner(store, work_root / "jobs")
@@ -68,6 +102,14 @@ def create_app(
     templates = Jinja2Templates(directory=_HERE / "templates")
     app = FastAPI(title="ebookprep review")
     app.mount("/static", StaticFiles(directory=_HERE / "static"), name="static")
+
+    @app.middleware("http")
+    async def same_origin_posts_only(request: Request, call_next):
+        if request.method not in ("GET", "HEAD", "OPTIONS"):
+            source = request.headers.get("origin") or request.headers.get("referer")
+            if source and urlsplit(source).netloc != request.headers.get("host"):
+                return HTMLResponse("Requests from other sites are not accepted.", status_code=403)
+        return await call_next(request)
 
     def get_book(book_id: int) -> BookRow:
         try:
@@ -87,7 +129,7 @@ def create_app(
         return info_cache[key]
 
     def duplicate_groups() -> list[DuplicateGroup]:
-        return find_duplicates(store.books(), store.excluded_paths(), store.dismissed_duplicates())
+        return find_duplicates(store.books(), store.unused_paths(), store.dismissed_duplicates())
 
     def get_group(key: str) -> DuplicateGroup:
         group = next((g for g in duplicate_groups() if g.key == key), None)
@@ -96,24 +138,49 @@ def create_app(
         return group
 
     @app.get("/", response_class=HTMLResponse)
-    def overview(request: Request, status: str = "review"):
-        excluded = store.excluded_paths()
-        books = [b for b in store.books() if any(s not in excluded for s in b.sources)]
+    def overview(request: Request, status: str = "review", hide_images: bool = False, apply: bool = False):
+        if not apply and "hide_images" not in request.query_params:
+            hide_images = _hides_images(request)
+        unused = store.unused_paths()
+        books = [b for b in store.books() if any(s not in unused for s in b.sources)]
         if status == "mislabeled":
             shown = [b for b in books if b.mislabeled]
         else:
             shown = [b for b in books if status == "all" or b.status == status]
+        if hide_images:
+            shown = [b for b in shown if not all(is_image_file(s) for s in b.sources)]
+        sections: dict[str, list[BookRow]] = {}
+        for b in sorted(shown, key=lambda b: (b.placement, b.metadata.title.casefold())):
+            sections.setdefault(b.placement, []).append(b)
+        review = [b for b in books if b.status == "review"]
         counts = {
-            "review": sum(b.status == "review" for b in books),
+            "review": len(review),
+            "review_files": sum(len([s for s in b.sources if s not in unused]) for b in review),
             "accepted": sum(b.status == "accepted" for b in books),
             "built": sum(b.built_folder is not None and not b.needs_build for b in books),
             "to_build": sum(b.needs_build for b in books),
             "mislabeled": sum(b.mislabeled for b in books),
             "duplicates": len(duplicate_groups()),
         }
-        return templates.TemplateResponse(
-            request, "overview.html", {"books": shown, "counts": counts, "status": status}
+        response = templates.TemplateResponse(
+            request,
+            "overview.html",
+            {
+                "sections": sections,
+                "shown": len(shown),
+                "counts": counts,
+                "status": status,
+                "hide_images": hide_images,
+                "active_files": {b.id: len([s for s in b.sources if s not in unused]) for b in shown},
+            },
         )
+        response.set_cookie(HIDE_IMAGES_COOKIE, "1" if hide_images else "0", max_age=365 * 24 * 3600, samesite="lax")
+        return response
+
+    @app.post("/refresh")
+    def refresh(request: Request):
+        reconcile_reviews(store)
+        return RedirectResponse(request.headers.get("referer") or "/", status_code=303)
 
     @app.get("/books/{book_id}", response_class=HTMLResponse)
     def book_page(request: Request, book_id: int):
@@ -130,11 +197,13 @@ def create_app(
         candidates = store.candidates(book_id)
         if not 0 <= rank < len(candidates):
             raise HTTPException(status_code=404, detail="no such candidate")
-        metadata = fill_gaps(candidates[rank].metadata, book.local_metadata)
+        chosen = candidates[rank].metadata
+        metadata = fill_gaps(replace(chosen, pubdate=plain_date(chosen.pubdate)), book.local_metadata)
         return templates.TemplateResponse(request, "_form.html", {"book": book, "form": metadata})
 
     @app.post("/books/{book_id}/accept")
     def accept(
+        request: Request,
         book_id: int,
         title: str = Form(""),
         authors: str = Form(""),
@@ -145,21 +214,66 @@ def create_app(
         tags: str = Form(""),
         comments: str = Form(""),
     ):
-        get_book(book_id)
+        book = get_book(book_id)
         if not title.strip():
             return HTMLResponse("A title is required.", status_code=422)
-        metadata = BookMetadata(
-            title=title.strip(),
-            authors=tuple(a.strip() for a in authors.splitlines() if a.strip()),
-            isbn=isbn.strip().replace("-", "") or None,
-            publisher=publisher.strip() or None,
-            language=language.strip() or None,
-            pubdate=pubdate.strip() or None,
-            comments=comments.strip() or None,
-            tags=tuple(t.strip() for t in tags.split(",") if t.strip()),
-        )
+        metadata = _form_metadata(title, authors, isbn, publisher, language, pubdate, tags, comments)
         store.decide(book_id, metadata, decided_by="user")
-        return RedirectResponse(_next_review(store), status_code=303)
+        return RedirectResponse(_next_review(store, book.placement, _hides_images(request)), status_code=303)
+
+    def sources() -> list[MetadataSource]:
+        return sources_factory() if sources_factory else default_sources(config())
+
+    @app.post("/books/{book_id}/isbn-lookup", response_class=HTMLResponse)
+    def isbn_lookup(
+        request: Request,
+        book_id: int,
+        title: str = Form(""),
+        authors: str = Form(""),
+        isbn: str = Form(""),
+        publisher: str = Form(""),
+        language: str = Form(""),
+        pubdate: str = Form(""),
+        tags: str = Form(""),
+        comments: str = Form(""),
+    ):
+        book = get_book(book_id)
+        typed = _form_metadata(title, authors, isbn, publisher, language, pubdate, tags, comments)
+        digits = re.sub(r"[\s-]", "", isbn).upper()
+
+        def page(form: BookMetadata, message: str, status: int = 200):
+            context = {"book": book, "candidates": store.candidates(book_id), "form": form, "lookup_message": message}
+            return templates.TemplateResponse(request, "book.html", context, status_code=status)
+
+        if not is_valid_isbn(digits):
+            return page(typed, f"{isbn.strip() or 'empty'} is not a valid ISBN", status=422)
+
+        query = LookupQuery(title=typed.title or book.metadata.title, authors=typed.authors, isbn=digits)
+        result = lookup_all(sources(), query)
+        errors = "; ".join(f"{name}: {error}" for name, error in result.errors)
+        if not result.candidates:
+            return page(typed, f"No results for ISBN {digits}" + (f" ({errors})" if errors else ""))
+
+        unused = store.unused_paths()
+        evidence = evidence_of([input_root / s for s in book.sources if s not in unused])
+        local = replace(typed, isbn=digits)
+        ranked = sorted((assess(c, local, evidence) for c in result.candidates), key=lambda a: -a.score)
+        store.add_candidates(book_id, stored_candidates(ranked))
+        best = ranked[0].candidate.metadata
+        filled = fill_gaps(best, local)
+        found = f"Found {len(ranked)} result(s) for ISBN {digits}; the form shows the best one, check it and accept."
+        return page(filled, found + (f" ({errors})" if errors else ""))
+
+    @app.post("/books/{book_id}/ignore")
+    def ignore(request: Request, book_id: int):
+        book = get_book(book_id)
+        store.ignore_sources(list(book.sources))
+        return RedirectResponse(_next_review(store, book.placement, _hides_images(request)), status_code=303)
+
+    @app.post("/ignored/restore")
+    def restore_ignored(path: str = Form("")):
+        store.restore_ignored(path)
+        return RedirectResponse("/excluded", status_code=303)
 
     @app.post("/books/{book_id}/split")
     def split(book_id: int):
@@ -169,7 +283,7 @@ def create_app(
 
     @app.get("/duplicates", response_class=HTMLResponse)
     def duplicates_list(request: Request):
-        return templates.TemplateResponse(request, "duplicates.html", {"groups": duplicate_groups()})
+        return templates.TemplateResponse(request, "duplicates.html", {"groups": duplicate_groups(), "tiers": TIERS})
 
     @app.get("/duplicates/{key}", response_class=HTMLResponse)
     def duplicate_detail(request: Request, key: str):
@@ -181,23 +295,33 @@ def create_app(
         return templates.TemplateResponse(request, "duplicate.html", {"group": group, "rows": rows})
 
     @app.post("/duplicates/{key}/keep")
-    def keep(key: str, keep: str = Form("")):
+    def keep(key: str, keep: list[str] = Form([])):
         group = get_group(key)
         paths = [f.path for f in group.files]
-        if keep not in paths:
-            return HTMLResponse("Choose one of the group's files to keep.", status_code=422)
-        store.exclude_sources([p for p in paths if p != keep], kept=keep, group=key)
+        if not keep or any(k not in paths for k in keep):
+            return HTMLResponse("Choose the group's file(s) to keep.", status_code=422)
+        others = [p for p in paths if p not in keep]
+        if others:
+            store.exclude_sources(others, kept=", ".join(keep), group=key)
+        reconcile_reviews(store)
         return RedirectResponse("/duplicates", status_code=303)
 
     @app.post("/duplicates/{key}/dismiss")
     def dismiss(key: str):
-        get_group(key)
-        store.dismiss_duplicates(key)
+        group = get_group(key)
+        book_ids = {f.book_id for f in group.files}
+        only_book = store.book(next(iter(book_ids))) if len(book_ids) == 1 else None
+        if only_book is not None and REASON_SIMILAR_GROUP in only_book.review_reasons:
+            store.split_book(only_book.id)
+        else:
+            store.dismiss_duplicates(key)
         return RedirectResponse("/duplicates", status_code=303)
 
     @app.get("/excluded", response_class=HTMLResponse)
     def excluded_list(request: Request):
-        return templates.TemplateResponse(request, "excluded.html", {"excluded": store.excluded_sources()})
+        return templates.TemplateResponse(
+            request, "excluded.html", {"excluded": store.excluded_sources(), "ignored": store.ignored_sources()}
+        )
 
     @app.post("/excluded/restore")
     def restore(path: str = Form("")):
@@ -206,6 +330,30 @@ def create_app(
 
     def config() -> Config:
         return load_config(config_path) if config_path.is_file() else Config()
+
+    @app.get("/mislabeled", response_class=HTMLResponse)
+    def mislabeled_list(request: Request):
+        books = sorted((b for b in store.books() if b.mislabeled), key=lambda b: (b.placement, b.metadata.title))
+        placements = sorted({b.placement for b in store.books()})
+        return templates.TemplateResponse(request, "mislabeled.html", {"books": books, "placements": placements})
+
+    @app.post("/books/{book_id}/move")
+    def move(book_id: int, placement: str = Form("")):
+        get_book(book_id)
+        if placement and placement not in {b.placement for b in store.books()}:
+            return HTMLResponse(f"Unknown placement: {html.escape(placement)}", status_code=422)
+        store.move_book(book_id, placement or None)
+        return RedirectResponse("/mislabeled", status_code=303)
+
+    @app.post("/books/{book_id}/not-mislabeled")
+    def not_mislabeled(book_id: int):
+        book = get_book(book_id)
+        store.set_mislabeled(book_id, False)
+        store.move_book(book_id, None)
+        # the user's word: "rescore" must not flag the book again
+        if book.status == "accepted":
+            store.decide(book_id, book.metadata, decided_by="user")
+        return RedirectResponse("/mislabeled", status_code=303)
 
     @app.get("/actions", response_class=HTMLResponse)
     def actions(request: Request):
@@ -218,6 +366,9 @@ def create_app(
         if name not in COMMANDS:
             raise HTTPException(status_code=404, detail="no such command")
         placements = tuple(p.strip() for p in only.split(",") if p.strip())
+        invalid = [p for p in placements if not _PLACEMENT.fullmatch(p)]
+        if invalid:
+            return HTMLResponse(f"Not a placement: {html.escape(', '.join(invalid))}", status_code=422)
         try:
             job_id = runner.start(name, command_builder(name, settings, only=placements))
         except JobBusy as busy:
@@ -278,7 +429,35 @@ def create_app(
     return app
 
 
-def _next_review(store: StateStore) -> str:
-    waiting = store.books(status="review")
+def _form_metadata(title, authors, isbn, publisher, language, pubdate, tags, comments) -> BookMetadata:
+    return BookMetadata(
+        title=title.strip(),
+        authors=tuple(a.strip() for a in authors.splitlines() if a.strip()),
+        isbn=re.sub(r"[\s-]", "", isbn) or None,
+        publisher=publisher.strip() or None,
+        language=language.strip() or None,
+        pubdate=pubdate.strip() or None,
+        comments=comments.strip() or None,
+        tags=tuple(t.strip() for t in tags.split(",") if t.strip()),
+    )
+
+
+def _hides_images(request: Request) -> bool:
+    return request.cookies.get(HIDE_IMAGES_COOKIE) == "1"
+
+
+def _next_review(store: StateStore, placement: str, hide_images: bool = False) -> str:
+    """The first open book of the placement in queue order (by title), else the queue;
+    image files are skipped while the queue hides them."""
+    unused = store.unused_paths()
+    waiting = sorted(
+        (
+            b for b in store.books(status="review")
+            if b.placement == placement
+            and any(s not in unused for s in b.sources)
+            and not (hide_images and all(is_image_file(s) for s in b.sources))
+        ),
+        key=lambda b: b.metadata.title.casefold(),
+    )
     return f"/books/{waiting[0].id}" if waiting else "/"
 

@@ -88,3 +88,11 @@ def test_sources_are_optional_and_must_be_a_list_of_names(tmp_path):
     )
     with pytest.raises(ConfigError, match="sources"):
         load_config(write(tmp_path, 'sources = "Open Library"\n'))
+
+
+def test_ignored_folder_defaults_and_validation(tmp_path):
+    assert load_config(write(tmp_path, "")).ignored_folder == "_ignored"
+    assert load_config(write(tmp_path, 'ignored_folder = "not books"\n')).ignored_folder == "not books"
+    for bad in ('"a/b"', '""', "3"):
+        with pytest.raises(ConfigError, match="ignored_folder"):
+            load_config(write(tmp_path, f"ignored_folder = {bad}\n"))

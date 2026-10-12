@@ -2,8 +2,8 @@
 
 A report collects the build results (done, failed and flagged, retried after a silent
 calibre failure with the removed XMP packets, repaired PDFs, conversions), the books
-whose content differs from their filename, the files excluded as duplicates and the
-skipped input files. There is a report per build run and a summary with the newest result
+whose content differs from their filename, the files excluded as duplicates, the files
+ignored in the review and the skipped input files. There is a report per build run and a summary with the newest result
 of every book across all runs. ReportData holds the content; it is written as Markdown to
 the work folder and shown as a page in the web UI.
 """
@@ -11,7 +11,7 @@ the work folder and shown as a page in the web UI.
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from ebookprep.state import BookRow, ExcludedSource, RecordEntry, StateStore
+from ebookprep.state import BookRow, ExcludedSource, IgnoredSource, RecordEntry, StateStore
 
 
 @dataclass
@@ -21,6 +21,7 @@ class ReportData:
     skipped: list[tuple[str, str]]
     mislabeled: list[BookRow] = field(default_factory=list)
     excluded: list[ExcludedSource] = field(default_factory=list)
+    ignored: list[IgnoredSource] = field(default_factory=list)
 
     @property
     def done(self) -> list[RecordEntry]:
@@ -70,6 +71,7 @@ def summary_report(store: StateStore) -> ReportData:
         store.all_skipped(),
         mislabeled=[b for b in store.books() if b.mislabeled],
         excluded=store.excluded_sources(),
+        ignored=store.ignored_sources(),
     )
 
 
@@ -134,6 +136,11 @@ def render_markdown(data: ReportData) -> str:
         lines += ["## Excluded duplicate files", "", "These input files are not built; another file was kept.", ""]
         lines += ["| Excluded file | Kept file |", "|---|---|"]
         lines += [f"| `{e.path}` | `{e.kept}` |" for e in data.excluded]
+        lines.append("")
+
+    if data.ignored:
+        lines += ["## Ignored in review", "", "These input files are not built; they were ignored in the review.", ""]
+        lines += [f"- `{i.path}`" for i in data.ignored]
         lines.append("")
 
     lines += ["## Skipped input files", ""]

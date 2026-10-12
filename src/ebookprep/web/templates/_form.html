@@ -5,6 +5,9 @@
   <label>Authors (one per line)
     <textarea name="authors" rows="3">{{ form.authors | join("\n") }}</textarea></label>
   <label>ISBN <input name="isbn" value="{{ form.isbn or '' }}"></label>
+  <p><button class="secondary" type="submit" formaction="/books/{{ book.id }}/isbn-lookup" formnovalidate>Look up ISBN</button>
+    <span class="muted">adds the results to the candidates and fills this form</span></p>
+  {% if lookup_message %}<p class="reason">{{ lookup_message }}</p>{% endif %}
   <label>Publisher <input name="publisher" value="{{ form.publisher or '' }}"></label>
   <label>Language <input name="language" value="{{ form.language or '' }}"></label>
   <label>Published <input name="pubdate" value="{{ form.pubdate or '' }}"></label>

@@ -1,8 +1,23 @@
 {# About this file: input files excluded as duplicates, with restore. #}
 {% extends "base.html" %}
-{% block title %}Excluded files - ebookprep review{% endblock %}
+{% block title %}Excluded Files - Ebook Library Manager<h2 id="ignored">Ignored Files</h2>
+<p class="muted">These input files were ignored in the review (not a book). Restoring one puts it back into the review.</p>
+<table>
+  <tr><th>Ignored file</th><th>Since</th><th></th></tr>
+  {% for i in ignored %}
+  <tr>
+    <td>{{ i.path }}</td>
+    <td class="muted">{{ i.ignored_at }}</td>
+    <td><form method="post" action="/ignored/restore"><input type="hidden" name="path" value="{{ i.path }}">
+      <button class="secondary" type="submit">Restore</button></form></td>
+  </tr>
+  {% else %}
+  <tr><td colspan="3" class="muted">No ignored files.</td></tr>
+  {% endfor %}
+</table>
+{% endblock %}
 {% block content %}
-<h2>Excluded files</h2>
+<h2>Excluded Files</h2>
 <p class="muted">These input files are not built because another file was kept. Restoring one builds it again.</p>
 <table>
   <tr><th>Excluded file</th><th>Kept file</th><th>Since</th><th></th></tr>
@@ -16,6 +31,21 @@
   </tr>
   {% else %}
   <tr><td colspan="4" class="muted">No excluded files.</td></tr>
+  {% endfor %}
+</table>
+<h2 id="ignored">Ignored Files</h2>
+<p class="muted">These input files were ignored in the review (not a book). Restoring one puts it back into the review.</p>
+<table>
+  <tr><th>Ignored file</th><th>Since</th><th></th></tr>
+  {% for i in ignored %}
+  <tr>
+    <td>{{ i.path }}</td>
+    <td class="muted">{{ i.ignored_at }}</td>
+    <td><form method="post" action="/ignored/restore"><input type="hidden" name="path" value="{{ i.path }}">
+      <button class="secondary" type="submit">Restore</button></form></td>
+  </tr>
+  {% else %}
+  <tr><td colspan="3" class="muted">No ignored files.</td></tr>
   {% endfor %}
 </table>
 {% endblock %}

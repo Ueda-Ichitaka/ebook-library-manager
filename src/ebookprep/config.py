@@ -12,7 +12,9 @@ sources lists the online metadata sources to use, by name (see sources/registry.
 known sources are used when it is missing.
 
 mislabeled_folder is the top-level output folder for files that contain a different book
-than their name says; it is outside the library folders, so Kavita doesn't show them.
+than their name says; ignored_folder holds unchanged copies of the files ignored in the
+review, with their input paths. Both are outside the library folders, so Kavita doesn't
+show them.
 """
 
 import tomllib
@@ -30,6 +32,7 @@ class Config:
     topic_categories: frozenset[str] = frozenset()
     openlibrary_contact: str = ""
     mislabeled_folder: str = "_mislabeled"
+    ignored_folder: str = "_ignored"
     # names of the online metadata sources to use, None for all
     sources: tuple[str, ...] | None = None
 
@@ -49,9 +52,8 @@ def load_config(path: Path) -> Config:
     if not isinstance(contact, str):
         raise ConfigError("openlibrary_contact must be a string")
 
-    mislabeled = data.get("mislabeled_folder", "_mislabeled")
-    if not isinstance(mislabeled, str) or not mislabeled.strip() or "/" in mislabeled or "\\" in mislabeled:
-        raise ConfigError("mislabeled_folder must be a single folder name")
+    mislabeled = _folder_name(data, "mislabeled_folder", "_mislabeled")
+    ignored = _folder_name(data, "ignored_folder", "_ignored")
 
     sources = data.get("sources")
     if sources is not None and (not isinstance(sources, list) or not all(isinstance(n, str) for n in sources)):
@@ -60,9 +62,17 @@ def load_config(path: Path) -> Config:
     return Config(
         topic_categories=frozenset(_validate_entry(e) for e in entries),
         openlibrary_contact=contact,
-        mislabeled_folder=mislabeled.strip(),
+        mislabeled_folder=mislabeled,
+        ignored_folder=ignored,
         sources=tuple(sources) if sources is not None else None,
     )
+
+
+def _folder_name(data: dict, key: str, default: str) -> str:
+    value = data.get(key, default)
+    if not isinstance(value, str) or not value.strip() or "/" in value or "\\" in value:
+        raise ConfigError(f"{key} must be a single folder name")
+    return value.strip()
 
 
 def _validate_entry(entry: str) -> str:

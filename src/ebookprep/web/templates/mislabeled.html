@@ -1,0 +1,43 @@
+{# About this file: books whose file contains a different book than its name; move them to a placement. #}
+{% extends "base.html" %}
+{% block title %}Mislabeled - Ebook Library Manager{% endblock %}
+{% block content %}
+<h2>Mislabeled Books</h2>
+<p class="muted">The file contains a different book than its name says. Such books are built into the mislabeled
+  folder outside the libraries, unless you move them to a category; the next build then puts them there.
+  The input files stay where they are.</p>
+<div class="scroll">
+<table>
+  <tr><th>Title from filename / .opf</th><th>Real content</th><th>Input file</th><th>Now in output</th>
+      <th>Move to</th><th></th></tr>
+  {% for b in books %}
+  <tr>
+    <td>{{ b.local_metadata.title }}</td>
+    <td><a href="/books/{{ b.id }}">{{ b.metadata.title }}</a><br><span class="muted">{{ b.metadata.authors | join(", ") }}</span></td>
+    <td class="muted">{{ b.sources | join(", ") }}</td>
+    <td class="muted">{{ b.built_folder or "not built yet" }}
+      {% if b.target_placement %}<br><span class="ok">moved to {{ b.target_placement }}</span>{% endif %}</td>
+    <td>
+      <form method="post" action="/books/{{ b.id }}/move">
+        <select name="placement">
+          <option value="">_mislabeled (outside the libraries)</option>
+          {% for p in placements %}
+          <option value="{{ p }}"{{ " selected" if p == b.target_placement }}>{{ p }}</option>
+          {% endfor %}
+        </select>
+        <button type="submit">Move</button>
+      </form>
+    </td>
+    <td>
+      <form method="post" action="/books/{{ b.id }}/not-mislabeled">
+        <button class="secondary" type="submit">Not mislabeled</button>
+      </form>
+    </td>
+  </tr>
+  {% else %}
+  <tr><td colspan="6" class="muted">No mislabeled books.</td></tr>
+  {% endfor %}
+</table>
+</div>
+<p class="muted">The next build applies the moves (Actions: Build).</p>
+{% endblock %}

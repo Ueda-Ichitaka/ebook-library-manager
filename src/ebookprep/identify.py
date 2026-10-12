@@ -67,7 +67,7 @@ def identify(
         files = [f for unit in group.units for f in unit.files]
         source_paths = tuple(relative(f.path, input_root) for f in files)
         key = json.dumps(sorted(source_paths), ensure_ascii=False)
-        label = f"[{number}/{len(groups)}] {'/'.join(group.placement.parts())}"
+        label = f"[book {number} of {len(groups)}] {'/'.join(group.placement.parts())}"
         if set(source_paths) <= known:
             summary.known += 1
             continue
@@ -83,7 +83,10 @@ def identify(
         summary.review += book.status == "review"
         log(f"{label}/{book.metadata.title}: {book.status} ({book.decided_by})")
 
-    log(f"identify: {summary}")
+    log(
+        f"identify: {len(groups)} books in the input; {summary.new} new ({summary.accepted} accepted, "
+        f"{summary.review} waiting for review), {summary.known} already known, {summary.failed} failed"
+    )
     return summary
 
 
@@ -150,6 +153,11 @@ def _outcome(decision: Decision, similar_group: bool, local_notes: tuple[str, ..
 
 
 def _stored(decision: Decision) -> tuple[StoredCandidate, ...]:
+    return stored_candidates(decision.assessments)
+
+
+def stored_candidates(assessments) -> tuple[StoredCandidate, ...]:
+    """Assessed candidates in the form they are stored for the review."""
     return tuple(
         StoredCandidate(
             source=a.candidate.source,
@@ -161,7 +169,7 @@ def _stored(decision: Decision) -> tuple[StoredCandidate, ...]:
             author_in_text=a.author_in_text,
             auto_acceptable=a.auto_acceptable,
         )
-        for a in decision.assessments
+        for a in assessments
     )
 
 
@@ -180,7 +188,7 @@ def rescore(input_root: Path, work_root: Path, log: Callable[[str], None] = prin
             summary.skipped += 1
             continue
         paths = [input_root / s for s in book.sources]
-        evidence = _evidence_of(paths)
+        evidence = evidence_of(paths)
         candidates = [
             normalize_candidate(Candidate(source=c.source, metadata=c.metadata, cover_url=c.cover_url))
             for c in store.candidates(book.id)
@@ -217,10 +225,11 @@ def _preferred_isbn(isbns: frozenset[str]) -> str | None:
 
 
 def _group_evidence(files: list[BookFile]) -> Evidence:
-    return _evidence_of([f.path for f in files])
+    return evidence_of([f.path for f in files])
 
 
-def _evidence_of(paths: list[Path]) -> Evidence:
+def evidence_of(paths: list[Path]) -> Evidence:
+    """Evidence from the first pages of a book's PDF and EPUB files, combined."""
     parts = [extract_evidence(p) for p in paths if p.suffix.lower() in EVIDENCE_FORMATS]
     return Evidence(
         text=" ".join(p.text for p in parts if p.text),

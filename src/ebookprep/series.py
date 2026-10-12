@@ -5,9 +5,10 @@ identifies a series by its normalized name (see kavita_normalize) and format wit
 library, so different books with the same title and a common format would be merged into
 one series (three different "Wicca" PDFs became one). Only for such clashes the series
 becomes "Title (First author)", with a counter if even that is not unique. The title
-itself stays unchanged. A library is the first folder of a book's placement; books
-waiting for review are not built and mislabeled books are outside the libraries, so they
-don't take part in clashes.
+itself stays unchanged. A library is the first folder of a book's placement (or of the
+placement a mislabeled book was moved to); books waiting for review are not built and
+mislabeled books that were not moved are outside the libraries, so they don't take part
+in clashes.
 """
 
 from collections import defaultdict
@@ -28,8 +29,8 @@ def series_names(books: list[BookRow]) -> dict[int, str]:
     names = {b.id: b.metadata.title for b in books if b.status == "accepted"}
     by_title: dict[tuple[str, str], list[BookRow]] = defaultdict(list)
     for b in books:
-        if b.status == "accepted" and not b.mislabeled:
-            library = b.placement.split("/")[0]
+        if b.status == "accepted" and (b.target_placement or not b.mislabeled):
+            library = (b.target_placement or b.placement).split("/")[0]
             by_title[(library, kavita_normalize(b.metadata.title))].append(b)
 
     for group in by_title.values():

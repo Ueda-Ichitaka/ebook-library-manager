@@ -363,7 +363,7 @@ def test_report_page_shows_report_data(control):
 
     page = client.get("/report")
 
-    assert "Failed (flagged)" in page.text and "Excluded duplicate files" in page.text
+    assert "Failed (flagged)" in page.text and "Excluded Duplicate Files" in page.text
     assert "IT/Android/x.epub" in page.text
 
 
@@ -377,3 +377,417 @@ def test_review_command_passes_paths_for_the_actions(tmp_path, monkeypatch):
           str(tmp_path / "out"), "--config", str(tmp_path / "config.toml"), "--kavita-url", "http://kavita:5000"])
 
     assert TestClient(started["app"]).get("/actions").status_code == 200
+
+
+# --- multi-select keep, review reconciliation, ignore, queue sections, branding
+
+
+@pytest.fixture
+def three_files(tmp_path):
+    from conftest import make_epub
+
+    from ebookprep.identify import REASON_SIMILAR_GROUP
+
+    input_root = tmp_path / "input"
+    folder = input_root / "BDSM" / "Shibari"
+    folder.mkdir(parents=True)
+    make_pdf(folder / "Bondage.pdf")
+    make_epub(folder / "Bondage.epub", title="Bondage")
+    (folder / "Bondage.azw").write_bytes(b"azw")
+    store = StateStore(tmp_path / "work" / "state.db")
+    meta = BookMetadata(title="Better Bondage for Every Body", authors=("Evie Vane",))
+    book_id = store.add_book(new_book(
+        "bondage", ("BDSM/Shibari/Bondage.pdf", "BDSM/Shibari/Bondage.epub", "BDSM/Shibari/Bondage.azw"),
+        placement="BDSM/Shibari", group_reason="similar", review_reasons=(REASON_SIMILAR_GROUP,),
+        metadata=meta, local_metadata=meta, candidates=(), decided_by="auto: Open Library"))
+    client = TestClient(create_app(work_root=tmp_path / "work", input_root=input_root))
+    return client, store, book_id
+
+
+def test_keeping_several_files_leaves_a_smaller_group(three_files):
+    client, store, book_id = three_files
+    key = group_url(client)
+
+    client.post(f"/duplicates/{key}/keep", data={"keep": ["BDSM/Shibari/Bondage.pdf", "BDSM/Shibari/Bondage.epub"]})
+
+    assert store.excluded_paths() == {"BDSM/Shibari/Bondage.azw"}
+    assert store.book(book_id).status == "review"
+    smaller = client.get(f"/duplicates/{group_url(client)}").text
+    assert "Bondage.pdf" in smaller and "Bondage.epub" in smaller and "Bondage.azw" not in smaller
+
+    client.post(f"/duplicates/{group_url(client)}/keep", data={"keep": ["BDSM/Shibari/Bondage.pdf"]})
+
+    assert store.book(book_id).status == "accepted"
+    assert "Possible duplicates: 0" in client.get("/").text
+
+
+def test_duplicate_detail_uses_checkboxes(three_files):
+    client, *_ = three_files
+
+    page = client.get(f"/duplicates/{group_url(client)}")
+
+    assert 'type="checkbox" name="keep"' in page.text
+
+
+def test_not_duplicates_splits_a_similar_names_group(three_files):
+    client, store, book_id = three_files
+
+    client.post(f"/duplicates/{group_url(client)}/dismiss")
+
+    assert book_id not in {b.id for b in store.books()}
+    assert sorted(len(b.sources) for b in store.books()) == [1, 1, 1]
+
+
+def test_update_button_reconciles_the_review_queue(three_files):
+    client, store, book_id = three_files
+    store.exclude_sources(["BDSM/Shibari/Bondage.epub", "BDSM/Shibari/Bondage.azw"], kept="BDSM/Shibari/Bondage.pdf", group="g")
+
+    response = client.post("/refresh", follow_redirects=False)
+
+    assert response.status_code == 303
+    assert store.book(book_id).status == "accepted"
+
+
+def test_ignore_moves_a_book_to_skipped_and_restore_brings_it_back(setup):
+    client, store, first, second, _ = setup
+
+    response = client.post(f"/books/{first}/ignore", follow_redirects=False)
+
+    assert response.status_code == 303 and response.headers["location"] == f"/books/{second}"
+    assert store.ignored_paths() == {"IT/Android/Beginning Android Games - Robert Green.pdf"}
+    assert "Beginning Android Games" not in client.get("/").text
+    assert "Beginning Android Games - Robert Green.pdf" in client.get("/excluded").text
+
+    client.post("/ignored/restore", data={"path": "IT/Android/Beginning Android Games - Robert Green.pdf"})
+    assert store.ignored_paths() == set()
+
+
+def test_review_queue_is_sectioned_by_placement_and_can_hide_image_files(tmp_path):
+    store = StateStore(tmp_path / "work" / "state.db")
+    store.add_book(new_book("a", ("DIY/Plans/AZ Regal.jpg.pdf",), placement="DIY/Plans", metadata=BookMetadata(title="AZ Regal.jpg")))
+    store.add_book(new_book("b", ("DIY/Plans/Workbench.pdf",), placement="DIY/Plans", metadata=BookMetadata(title="Workbench")))
+    store.add_book(new_book("c", ("IT/Android/x.pdf", "IT/Android/x.epub"), metadata=BookMetadata(title="Android X")))
+    client = TestClient(create_app(work_root=tmp_path / "work", input_root=tmp_path / "input"))
+
+    page = client.get("/").text
+    filtered = client.get("/?hide_images=1").text
+
+    assert "<details" in page and "<summary>DIY/Plans" in page and "<summary>IT/Android" in page
+    assert "Waiting for review: 3 books (4 files)" in page
+    assert "AZ Regal.jpg" in page and "AZ Regal.jpg" not in filtered
+    assert "Workbench" in filtered
+    assert 'name="hide_images"' in page
+
+
+def test_branding_and_capitalized_navigation(setup):
+    client, *_ = setup
+
+    page = client.get("/").text
+
+    assert "<title>Ebook Library Manager</title>" in page
+    assert '<link rel="icon"' in page
+    assert "\N{BOOKS} Ebook Library Manager" in page
+    for label in (">Review Queue<", ">Accepted<", ">All<", ">Duplicates<", ">Excluded Files<", ">Actions<", ">Files<", ">Report<"):
+        assert label in page, label
+
+
+def test_report_has_a_table_of_contents(setup):
+    client, *_ = setup
+
+    page = client.get("/report").text
+
+    assert 'class="toc"' in page
+    for anchor in ("failed", "mislabeled", "excluded", "ignored", "retried", "repaired", "converted", "skipped"):
+        assert f'href="#{anchor}"' in page and f'id="{anchor}"' in page, anchor
+
+
+# --- security: argument injection and cross-site requests
+
+
+@pytest.mark.parametrize("only", ["--output /tmp", "-x", "IT/../..", "IT/Android; rm -rf /", "IT\nX"])
+def test_placement_values_that_could_be_options_or_escapes_are_rejected(control, only):
+    client, store = control
+
+    response = client.post("/actions/start", data={"name": "build", "only": only})
+
+    assert response.status_code == 422
+    assert store.jobs() == []
+
+
+def test_normal_placements_with_umlauts_and_spaces_are_accepted(control):
+    client, _ = control
+
+    response = client.post("/actions/start", data={"name": "report", "only": "Spiritualität/Witchcraft, DIY/Baupläne"},
+                           follow_redirects=False)
+
+    assert response.status_code == 303
+
+
+def test_posts_from_other_sites_are_rejected(control):
+    client, store = control
+
+    evil = client.post("/actions/start", data={"name": "report"}, headers={"Origin": "http://evil.example"})
+    evil_referer = client.post("/refresh", headers={"Referer": "http://evil.example/page"})
+    own = client.post("/actions/start", data={"name": "report"}, headers={"Origin": "http://testserver"},
+                      follow_redirects=False)
+
+    assert evil.status_code == 403 and evil_referer.status_code == 403
+    assert own.status_code == 303
+
+
+def test_review_queue_counts_only_files_still_in_use(three_files):
+    client, store, _ = three_files
+    store.exclude_sources(["BDSM/Shibari/Bondage.azw"], kept="BDSM/Shibari/Bondage.pdf, BDSM/Shibari/Bondage.epub", group="g")
+
+    page = client.get("/").text
+
+    row = page.split("Better Bondage for Every Body</a>")[1].split("</tr>")[0]
+    assert "<td>2</td>" in row
+
+
+def test_update_button_is_on_every_page(setup):
+    client, *_ = setup
+
+    for path in ("/", "/files", "/report", "/duplicates", "/actions", "/excluded"):
+        page = client.get(path).text
+        assert 'action="/refresh"' in page.split("</header>")[0], path
+
+
+# --- ISBN lookup from the book page
+
+
+class FakeIsbnSource:
+    name = "Fake Library"
+
+    def __init__(self, answers, error=None):
+        self.answers, self.error, self.queries = answers, error, []
+
+    def search(self, query):
+        from ebookprep.sources import SourceError
+
+        self.queries.append(query)
+        if self.error:
+            raise SourceError(self.error)
+        return list(self.answers.get(query.isbn, []))
+
+
+def isbn_client(tmp_path, source):
+    from ebookprep.sources import Candidate
+
+    input_root = tmp_path / "input"
+    (input_root / "IT" / "Android").mkdir(parents=True)
+    make_pdf(input_root / "IT/Android/Games.pdf")
+    store = StateStore(tmp_path / "work" / "state.db")
+    book_id = store.add_book(new_book("g", ("IT/Android/Games.pdf",), candidates=()))
+    app = create_app(work_root=tmp_path / "work", input_root=input_root, sources_factory=lambda: [source])
+    return TestClient(app), store, book_id
+
+
+FORM = {"title": "Beginning Android Games", "authors": "Robert Green", "isbn": "978-1-4302-4677-0",
+        "publisher": "", "language": "", "pubdate": "", "tags": "", "comments": "my note"}
+
+
+def test_isbn_lookup_adds_candidate_and_fills_the_form(tmp_path):
+    from ebookprep.sources import Candidate
+
+    found = Candidate(source="Fake Library", metadata=BookMetadata(
+        title="Beginning Android Games: Second Edition", authors=("Mario Zechner", "Robert Green"),
+        isbn="9781430246770", publisher="Apress", pubdate="2012"), cover_url="https://example.org/c.jpg")
+    source = FakeIsbnSource({"9781430246770": [found]})
+    client, store, book_id = isbn_client(tmp_path, source)
+
+    page = client.post(f"/books/{book_id}/isbn-lookup", data=FORM)
+
+    assert page.status_code == 200
+    assert source.queries[0].isbn == "9781430246770"
+    assert 'value="Beginning Android Games: Second Edition"' in page.text
+    assert "Mario Zechner\nRobert Green" in page.text
+    assert 'value="Apress"' in page.text
+    assert "my note" in page.text
+    stored = store.candidates(book_id)
+    assert stored[0].metadata.title == "Beginning Android Games: Second Edition" and stored[0].isbn_match
+    assert store.book(book_id).status == "review"
+
+
+def test_isbn_lookup_without_result_keeps_the_input(tmp_path):
+    client, store, book_id = isbn_client(tmp_path, FakeIsbnSource({}, error="HTTP 429"))
+
+    page = client.post(f"/books/{book_id}/isbn-lookup", data=FORM)
+
+    assert "No results for ISBN 9781430246770" in page.text and "HTTP 429" in page.text
+    assert 'value="Beginning Android Games"' in page.text
+    assert store.candidates(book_id) == []
+
+
+def test_invalid_isbn_is_not_looked_up(tmp_path):
+    source = FakeIsbnSource({})
+    client, _, book_id = isbn_client(tmp_path, source)
+
+    page = client.post(f"/books/{book_id}/isbn-lookup", data={**FORM, "isbn": "978-1-23456-789-0"})
+
+    assert page.status_code == 422 and "not a valid ISBN" in page.text
+    assert source.queries == []
+
+
+def test_book_form_has_the_lookup_button(setup):
+    client, _, first, *_ = setup
+
+    assert f'formaction="/books/{first}/isbn-lookup"' in client.get(f"/books/{first}").text
+
+
+def test_candidates_show_the_year_and_scroll_with_use_always_visible(tmp_path):
+    long_date = StoredCandidate(
+        source="calibre: Google", metadata=BookMetadata(title="Long", pubdate="2010-09-21T07:00:00+00:00"),
+        cover_url=None, score=1, isbn_match=False, title_in_text=False, author_in_text=False, auto_acceptable=False)
+    store = StateStore(tmp_path / "work" / "state.db")
+    book_id = store.add_book(new_book("x", ("IT/Android/x.pdf",), candidates=(long_date,)))
+    client = TestClient(create_app(work_root=tmp_path / "work", input_root=tmp_path / "input"))
+
+    page = client.get(f"/books/{book_id}").text
+
+    assert "2010-09-21T07:00:00+00:00" not in page.split('id="metadata-form"')[0]
+    assert "<td>2010</td>" in page
+    assert '<div class="scroll candidates">' in page
+    assert 'class="sticky-right"' in page
+
+
+def test_use_cleans_an_older_long_date(tmp_path):
+    long_date = StoredCandidate(
+        source="calibre: Google", metadata=BookMetadata(title="Long", pubdate="2010-09-21T07:00:00+00:00"),
+        cover_url=None, score=1, isbn_match=False, title_in_text=False, author_in_text=False, auto_acceptable=False)
+    store = StateStore(tmp_path / "work" / "state.db")
+    book_id = store.add_book(new_book("x", ("IT/Android/x.pdf",), candidates=(long_date,)))
+    client = TestClient(create_app(work_root=tmp_path / "work", input_root=tmp_path / "input"))
+
+    form = client.get(f"/books/{book_id}/use/0").text
+
+    assert 'name="pubdate" value="2010-09-21"' in form
+
+
+def test_accept_continues_in_the_same_category_then_returns_to_the_queue(tmp_path):
+    store = StateStore(tmp_path / "work" / "state.db")
+    other_category = store.add_book(new_book("o", ("Woodworking/joinery/a.pdf",), placement="Woodworking/joinery",
+                                              metadata=BookMetadata(title="Aaa Joinery")))
+    zebra = store.add_book(new_book("z", ("IT/Android/z.pdf",), metadata=BookMetadata(title="Zebra Android")))
+    alpha = store.add_book(new_book("a", ("IT/Android/a.pdf",), metadata=BookMetadata(title="Alpha Android")))
+    middle = store.add_book(new_book("m", ("IT/Android/m.pdf",), metadata=BookMetadata(title="Middle Android")))
+    client = TestClient(create_app(work_root=tmp_path / "work", input_root=tmp_path / "input"))
+
+    def accept(book_id):
+        return client.post(f"/books/{book_id}/accept", data={"title": "T", "authors": ""},
+                           follow_redirects=False).headers["location"]
+
+    assert accept(middle) == f"/books/{alpha}"
+    assert accept(alpha) == f"/books/{zebra}"
+    assert accept(zebra) == "/"
+    assert store.book(other_category).status == "review"
+
+
+def test_ignore_also_continues_in_the_same_category(tmp_path):
+    store = StateStore(tmp_path / "work" / "state.db")
+    store.add_book(new_book("o", ("Woodworking/joinery/a.pdf",), placement="Woodworking/joinery",
+                            metadata=BookMetadata(title="Aaa Joinery")))
+    plan = store.add_book(new_book("p", ("DIY/Plans/p.jpg.pdf",), placement="DIY/Plans", metadata=BookMetadata(title="P")))
+    client = TestClient(create_app(work_root=tmp_path / "work", input_root=tmp_path / "input"))
+
+    assert client.post(f"/books/{plan}/ignore", follow_redirects=False).headers["location"] == "/"
+
+
+def test_hide_images_choice_is_remembered_across_pages(tmp_path):
+    store = StateStore(tmp_path / "work" / "state.db")
+    plan = store.add_book(new_book("p", ("DIY/Plans/AZ Regal.jpg.pdf",), placement="DIY/Plans",
+                                   metadata=BookMetadata(title="AZ Regal.jpg")))
+    first = store.add_book(new_book("a", ("DIY/Plans/Bench.pdf",), placement="DIY/Plans", metadata=BookMetadata(title="Bench")))
+    client = TestClient(create_app(work_root=tmp_path / "work", input_root=tmp_path / "input"))
+
+    assert "AZ Regal.jpg" not in client.get("/?apply=1&hide_images=1").text
+    assert "AZ Regal.jpg" not in client.get("/").text
+    assert "checked" in client.get("/").text.split('name="hide_images"')[1].split(">")[0]
+
+    next_page = client.post(f"/books/{first}/accept", data={"title": "Bench", "authors": ""}, follow_redirects=False)
+    assert next_page.headers["location"] == "/"
+    assert store.book(plan).status == "review"
+
+    assert "AZ Regal.jpg" in client.get("/?apply=1").text
+    assert "AZ Regal.jpg" in client.get("/").text
+
+
+# --- mislabeled books
+
+
+@pytest.fixture
+def mislabeled(tmp_path):
+    store = StateStore(tmp_path / "work" / "state.db")
+    real = BookMetadata(title="Moral Design and Technology", authors=("Bart Wernaart",))
+    book_id = store.add_book(new_book(
+        "m", ("IT/Physical Security/The Complete Guide to Physical Security.pdf",), status="accepted",
+        placement="IT/Physical Security", metadata=real, candidates=(),
+        local_metadata=BookMetadata(title="The Complete Guide to Physical Security"), mislabeled=True))
+    store.add_book(new_book("o", ("Scientific Writing/PhD/x.pdf",), placement="Scientific Writing/PhD"))
+    client = TestClient(create_app(work_root=tmp_path / "work", input_root=tmp_path / "input"))
+    return client, store, book_id
+
+
+def test_mislabeled_page_lists_books_with_both_titles_and_categories(mislabeled):
+    client, _, book_id = mislabeled
+
+    page = client.get("/mislabeled").text
+
+    assert ">Mislabeled<" in page.split("</header>")[0]
+    assert "The Complete Guide to Physical Security" in page and "Moral Design and Technology" in page
+    assert "IT/Physical Security/The Complete Guide to Physical Security.pdf" in page
+    assert '<option value="Scientific Writing/PhD">' in page
+    assert f'action="/books/{book_id}/move"' in page
+
+
+def test_move_and_undo_and_not_mislabeled(mislabeled):
+    client, store, book_id = mislabeled
+
+    moved = client.post(f"/books/{book_id}/move", data={"placement": "Scientific Writing/PhD"}, follow_redirects=False)
+    assert moved.status_code == 303 and moved.headers["location"] == "/mislabeled"
+    assert store.book(book_id).target_placement == "Scientific Writing/PhD"
+    assert "moved to Scientific Writing/PhD" in client.get("/mislabeled").text
+
+    client.post(f"/books/{book_id}/move", data={"placement": ""})
+    assert store.book(book_id).target_placement is None
+
+    client.post(f"/books/{book_id}/not-mislabeled")
+    assert not store.book(book_id).mislabeled
+    assert "Moral Design" not in client.get("/mislabeled").text
+
+
+def test_move_only_to_known_placements(mislabeled):
+    client, store, book_id = mislabeled
+
+    response = client.post(f"/books/{book_id}/move", data={"placement": "../../etc"})
+
+    assert response.status_code == 422
+    assert store.book(book_id).target_placement is None
+
+
+def test_not_mislabeled_is_kept_by_rescore(mislabeled):
+    client, store, book_id = mislabeled
+
+    client.post(f"/books/{book_id}/not-mislabeled")
+
+    assert store.book(book_id).decided_by == "user"
+
+
+def test_duplicates_page_has_sections_per_tier(tmp_path):
+    store = StateStore(tmp_path / "work" / "state.db")
+    for key, src, title in (("a", "IT/S/a.pdf", "Serious Cryptography"),
+                            ("b", "IT/S/b.pdf", "Serious Cryptography, 2nd Edition: A Practical Introduction"),
+                            ("c", "IT/S/c.pdf", "Windows Security Internals"),
+                            ("d", "IT/S/d.pdf", "Windows Security Internals with PowerShell")):
+        store.add_book(new_book(key, (src,), status="accepted", candidates=(),
+                                metadata=BookMetadata(title=title, authors=("Same Author",))))
+    client = TestClient(create_app(work_root=tmp_path / "work", input_root=tmp_path / "input"))
+
+    page = client.get("/duplicates").text
+
+    certain, likely, possible = (page.split(f'id="{t}"')[1] for t in ("certain", "likely", "possible"))
+    assert "Serious Cryptography" in likely.split('id="possible"')[0]
+    assert "Windows Security Internals" in possible
+    assert "Certain (0)" in page and "Likely (1)" in page and "Possible (1)" in page
+    key = possible.split('href="/duplicates/')[1].split('"')[0]
+    assert "Possible duplicate" in client.get(f"/duplicates/{key}").text

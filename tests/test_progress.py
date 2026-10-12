@@ -83,3 +83,15 @@ def test_summary_counts_per_state_and_placement(tmp_path):
     android = summary.by_placement["IT/Android"]
     assert (android.total, android.counts[BUILT], android.done_percent) == (2, 1, 50)
     assert summary.by_placement["Woodworking/joinery"].done_percent == 0
+
+
+def test_ignored_files_count_as_skipped(tmp_path):
+    root = tmp_path / "input"
+    touch(root, "DIY/Plans/plan.jpg.pdf")
+    store = StateStore(tmp_path / "state.db")
+    add_book(store, ("DIY/Plans/plan.jpg.pdf",), status="review")
+    store.ignore_sources(["DIY/Plans/plan.jpg.pdf"])
+
+    (f,) = file_progress(root, store, Config())
+
+    assert (f.state, f.detail) == (SKIPPED, "ignored in review")

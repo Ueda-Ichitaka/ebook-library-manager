@@ -4,10 +4,13 @@ Only accepted books are built (calibre sidecar, accepted automatically on strict
 evidence, or approved in the review UI), and only when their metadata or series name
 differs from what was last built. The series name is the title, or "Title (Author)" when
 books of the same title would be merged by Kavita (see series.py). Source files excluded
-as duplicates are left out: a book that loses files is rebuilt with the rest, and the
-output folder of a book whose files are all excluded is removed. Each book gets a unique folder name in its placement; books whose file
+as duplicates or ignored in the review are left out: a book that loses files is rebuilt
+with the rest, and the output folder of a book whose files are all left out is removed. The ignored files are
+copied unchanged into the ignored folder (e.g. _ignored/DIY/Plans/Plan.jpg.pdf) with their
+input paths; copies of files that are no longer ignored are removed from there. Each book gets a unique folder name in its placement; books whose file
 contains a different book than its name says go below the mislabeled folder instead
-(e.g. _mislabeled/IT/Security/<Book>), outside the library folders. Rebuilding a book
+(e.g. _mislabeled/IT/Security/<Book>), outside the library folders, unless the reviewer
+moved them to another placement; changing that placement moves the book's folder. Rebuilding a book
 replaces its previous folder: the old folder is moved aside first and restored if the new
 build fails, so a working book is never lost. A book is either built completely or not
 at all.
@@ -49,7 +52,7 @@ def build_accepted(
         store.add_skipped(run_id, relative(skipped.path, input_root), skipped.reason)
     files_by_path = {relative(f.path, input_root): f for unit in scan.units for f in unit.files}
 
-    excluded = store.excluded_paths()
+    excluded = store.unused_paths()
     all_books = []
     for book in store.books():
         remaining = tuple(s for s in book.sources if s not in excluded)
@@ -57,6 +60,8 @@ def build_accepted(
             all_books.append(replace(book, sources=remaining))
         elif book.built_folder and placement_selected(book.placement, only):
             _remove_built(book, store, output_root, log)
+
+    _sync_ignored(input_root, output_root / config.ignored_folder, store.ignored_paths(), log)
 
     taken: dict[str, set[str]] = {}
     for book in all_books:
@@ -67,13 +72,18 @@ def build_accepted(
     pending = [
         b for b in all_books
         if b.status == "accepted"
-        and (b.needs_build or b.built_series != series[b.id] or b.built_sources != b.sources)
+        and (
+            b.needs_build
+            or b.built_series != series[b.id]
+            or b.built_sources != b.sources
+            or (b.built_folder and b.built_folder.rpartition("/")[0] != _output_parent(b, config))
+        )
         and placement_selected(b.placement, only)
     ]
     for number, book in enumerate(pending, start=1):
         label = f"[{number}/{len(pending)}] {book.placement}"
         try:
-            parent = f"{config.mislabeled_folder}/{book.placement}" if book.mislabeled else book.placement
+            parent = _output_parent(book, config)
             _build_book(
                 book, parent, series[book.id], files_by_path, taken, run_id, store, input_root, output_root, work_root, label, log
             )
@@ -143,12 +153,41 @@ def _build_book(
         _reserve(taken, book.built_folder)
 
 
+def _output_parent(book: BookRow, config: Config) -> str:
+    """The folder a book's own folder goes into: where it was moved to in the review, the
+    mislabeled folder for a mislabeled book, else its placement."""
+    if book.target_placement:
+        return book.target_placement
+    if book.mislabeled:
+        return f"{config.mislabeled_folder}/{book.placement}"
+    return book.placement
+
+
+def _sync_ignored(input_root: Path, folder: Path, ignored: set[str], log: Callable[[str], None]) -> None:
+    """Keeps unchanged copies of exactly the ignored input files in the ignored folder."""
+    for path in sorted(ignored):
+        source, copy = input_root / path, folder / path
+        if source.is_file() and not (copy.is_file() and copy.stat().st_size == source.stat().st_size):
+            copy.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(source, copy)
+            log(f"{folder.name}/{path}: copied (ignored in review)")
+    if not folder.is_dir():
+        return
+    for copy in sorted(folder.rglob("*"), reverse=True):
+        relative_path = str(copy.relative_to(folder))
+        if copy.is_file() and relative_path not in ignored:
+            copy.unlink()
+            log(f"{folder.name}/{relative_path}: removed (no longer ignored)")
+        elif copy.is_dir() and not any(copy.iterdir()):
+            copy.rmdir()
+
+
 def _remove_built(book: BookRow, store: StateStore, output_root: Path, log: Callable[[str], None]) -> None:
     """Removes the output folder of a book whose files were all excluded as duplicates."""
     folder = output_root.joinpath(*book.built_folder.split("/"))
     shutil.rmtree(folder, ignore_errors=True)
     store.clear_built(book.id)
-    log(f"{book.built_folder}: removed (all its files were excluded as duplicates)")
+    log(f"{book.built_folder}: removed (all its files are excluded or ignored)")
 
 
 def _reserve(taken: dict[str, set[str]], folder: str) -> None:

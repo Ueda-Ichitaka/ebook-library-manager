@@ -1,9 +1,9 @@
 {# About this file: one job with its live log (polled while it runs). #}
 {% extends "base.html" %}
-{% block title %}{{ label }} - ebookprep review{% endblock %}
+{% block title %}{{ label }} - Ebook Library Manager{% endblock %}
 {% block content %}
 <h2>{{ label }}</h2>
-<p class="muted">job {{ job.id }} &middot; started {{ job.started_at }} &middot; <a href="/actions">all actions</a></p>
+<p class="muted">job {{ job.id }} &middot; started {{ job.started_at }} &middot; <a href="/actions">All Actions</a></p>
 {% if job.status == "running" %}
 <form method="post" action="/jobs/{{ job.id }}/stop"><button class="secondary" type="submit">Stop</button></form>
 {% endif %}

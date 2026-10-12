@@ -299,3 +299,74 @@ def test_summary_report_lists_excluded_files(tmp_path):
 
     assert "## Excluded duplicate files" in report
     assert "`IT/Android/x.epub`" in report and "`IT/Android/x.pdf`" in report
+
+
+def test_ignored_book_is_not_built_and_removed_if_built(tmp_path):
+    source, output, work, store = identified(tmp_path)
+    accept_all(store)
+    build_accepted(source, output, work, CONFIG, **QUIET)
+    knoppix = next(b for b in store.books() if "Knoppix" in b.sources[0])
+
+    store.ignore_sources(list(knoppix.sources))
+    build_accepted(source, output, work, CONFIG, **QUIET)
+
+    assert not (output / "IT/Security/Knoppix Hacks - Kyle Rankin").exists()
+
+
+def test_ignored_files_are_copied_to_the_ignored_folder_with_their_paths(tmp_path):
+    source, output, work, store = identified(tmp_path)
+    knoppix = "IT/Security/Knoppix Hacks - Kyle Rankin.pdf"
+    wicca = "Spiritualität/Witchcraft/Wicca - Vivianne Crowley/Wicca - Crowley, Vivianne.pdf"
+    store.ignore_sources([knoppix, wicca])
+
+    build_accepted(source, output, work, CONFIG, **QUIET)
+
+    for path in (knoppix, wicca):
+        copy = output / "_ignored" / path
+        assert copy.read_bytes() == (source / path).read_bytes(), path
+
+    store.restore_ignored(wicca)
+    build_accepted(source, output, work, CONFIG, **QUIET)
+
+    assert (output / "_ignored" / knoppix).is_file()
+    assert not (output / "_ignored" / "Spiritualität").exists()
+
+
+# --- moving mislabeled books
+
+
+def test_mislabeled_book_can_be_moved_into_a_library_and_back(tmp_path):
+    source, output, work, store = identified(tmp_path)
+    knoppix = next(b for b in store.books() if "Knoppix" in b.sources[0])
+    store.decide(knoppix.id, BookMetadata(title="Moral Design and Technology", authors=("Bart Wernaart",)), "user")
+    store.set_mislabeled(knoppix.id, True)
+    build_accepted(source, output, work, CONFIG, **QUIET)
+    name = "Moral Design and Technology - Bart Wernaart"
+    assert (output / "_mislabeled/IT/Security" / name).is_dir()
+
+    store.move_book(knoppix.id, "Spiritualität/Witchcraft")
+    build_accepted(source, output, work, CONFIG, **QUIET)
+
+    assert (output / "Spiritualität/Witchcraft" / name / f"{name}.pdf").is_file()
+    assert not (output / "_mislabeled/IT/Security" / name).exists()
+    assert store.book(knoppix.id).built_folder == f"Spiritualität/Witchcraft/{name}"
+
+    store.move_book(knoppix.id, None)
+    build_accepted(source, output, work, CONFIG, **QUIET)
+
+    assert (output / "_mislabeled/IT/Security" / name).is_dir()
+    assert not (output / "Spiritualität/Witchcraft" / name).exists()
+
+
+def test_not_mislabeled_goes_back_to_the_original_placement(tmp_path):
+    source, output, work, store = identified(tmp_path)
+    knoppix = next(b for b in store.books() if "Knoppix" in b.sources[0])
+    store.decide(knoppix.id, knoppix.metadata, "user")
+    store.set_mislabeled(knoppix.id, True)
+    build_accepted(source, output, work, CONFIG, **QUIET)
+
+    store.set_mislabeled(knoppix.id, False)
+    build_accepted(source, output, work, CONFIG, **QUIET)
+
+    assert (output / "IT/Security/Knoppix Hacks - Kyle Rankin").is_dir()
+    assert not (output / "_mislabeled/IT/Security/Knoppix Hacks - Kyle Rankin").exists()

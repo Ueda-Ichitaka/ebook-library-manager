@@ -89,6 +89,7 @@ def test_placeholder_dates_are_dropped(tmp_path, date):
         "",
         "   ",
         "Book1.indd",
+        "DE201309",
     ],
 )
 def test_junk_titles(title):
@@ -103,7 +104,7 @@ def test_real_titles_are_not_junk(title):
     assert not is_junk_title(title)
 
 
-@pytest.mark.parametrize("author", ["Test", "Unknown", "Unbekannt", "N/A", "", "admin", "user"])
+@pytest.mark.parametrize("author", ["Test", "Unknown", "Unbekannt", "N/A", "", "admin", "user", ".", "-", "1, 2"])
 def test_junk_authors(author):
     assert is_junk_author(author)
 
@@ -203,3 +204,9 @@ def test_unreadable_sidecar_falls_back_to_filename(tmp_path):
     assert resolved.metadata.title == "Earth, Air, Fire & Water"
     assert resolved.needs_review
     assert any("unreadable" in note for note in resolved.notes)
+
+
+def test_junk_author_from_filename_is_dropped(tmp_path):
+    book = BookFile(tmp_path / "Sex at Dawn -- . -- 2007 -- 0c7cb65158ace1774df5700304e54df0 -- Anna’s Archive.pdf")
+
+    assert resolve_local(book).metadata.authors == ()

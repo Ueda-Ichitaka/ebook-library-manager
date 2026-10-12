@@ -1,7 +1,8 @@
 """About this file: how far every input file is, for the progress overview in the web UI.
 
 Each file of the input gets one state:
-- skipped: not a book (archive, junk, unsupported format, outside a category),
+- skipped: not a book (archive, junk, unsupported format, outside a category), or ignored
+  in the review,
 - not identified yet: identify hasn't seen it,
 - waiting for review: its book needs a decision in the review,
 - accepted, not built yet: decided, the next build writes it,
@@ -60,6 +61,7 @@ class Summary(Totals):
 def file_progress(input_root: Path, store: StateStore, config: Config) -> list[FileProgress]:
     scan = scan_input(input_root, config)
     excluded = store.excluded_paths()
+    ignored = store.ignored_paths()
     book_of = {source: book for book in store.books() for source in book.sources}
     last_record = {}
     for record in store.latest_records():
@@ -71,6 +73,10 @@ def file_progress(input_root: Path, store: StateStore, config: Config) -> list[F
         placement = "/".join(unit.placement.parts())
         for book_file in unit.files:
             path = str(book_file.path.relative_to(input_root))
+            if path in ignored:
+                book = book_of.get(path)
+                files.append(FileProgress(path, placement, SKIPPED, "ignored in review", book.id if book else None))
+                continue
             files.append(_state_of(path, placement, excluded, book_of.get(path), last_record.get(path)))
     for skipped in scan.skipped:
         path = str(skipped.path.relative_to(input_root))

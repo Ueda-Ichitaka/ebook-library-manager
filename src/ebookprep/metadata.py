@@ -4,7 +4,8 @@ local sources.
 BookMetadata is the metadata written into each output book; its title also becomes the
 series, so Kavita lists the book on its own. Local sources are a sidecar .opf next to the
 book (written by calibre's "save to disk", or by an older script) and the filename.
-Junk values found in the library (titles like "Untitled-1.pdf" or hash names, authors
+Junk values found in the library (titles like "Untitled-1.pdf", hash names or issue codes
+like "DE201309", authors
 like "Test" or "Unknown") are recognized and replaced or dropped, and the book is marked
 for review. Values from .opf files get the same cleaning as filenames. An .opf file that
 isn't valid XML (the older script wrote raw "&") is ignored in favour of the filename. Online lookup and the review UI build on top of this.
@@ -126,11 +127,13 @@ def is_junk_title(title: str) -> bool:
     if len(text) < 3 or _JUNK_TITLE_EXTENSION.search(text) or _JUNK_TITLE_PREFIX.match(text):
         return True
     looks_like_hash = " " not in text and len(text) >= 16 and len(re.findall(r"\d", text)) >= 3
-    return looks_like_hash
+    looks_like_code = bool(re.fullmatch(r"[A-Za-z]{0,4}[-_ ]?\d{4,}", text))
+    return looks_like_hash or looks_like_code
 
 
 def is_junk_author(author: str) -> bool:
-    return author.strip().casefold() in _JUNK_AUTHORS
+    text = author.strip()
+    return text.casefold() in _JUNK_AUTHORS or not any(c.isalpha() for c in text)
 
 
 def resolve_local(book: BookFile) -> ResolvedMetadata:
@@ -162,6 +165,9 @@ def resolve_local(book: BookFile) -> ResolvedMetadata:
 def _from_filename(book: BookFile, notes: tuple[str, ...]) -> ResolvedMetadata:
     info = parse_filename(book.path.stem)
     metadata = BookMetadata(
-        title=info.title, authors=info.authors, isbn=info.isbn, pubdate=str(info.year) if info.year else None
+        title=info.title,
+        authors=tuple(a for a in info.authors if not is_junk_author(a)),
+        isbn=info.isbn,
+        pubdate=str(info.year) if info.year else None,
     )
     return ResolvedMetadata(metadata, "filename", needs_review=True, notes=notes)

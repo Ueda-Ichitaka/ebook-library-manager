@@ -8,7 +8,9 @@ what was last built, and records what it built.
 
 Duplicates: when the reviewer keeps one file of a group of possible duplicates, the other
 files are recorded as excluded (with the kept file); the build leaves them out, and they
-can be restored. Dismissed duplicate groups are remembered by their key.
+can be restored. Dismissed duplicate groups are remembered by their key. Files the
+reviewer ignores (e.g. pictures saved as PDF) are recorded as ignored: they leave the
+review, are not built and count as skipped; they can be restored as well.
 
 Jobs: commands started from the web UI (identify, build, ...) with status, exit code
 and log file.
@@ -83,6 +85,7 @@ CREATE TABLE IF NOT EXISTS books (
     built_folder TEXT,
     built_series TEXT,
     built_sources TEXT,
+    target_placement TEXT,
     updated_at TEXT NOT NULL
 );
 CREATE TABLE IF NOT EXISTS candidates (
@@ -103,6 +106,10 @@ CREATE TABLE IF NOT EXISTS excluded_sources (
     kept TEXT NOT NULL,
     duplicate_group TEXT NOT NULL,
     excluded_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS ignored_sources (
+    path TEXT PRIMARY KEY,
+    ignored_at TEXT NOT NULL
 );
 CREATE TABLE IF NOT EXISTS dismissed_duplicates (
     duplicate_group TEXT PRIMARY KEY,
@@ -217,6 +224,8 @@ class BookRow:
     built_series: str | None = None
     # the source files the last build used (all sources minus excluded duplicates)
     built_sources: tuple[str, ...] | None = None
+    # where a mislabeled book was moved to in the review (Library/Category), None if not moved
+    target_placement: str | None = None
 
     @property
     def needs_build(self) -> bool:
@@ -236,6 +245,12 @@ class JobRow:
     exit_code: int | None
     started_at: str
     finished_at: str | None
+
+
+@dataclass(frozen=True)
+class IgnoredSource:
+    path: str
+    ignored_at: str
 
 
 @dataclass(frozen=True)
@@ -375,6 +390,17 @@ class StateStore:
             for row in rows
         ]
 
+    def add_candidates(self, book_id: int, candidates: tuple[StoredCandidate, ...]) -> int:
+        """Adds candidates (e.g. from an ISBN lookup in the review) in front of the stored ones;
+        candidates already stored are not added twice. Returns how many were added."""
+        existing = {(c.source, c.metadata) for c in self.candidates(book_id)}
+        new = tuple(c for c in candidates if (c.source, c.metadata) not in existing)
+        if new:
+            with self._connect() as db:
+                db.execute("UPDATE candidates SET rank = rank + ? WHERE book_id = ?", (len(new), book_id))
+                _insert_candidates(db, book_id, new)
+        return len(new)
+
     def decide(self, book_id: int, metadata: BookMetadata, decided_by: str) -> None:
         """Accepts the book with this metadata (e.g. approved in the review UI)."""
         with self._connect() as db:
@@ -439,6 +465,20 @@ class StateStore:
             )
             db.execute("DELETE FROM candidates WHERE book_id = ?", (book_id,))
             _insert_candidates(db, book_id, candidates)
+
+    def update_review(self, book_id: int, status: str, review_reasons: tuple[str, ...]) -> None:
+        with self._connect() as db:
+            db.execute(
+                "UPDATE books SET status = ?, review_reasons = ?, updated_at = ? WHERE id = ?",
+                (status, json.dumps(review_reasons, ensure_ascii=False), _now(), book_id),
+            )
+
+    def move_book(self, book_id: int, placement: str | None) -> None:
+        """Sets the placement a (mislabeled) book is built into; None builds it where found."""
+        with self._connect() as db:
+            db.execute(
+                "UPDATE books SET target_placement = ?, updated_at = ? WHERE id = ?", (placement, _now(), book_id)
+            )
 
     def set_mislabeled(self, book_id: int, mislabeled: bool) -> None:
         with self._connect() as db:
@@ -527,6 +567,29 @@ class StateStore:
     def excluded_paths(self) -> set[str]:
         return {e.path for e in self.excluded_sources()}
 
+    def ignore_sources(self, paths: list[str]) -> None:
+        with self._connect() as db:
+            db.executemany(
+                "INSERT OR REPLACE INTO ignored_sources (path, ignored_at) VALUES (?, ?)",
+                [(path, _now()) for path in paths],
+            )
+
+    def restore_ignored(self, path: str) -> None:
+        with self._connect() as db:
+            db.execute("DELETE FROM ignored_sources WHERE path = ?", (path,))
+
+    def ignored_sources(self) -> list[IgnoredSource]:
+        with self._connect() as db:
+            rows = db.execute("SELECT * FROM ignored_sources ORDER BY path").fetchall()
+        return [IgnoredSource(r["path"], r["ignored_at"]) for r in rows]
+
+    def ignored_paths(self) -> set[str]:
+        return {i.path for i in self.ignored_sources()}
+
+    def unused_paths(self) -> set[str]:
+        """Source files that are not built: excluded duplicates and ignored files."""
+        return self.excluded_paths() | self.ignored_paths()
+
     def dismiss_duplicates(self, group: str) -> None:
         with self._connect() as db:
             db.execute(
@@ -583,6 +646,8 @@ def _migrate(db: sqlite3.Connection) -> None:
     columns = {row[1] for row in db.execute("PRAGMA table_info(books)")}
     if "mislabeled" not in columns:
         db.execute("ALTER TABLE books ADD COLUMN mislabeled INTEGER NOT NULL DEFAULT 0")
+    if "target_placement" not in columns:
+        db.execute("ALTER TABLE books ADD COLUMN target_placement TEXT")
     if "built_sources" not in columns:
         db.execute("ALTER TABLE books ADD COLUMN built_sources TEXT")
         if "built_metadata" in columns:

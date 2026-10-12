@@ -1,14 +1,15 @@
 {# About this file: review page of one book: files, reasons, evidence, candidates, form. #}
 {% extends "base.html" %}
-{% block title %}{{ book.metadata.title }} - ebookprep review{% endblock %}
+{% block title %}{{ book.metadata.title }} - Ebook Library Manager{% endblock %}
 {% block content %}
 <h2>{{ book.metadata.title }}</h2>
 <p class="muted">{{ book.placement }} &middot; status: {{ book.status }} ({{ book.decided_by }})
   {% if book.built_folder %} &middot; built as {{ book.built_folder }}{% endif %}</p>
 {% for reason in book.review_reasons %}<p class="reason">{{ reason }}</p>{% endfor %}
 {% if book.mislabeled %}<p class="reason">Content differs from the filename: the file is named
-  "{{ book.local_metadata.title }}" but contains "{{ book.metadata.title }}". It is built into the
-  mislabeled folder, outside the libraries.</p>{% endif %}
+  "{{ book.local_metadata.title }}" but contains "{{ book.metadata.title }}".
+  {% if book.target_placement %}It was moved to {{ book.target_placement }}.{% else %}It is built into the
+  mislabeled folder, outside the libraries.{% endif %} <a href="/mislabeled">Move it</a></p>{% endif %}
 
 <div class="grid">
   <div>
@@ -28,13 +29,14 @@
 
     <div class="card">
       <h3>Candidates</h3>
+      <div class="scroll candidates">
       <table>
-        <tr><th></th><th>Source</th><th>Title / authors</th><th>ISBN</th><th>Year</th><th>ISBN in book</th><th>Title in text</th><th>Author in text</th><th></th></tr>
+        <tr><th></th><th>Source</th><th>Title / authors</th><th>ISBN</th><th>Year</th><th>ISBN in book</th><th>Title in text</th><th>Author in text</th><th class="sticky-right"></th></tr>
         <tr>
           <td></td><td>local ({{ book.local_source }})</td>
           <td>{{ book.local_metadata.title }}<br><span class="muted">{{ book.local_metadata.authors | join(", ") }}</span></td>
-          <td>{{ book.local_metadata.isbn or "" }}</td><td>{{ book.local_metadata.pubdate or "" }}</td>
-          <td></td><td></td><td></td><td></td>
+          <td>{{ book.local_metadata.isbn or "" }}</td><td>{{ book.local_metadata.year or "" }}</td>
+          <td></td><td></td><td></td><td class="sticky-right"></td>
         </tr>
         {% for c in candidates %}
         <tr>
@@ -43,17 +45,18 @@
           <td>{{ c.metadata.title }}<br><span class="muted">{{ c.metadata.authors | join(", ") }}</span>
               {% if c.metadata.publisher %}<br><span class="muted">{{ c.metadata.publisher }}</span>{% endif %}</td>
           <td>{{ c.metadata.isbn or "" }}</td>
-          <td>{{ c.metadata.pubdate or "" }}</td>
+          <td>{{ c.metadata.year or "" }}</td>
           <td>{{ "✅" if c.isbn_match else "❌" }}</td>
           <td>{{ "✅" if c.title_in_text else "❌" }}</td>
           <td>{{ "✅" if c.author_in_text else "❌" }}</td>
-          <td><button class="secondary" hx-get="/books/{{ book.id }}/use/{{ loop.index0 }}"
+          <td class="sticky-right"><button class="secondary" hx-get="/books/{{ book.id }}/use/{{ loop.index0 }}"
                       hx-target="#metadata-form" hx-swap="outerHTML">Use</button></td>
         </tr>
         {% else %}
         <tr><td colspan="9" class="muted">No online candidates.</td></tr>
         {% endfor %}
       </table>
+      </div>
       {% for name, error in book.lookup_errors %}<p class="muted">{{ name }}: {{ error }}</p>{% endfor %}
     </div>
 
@@ -66,6 +69,9 @@
 
   <div>
     {% include "_form.html" %}
+    <form method="post" action="/books/{{ book.id }}/ignore">
+      <button class="secondary" type="submit">Ignore: not a book, move its files to the skipped files</button>
+    </form>
     {% if book.local_notes %}<p class="muted">{{ book.local_notes | join("; ") }}</p>{% endif %}
   </div>
 </div>

@@ -1,10 +1,11 @@
-{# About this file: page layout of the review UI (header, styles, htmx). #}
+{# About this file: page layout of the Ebook Library Manager web UI (header, navigation, styles, htmx). #}
 <!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% block title %}ebookprep review{% endblock %}</title>
+  <title>{% block title %}Ebook Library Manager{% endblock %}</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📚</text></svg>">
   <script src="/static/htmx.min.js"></script>
   <style>
     :root { --bg: #fafaf8; --fg: #1d1d1b; --muted: #6b6b66; --line: #deded8; --card: #ffffff;
@@ -17,6 +18,7 @@
     body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.45 system-ui, sans-serif; }
     header { padding: 12px 20px; border-bottom: 1px solid var(--line); display: flex; gap: 20px; align-items: baseline; }
     header a { color: var(--fg); text-decoration: none; font-weight: 600; }
+    header form.update { margin-left: auto; }
     main { padding: 16px 20px; max-width: 1200px; margin: 0 auto; }
     a { color: var(--accent); }
     .muted { color: var(--muted); }
@@ -43,20 +45,40 @@
     .bar > span { display: block; height: 100%; background: var(--ok); }
     .actions { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
     .actions form { margin: 0; }
+    details { margin-bottom: 10px; }
+    summary { cursor: pointer; font-weight: 600; padding: 6px 0; }
+    .filters { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+    .filters label { display: inline; margin: 0; font-size: 14px; color: var(--fg); }
+    .filters input[type=checkbox] { width: auto; }
+    .with-toc { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 20px; }
+    .toc { position: sticky; top: 12px; align-self: start; font-size: 14px; background: var(--card);
+           border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; }
+    .toc a { display: block; padding: 3px 0; }
+    @media (max-width: 900px) { .with-toc { grid-template-columns: 1fr; } .toc { position: static; } }
+    .scroll { overflow: auto; max-height: 70vh; border: 1px solid var(--line); border-radius: 6px; }
+    .scroll table { width: max-content; min-width: 100%; }
+    .scroll.candidates td:nth-child(3) { max-width: 360px; white-space: normal; }
+    .scroll th { position: sticky; top: 0; background: var(--card); z-index: 1; }
+    .sticky-right { position: sticky; right: 0; background: var(--card); }
+    .scroll th.sticky-right { z-index: 2; }
     .excerpt { max-height: 240px; overflow: auto; font-size: 13px; white-space: pre-wrap; }
   </style>
 </head>
 <body>
   <header>
-    <a href="/">ebookprep review</a>
-    <a class="muted" href="/actions">actions</a>
-    <a class="muted" href="/files">files</a>
-    <a class="muted" href="/report">report</a>
-    <a class="muted" href="/?status=review">review queue</a>
-    <a class="muted" href="/?status=accepted">accepted</a>
-    <a class="muted" href="/?status=all">all</a>
-    <a class="muted" href="/duplicates">duplicates</a>
-    <a class="muted" href="/excluded">excluded files</a>
+    <a href="/">📚 Ebook Library Manager</a>
+    <a class="muted" href="/actions">Actions</a>
+    <a class="muted" href="/files">Files</a>
+    <a class="muted" href="/report">Report</a>
+    <a class="muted" href="/?status=review">Review Queue</a>
+    <a class="muted" href="/?status=accepted">Accepted</a>
+    <a class="muted" href="/?status=all">All</a>
+    <a class="muted" href="/duplicates">Duplicates</a>
+    <a class="muted" href="/mislabeled">Mislabeled</a>
+    <a class="muted" href="/excluded">Excluded Files</a>
+    <form class="update" method="post" action="/refresh"
+          title="Bring the review queue in step with duplicate decisions and reload this page">
+      <button type="submit">Update</button></form>
   </header>
   <main>{% block content %}{% endblock %}</main>
 </body>

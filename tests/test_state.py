@@ -216,3 +216,36 @@ def test_built_sources_are_recorded_and_can_be_cleared(tmp_path):
     store.clear_built(book_id)
     book = store.book(book_id)
     assert (book.built_folder, book.built_metadata, book.built_series, book.built_sources) == (None, None, None, None)
+
+
+def test_ignore_and_restore_sources(tmp_path):
+    store = StateStore(tmp_path / "state.db")
+    store.exclude_sources(["dup.epub"], kept="dup.pdf", group="g")
+
+    store.ignore_sources(["DIY/plan.jpg.pdf", "DIY/other.jpg.pdf"])
+
+    assert store.ignored_paths() == {"DIY/plan.jpg.pdf", "DIY/other.jpg.pdf"}
+    assert store.unused_paths() == {"DIY/plan.jpg.pdf", "DIY/other.jpg.pdf", "dup.epub"}
+    store.restore_ignored("DIY/other.jpg.pdf")
+    assert [i.path for i in store.ignored_sources()] == ["DIY/plan.jpg.pdf"]
+
+
+def test_move_book_sets_and_clears_the_target_placement(tmp_path):
+    from ebookprep.metadata import BookMetadata
+    from ebookprep.state import NewBook
+
+    store = StateStore(tmp_path / "state.db")
+    meta = BookMetadata(title="Moral Design and Technology")
+    book_id = store.add_book(
+        NewBook(key="k", placement="IT/Physical Security", group_reason="single", book_folder=None, sources=("a.pdf",),
+                local_metadata=meta, local_source="filename", local_notes=(), evidence_excerpt="", evidence_isbns=(),
+                lookup_errors=(), status="accepted", decided_by="auto: Open Library", review_reasons=(), metadata=meta,
+                mislabeled=True)
+    )
+    assert store.book(book_id).target_placement is None
+
+    store.move_book(book_id, "Scientific Writing/PhD")
+    assert store.book(book_id).target_placement == "Scientific Writing/PhD"
+
+    store.move_book(book_id, None)
+    assert store.book(book_id).target_placement is None

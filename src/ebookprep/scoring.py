@@ -14,7 +14,8 @@ Sources sometimes return junk author strings, so for an author whose surname mat
 local author, the local spelling is used unless the candidate's full name is printed on
 the first pages; a bare surname always yields to a fuller local name. When the accepted
 title has little in common with the local title (filename or .opf), the file contains a
-different book than its name says; the decision marks it as mislabeled.
+different book than its name says; the decision marks it as mislabeled, unless the local
+"title" is just the names of the accepted book's authors (a filename like "Müller.pdf").
 """
 
 import enum
@@ -89,24 +90,35 @@ def decide(local: BookMetadata, candidates: list[Candidate], evidence: Evidence)
     best = acceptable[0].candidate
     metadata = fill_gaps(best.metadata, local)
     metadata = replace(metadata, authors=_prefer_local_spelling(metadata.authors, local.authors, _words(evidence.text)))
-    return Decision(
-        Verdict.ACCEPT, metadata, best.source, ranked, mislabeled=content_differs(local.title, metadata.title)
-    )
+    mislabeled = content_differs(local.title, metadata.title, metadata.authors)
+    return Decision(Verdict.ACCEPT, metadata, best.source, ranked, mislabeled=mislabeled)
 
 
-def content_differs(local_title: str, accepted_title: str) -> bool:
-    """Whether two titles name different books (a junk local title says nothing)."""
+def content_differs(local_title: str, accepted_title: str, accepted_authors: tuple[str, ...] = ()) -> bool:
+    """Whether the local title (filename or .opf) names a different book than the accepted
+    title. Not a different book: a junk local title, a local title made mostly of the
+    accepted authors' names ("Müller.pdf"), or one whose words (author names set aside)
+    largely appear in the accepted title."""
     if is_junk_title(local_title):
         return False
-    local, accepted = _significant(local_title), _significant(accepted_title)
-    if not local or not accepted:
+    local = _content_words(local_title)
+    if not local:
         return False
-    overlap = len(local & accepted) / min(len(local), len(accepted))
-    if overlap >= 0.5:
+    author_names = {w for author in accepted_authors for w in _words(author)}
+    if len(local & author_names) >= len(local) / 2:
+        return False
+    rest = local - author_names
+    accepted = _content_words(accepted_title)
+    if rest and accepted and len(rest & accepted) / min(len(rest), len(accepted)) >= 0.5:
         return False
     # Titles written without spaces ("FormDerWissenschaftlichenAusarbeitung") share no words.
     compact = SequenceMatcher(None, "".join(_words(local_title)), "".join(_words(accepted_title))).ratio()
     return compact < 0.6
+
+
+def _content_words(title: str) -> set[str]:
+    """Significant words without numbers and single letters (volume numbers, initials)."""
+    return {w for w in _significant(title) if len(w) > 1 and not w.isdigit()}
 
 
 _STOPWORDS = frozenset(

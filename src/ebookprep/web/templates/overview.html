@@ -1,26 +1,39 @@
-{# About this file: overview page: counts and the list of books with the selected status. #}
+{# About this file: overview page: counts, filters and the books of the selected status, sectioned by placement. #}
 {% extends "base.html" %}
 {% block content %}
 <div class="card counts">
-  <span>Waiting for review: {{ counts.review }}</span>
+  <span>Waiting for review: {{ counts.review }} books ({{ counts.review_files }} files)</span>
   <span>Accepted: {{ counts.accepted }}</span>
   <span>Built: {{ counts.built }}</span>
   <span>Accepted, not built yet: {{ counts.to_build }}</span>
-  <span><a href="/?status=mislabeled">Content differs from filename: {{ counts.mislabeled }}</a></span>
+  <span><a href="/mislabeled">Content differs from filename: {{ counts.mislabeled }}</a></span>
   <span><a href="/duplicates">Possible duplicates: {{ counts.duplicates }}</a></span>
 </div>
-<table>
-  <tr><th>Placement</th><th>Title</th><th>Authors</th><th>Files</th><th>Why</th></tr>
-  {% for book in books %}
-  <tr>
-    <td class="muted">{{ book.placement }}</td>
-    <td><a href="/books/{{ book.id }}">{{ book.metadata.title }}</a></td>
-    <td>{{ book.metadata.authors | join(", ") }}</td>
-    <td>{{ book.sources | length }}</td>
-    <td class="reason">{{ book.review_reasons | join("; ") if book.status == "review" else book.decided_by }}</td>
-  </tr>
-  {% else %}
-  <tr><td colspan="5" class="muted">Nothing here.</td></tr>
-  {% endfor %}
-</table>
+<div class="filters card">
+  <form method="get" action="/" class="filters">
+    <input type="hidden" name="status" value="{{ status }}">
+    <input type="hidden" name="apply" value="1">
+    <label><input type="checkbox" name="hide_images" value="1" {{ "checked" if hide_images }} onchange="this.form.submit()">
+      Hide image files (pictures saved as PDF)</label>
+  </form>
+  <span class="muted">{{ shown }} books shown</span>
+</div>
+{% for placement, books in sections.items() %}
+<details {{ "open" if sections | length <= 3 }}>
+  <summary>{{ placement }} ({{ books | length }})</summary>
+  <table>
+    <tr><th>Title</th><th>Authors</th><th>Files</th><th>Why</th></tr>
+    {% for book in books %}
+    <tr>
+      <td><a href="/books/{{ book.id }}">{{ book.metadata.title }}</a></td>
+      <td>{{ book.metadata.authors | join(", ") }}</td>
+      <td>{{ active_files[book.id] }}</td>
+      <td class="reason">{{ book.review_reasons | join("; ") if book.status == "review" else book.decided_by }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+</details>
+{% else %}
+<p class="muted">Nothing here.</p>
+{% endfor %}
 {% endblock %}

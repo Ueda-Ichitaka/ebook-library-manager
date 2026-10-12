@@ -211,3 +211,16 @@ def test_unknown_source_name_is_a_config_error():
 
     with pytest.raises(ConfigError, match="calibre: Edelweiss"):
         default_sources(Config(sources=("Amazon",)))
+
+
+@pytest.mark.parametrize(
+    ("pubdate", "expected"),
+    [("2010-09-21T07:00:00+00:00", "2010-09-21"), ("2012", "2012"), ("2016-04", "2016-04"),
+     ("0101-01-01T00:00:00+00:00", None), ("unknown", None), (None, None)],
+)
+def test_candidate_dates_are_sanitized(pubdate, expected):
+    raw = Candidate(source="A", metadata=BookMetadata(title="T", pubdate=pubdate))
+
+    result = lookup_all([FixedSource("A", [raw])], LookupQuery(title="x"))
+
+    assert result.candidates[0].metadata.pubdate == expected
