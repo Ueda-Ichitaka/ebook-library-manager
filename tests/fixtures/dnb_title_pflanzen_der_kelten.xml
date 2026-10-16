@@ -1,0 +1,2683 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<searchRetrieveResponse xmlns="http://www.loc.gov/zing/srw/"><version>1.1</version><numberOfRecords>7</numberOfRecords><records><record><recordSchema>MARC21-xml</recordSchema><recordPacking>xml</recordPacking><recordData><record xmlns="http://www.loc.gov/MARC21/slim" type="Bibliographic">
+    <leader>00000nam a2200000uc 4500</leader>
+    <controlfield tag="001">1384619429</controlfield>
+    <controlfield tag="003">DE-101</controlfield>
+    <controlfield tag="005">20260323234228.0</controlfield>
+    <controlfield tag="007">cr||||||||||||</controlfield>
+    <controlfield tag="008">251217s2025    sz |||||o|||| 00||||ger  </controlfield>
+    <datafield tag="015" ind1=" " ind2=" ">
+      <subfield code="a">26,O01</subfield>
+      <subfield code="2">dnb</subfield>
+    </datafield>
+    <datafield tag="016" ind1="7" ind2=" ">
+      <subfield code="2">DE-101</subfield>
+      <subfield code="a">1384619429</subfield>
+    </datafield>
+    <datafield tag="020" ind1=" " ind2=" ">
+      <subfield code="a">9783039023004</subfield>
+      <subfield code="9">978-3-03902-300-4</subfield>
+    </datafield>
+    <datafield tag="024" ind1="7" ind2=" ">
+      <subfield code="2">urn</subfield>
+      <subfield code="a">urn:nbn:de:101:1-2512171823452.233481860089</subfield>
+    </datafield>
+    <datafield tag="035" ind1=" " ind2=" ">
+      <subfield code="a">(DE-599)DNB1384619429</subfield>
+    </datafield>
+    <datafield tag="035" ind1=" " ind2=" ">
+      <subfield code="a">(OCoLC)1566969040</subfield>
+    </datafield>
+    <datafield tag="040" ind1=" " ind2=" ">
+      <subfield code="a">1140</subfield>
+      <subfield code="b">ger</subfield>
+      <subfield code="c">DE-101</subfield>
+      <subfield code="d">9999</subfield>
+    </datafield>
+    <datafield tag="041" ind1=" " ind2=" ">
+      <subfield code="8">1\p</subfield>
+      <subfield code="a">ger</subfield>
+    </datafield>
+    <datafield tag="043" ind1=" " ind2=" ">
+      <subfield code="c">XA</subfield>
+      <subfield code="c">XA</subfield>
+      <subfield code="c">XA</subfield>
+    </datafield>
+    <datafield tag="044" ind1=" " ind2=" ">
+      <subfield code="c">XA-CH</subfield>
+    </datafield>
+    <datafield tag="082" ind1="0" ind2="4">
+      <subfield code="8">31\u</subfield>
+      <subfield code="8">32\p</subfield>
+      <subfield code="a">581.63089916</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="2">22/ger</subfield>
+    </datafield>
+    <datafield tag="083" ind1="0" ind2=" ">
+      <subfield code="8">33\u</subfield>
+      <subfield code="8">34\p</subfield>
+      <subfield code="a">299.16</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="2">22/ger</subfield>
+    </datafield>
+    <datafield tag="083" ind1="7" ind2=" ">
+      <subfield code="8">35\p</subfield>
+      <subfield code="a">580</subfield>
+      <subfield code="a">610</subfield>
+      <subfield code="a">290</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="2">23sdnb</subfield>
+    </datafield>
+    <datafield tag="084" ind1=" " ind2=" ">
+      <subfield code="a">24.2b</subfield>
+      <subfield code="a">3.1</subfield>
+      <subfield code="a">17.2</subfield>
+      <subfield code="a">24.2b</subfield>
+      <subfield code="a">17.1</subfield>
+      <subfield code="a">24.2b</subfield>
+      <subfield code="a">27.8a</subfield>
+      <subfield code="a">27.1b</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="2">sswd</subfield>
+    </datafield>
+    <datafield tag="085" ind1=" " ind2=" ">
+      <subfield code="8">31\u</subfield>
+      <subfield code="b">581.63</subfield>
+    </datafield>
+    <datafield tag="085" ind1=" " ind2=" ">
+      <subfield code="8">31\u</subfield>
+      <subfield code="z">5</subfield>
+      <subfield code="s">916</subfield>
+    </datafield>
+    <datafield tag="085" ind1=" " ind2=" ">
+      <subfield code="8">33\u</subfield>
+      <subfield code="b">299.16</subfield>
+    </datafield>
+    <datafield tag="100" ind1="1" ind2=" ">
+      <subfield code="8">2\p</subfield>
+      <subfield code="0">(DE-588)120340410</subfield>
+      <subfield code="0">https://d-nb.info/gnd/120340410</subfield>
+      <subfield code="0">(DE-101)120340410</subfield>
+      <subfield code="0">(isni)0000000081544915</subfield>
+      <subfield code="a">Storl, Wolf-Dieter</subfield>
+      <subfield code="d">1942-</subfield>
+      <subfield code="e">Verfasser</subfield>
+      <subfield code="4">aut</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="245" ind1="1" ind2="0">
+      <subfield code="a">Pflanzen der Kelten</subfield>
+      <subfield code="b">Heilkunde Pflanzenzauber Baumkalender</subfield>
+      <subfield code="c">Wolf-Dieter Storl</subfield>
+    </datafield>
+    <datafield tag="250" ind1=" " ind2=" ">
+      <subfield code="a">13. Auflage</subfield>
+    </datafield>
+    <datafield tag="256" ind1=" " ind2=" ">
+      <subfield code="a">30416178 Bytes</subfield>
+    </datafield>
+    <datafield tag="264" ind1=" " ind2="1">
+      <subfield code="a">Aarau</subfield>
+      <subfield code="b">AT Verlag</subfield>
+      <subfield code="c">2025</subfield>
+    </datafield>
+    <datafield tag="300" ind1=" " ind2=" ">
+      <subfield code="a">Online-Ressource, 336 Seiten</subfield>
+      <subfield code="b">33 farbige Abbildungen</subfield>
+    </datafield>
+    <datafield tag="336" ind1=" " ind2=" ">
+      <subfield code="a">Text</subfield>
+      <subfield code="b">txt</subfield>
+      <subfield code="2">rdacontent</subfield>
+    </datafield>
+    <datafield tag="337" ind1=" " ind2=" ">
+      <subfield code="a">Computermedien</subfield>
+      <subfield code="b">c</subfield>
+      <subfield code="2">rdamedia</subfield>
+    </datafield>
+    <datafield tag="338" ind1=" " ind2=" ">
+      <subfield code="a">Online-Ressource</subfield>
+      <subfield code="b">cr</subfield>
+      <subfield code="2">rdacarrier</subfield>
+    </datafield>
+    <datafield tag="500" ind1=" " ind2=" ">
+      <subfield code="a">Hinweis zur Barrierefreiheit, Version der Online-Ressource: EPUB 3.0</subfield>
+    </datafield>
+    <datafield tag="583" ind1="1" ind2=" ">
+      <subfield code="a">Archivierung/Langzeitarchivierung gewährleistet</subfield>
+      <subfield code="5">DE-101</subfield>
+      <subfield code="2">pdager</subfield>
+    </datafield>
+    <datafield tag="648" ind1=" " ind2="7">
+      <subfield code="a">Geschichte</subfield>
+      <subfield code="9">rswk-swf</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="648" ind1=" " ind2="7">
+      <subfield code="a">Geschichte</subfield>
+      <subfield code="9">rswk-swf</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="648" ind1=" " ind2="7">
+      <subfield code="a">Geschichte</subfield>
+      <subfield code="9">rswk-swf</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="650" ind1=" " ind2="7">
+      <subfield code="8">6\p</subfield>
+      <subfield code="0">(DE-588)4030206-4</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4030206-4</subfield>
+      <subfield code="0">(DE-101)040302067</subfield>
+      <subfield code="a">Kelten</subfield>
+      <subfield code="9">rswk-swf</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="650" ind1=" " ind2="7">
+      <subfield code="8">8\p</subfield>
+      <subfield code="0">(DE-588)4045539-7</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4045539-7</subfield>
+      <subfield code="0">(DE-101)040455394</subfield>
+      <subfield code="a">Pflanzen</subfield>
+      <subfield code="9">rswk-swf</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="650" ind1=" " ind2="7">
+      <subfield code="8">10\p</subfield>
+      <subfield code="0">(DE-588)4050164-4</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4050164-4</subfield>
+      <subfield code="0">(DE-101)040501647</subfield>
+      <subfield code="a">Ritual</subfield>
+      <subfield code="9">rswk-swf</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="650" ind1=" " ind2="7">
+      <subfield code="8">13\p</subfield>
+      <subfield code="0">(DE-588)4030206-4</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4030206-4</subfield>
+      <subfield code="0">(DE-101)040302067</subfield>
+      <subfield code="a">Kelten</subfield>
+      <subfield code="9">rswk-swf</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="650" ind1=" " ind2="7">
+      <subfield code="8">15\p</subfield>
+      <subfield code="0">(DE-588)4045539-7</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4045539-7</subfield>
+      <subfield code="0">(DE-101)040455394</subfield>
+      <subfield code="a">Pflanzen</subfield>
+      <subfield code="9">rswk-swf</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="650" ind1=" " ind2="7">
+      <subfield code="8">17\p</subfield>
+      <subfield code="0">(DE-588)4133903-4</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4133903-4</subfield>
+      <subfield code="0">(DE-101)041339037</subfield>
+      <subfield code="a">Kulturanthropologie</subfield>
+      <subfield code="9">rswk-swf</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="650" ind1=" " ind2="7">
+      <subfield code="8">20\p</subfield>
+      <subfield code="0">(DE-588)4030206-4</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4030206-4</subfield>
+      <subfield code="0">(DE-101)040302067</subfield>
+      <subfield code="a">Kelten</subfield>
+      <subfield code="9">rswk-swf</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="650" ind1=" " ind2="7">
+      <subfield code="8">22\p</subfield>
+      <subfield code="0">(DE-588)4024076-9</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4024076-9</subfield>
+      <subfield code="0">(DE-101)040240762</subfield>
+      <subfield code="a">Heilpflanzen</subfield>
+      <subfield code="9">rswk-swf</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="650" ind1=" " ind2="7">
+      <subfield code="8">25\p</subfield>
+      <subfield code="0">(DE-588)4030206-4</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4030206-4</subfield>
+      <subfield code="0">(DE-101)040302067</subfield>
+      <subfield code="a">Kelten</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="650" ind1=" " ind2="7">
+      <subfield code="8">26\p</subfield>
+      <subfield code="0">(DE-588)4024076-9</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4024076-9</subfield>
+      <subfield code="0">(DE-101)040240762</subfield>
+      <subfield code="a">Heilpflanzen</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="650" ind1=" " ind2="7">
+      <subfield code="8">27\p</subfield>
+      <subfield code="0">(DE-588)4045539-7</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4045539-7</subfield>
+      <subfield code="0">(DE-101)040455394</subfield>
+      <subfield code="a">Pflanzen</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="650" ind1=" " ind2="7">
+      <subfield code="8">28\p</subfield>
+      <subfield code="0">(DE-588)4050164-4</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4050164-4</subfield>
+      <subfield code="0">(DE-101)040501647</subfield>
+      <subfield code="a">Ritual</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="650" ind1=" " ind2="7">
+      <subfield code="8">29\p</subfield>
+      <subfield code="0">(DE-588)4133903-4</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4133903-4</subfield>
+      <subfield code="0">(DE-101)041339037</subfield>
+      <subfield code="a">Kulturanthropologie</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="650" ind1=" " ind2="7">
+      <subfield code="8">30\p</subfield>
+      <subfield code="0">(DE-588)4125698-0</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4125698-0</subfield>
+      <subfield code="0">(DE-101)041256980</subfield>
+      <subfield code="a">Kultur</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">(Produktform)Digital download</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">(Produktform (spezifisch))EPUB</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">(BISAC Subject Heading)OCC027000</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">(VLB-WN)9470</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">(BISAC Subject Heading)HIS010000</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Pflanzen</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Jahreskreis</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Baumkalender</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Heilpflanzen</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Heilpflanzen</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Beltane Ritual</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Julfest feiern</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Naturheilkunde</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Naturheilkunde</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Keltische Feste</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Heidnische Feste</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Jahreskreisfeste</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Julfest Bräuche</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Samhain Bräuche</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Keltische Druiden</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Keltische Götter</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Keltische Göttin</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Keltische Rituale</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Keltische Feiertage</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Keltischer Kalender</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Keltische Gottheiten</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Keltische Mythologie</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Germanische Feiertage</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Keltischer Jahreskreis</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Wintersonnenwende Fest</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Sommersonnenwende Rituale</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">(Produktgruppe)SG2: SachGrp. 2 Heilkunde, Mensch und Natur</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">(BISAC Subject Heading)HEA000000</subfield>
+    </datafield>
+    <datafield tag="689" ind1="0" ind2="0">
+      <subfield code="8">7\p</subfield>
+      <subfield code="0">(DE-588)4030206-4</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4030206-4</subfield>
+      <subfield code="0">(DE-101)040302067</subfield>
+      <subfield code="D">s</subfield>
+      <subfield code="a">Kelten</subfield>
+    </datafield>
+    <datafield tag="689" ind1="0" ind2="1">
+      <subfield code="8">9\p</subfield>
+      <subfield code="0">(DE-588)4045539-7</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4045539-7</subfield>
+      <subfield code="0">(DE-101)040455394</subfield>
+      <subfield code="D">s</subfield>
+      <subfield code="a">Pflanzen</subfield>
+    </datafield>
+    <datafield tag="689" ind1="0" ind2="2">
+      <subfield code="8">11\p</subfield>
+      <subfield code="0">(DE-588)4050164-4</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4050164-4</subfield>
+      <subfield code="0">(DE-101)040501647</subfield>
+      <subfield code="D">s</subfield>
+      <subfield code="a">Ritual</subfield>
+    </datafield>
+    <datafield tag="689" ind1="0" ind2="3">
+      <subfield code="8">12\p</subfield>
+      <subfield code="A">z</subfield>
+      <subfield code="a">Geschichte</subfield>
+    </datafield>
+    <datafield tag="689" ind1="0" ind2=" ">
+      <subfield code="5">DE-101</subfield>
+      <subfield code="5">DE-101</subfield>
+    </datafield>
+    <datafield tag="689" ind1="1" ind2="0">
+      <subfield code="8">14\p</subfield>
+      <subfield code="0">(DE-588)4030206-4</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4030206-4</subfield>
+      <subfield code="0">(DE-101)040302067</subfield>
+      <subfield code="D">s</subfield>
+      <subfield code="a">Kelten</subfield>
+    </datafield>
+    <datafield tag="689" ind1="1" ind2="1">
+      <subfield code="8">16\p</subfield>
+      <subfield code="0">(DE-588)4045539-7</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4045539-7</subfield>
+      <subfield code="0">(DE-101)040455394</subfield>
+      <subfield code="D">s</subfield>
+      <subfield code="a">Pflanzen</subfield>
+    </datafield>
+    <datafield tag="689" ind1="1" ind2="2">
+      <subfield code="8">18\p</subfield>
+      <subfield code="0">(DE-588)4133903-4</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4133903-4</subfield>
+      <subfield code="0">(DE-101)041339037</subfield>
+      <subfield code="D">s</subfield>
+      <subfield code="a">Kulturanthropologie</subfield>
+    </datafield>
+    <datafield tag="689" ind1="1" ind2="3">
+      <subfield code="8">19\p</subfield>
+      <subfield code="A">z</subfield>
+      <subfield code="a">Geschichte</subfield>
+    </datafield>
+    <datafield tag="689" ind1="1" ind2=" ">
+      <subfield code="5">DE-101</subfield>
+      <subfield code="5">DE-101</subfield>
+    </datafield>
+    <datafield tag="689" ind1="2" ind2="0">
+      <subfield code="8">21\p</subfield>
+      <subfield code="0">(DE-588)4030206-4</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4030206-4</subfield>
+      <subfield code="0">(DE-101)040302067</subfield>
+      <subfield code="D">s</subfield>
+      <subfield code="a">Kelten</subfield>
+    </datafield>
+    <datafield tag="689" ind1="2" ind2="1">
+      <subfield code="8">23\p</subfield>
+      <subfield code="0">(DE-588)4024076-9</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4024076-9</subfield>
+      <subfield code="0">(DE-101)040240762</subfield>
+      <subfield code="D">s</subfield>
+      <subfield code="a">Heilpflanzen</subfield>
+    </datafield>
+    <datafield tag="689" ind1="2" ind2="2">
+      <subfield code="8">24\p</subfield>
+      <subfield code="A">z</subfield>
+      <subfield code="a">Geschichte</subfield>
+    </datafield>
+    <datafield tag="689" ind1="2" ind2=" ">
+      <subfield code="5">DE-101</subfield>
+      <subfield code="5">DE-101</subfield>
+    </datafield>
+    <datafield tag="700" ind1="1" ind2=" ">
+      <subfield code="8">3\p</subfield>
+      <subfield code="a">Winter, Sarah</subfield>
+      <subfield code="e">Illustrator</subfield>
+      <subfield code="4">ill</subfield>
+    </datafield>
+    <datafield tag="700" ind1="1" ind2=" ">
+      <subfield code="8">4\p</subfield>
+      <subfield code="0">(DE-588)1221324306</subfield>
+      <subfield code="0">https://d-nb.info/gnd/1221324306</subfield>
+      <subfield code="0">(DE-101)1221324306</subfield>
+      <subfield code="a">Storl, Lisa</subfield>
+      <subfield code="e">Fotograf</subfield>
+      <subfield code="4">pht</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="710" ind1="2" ind2=" ">
+      <subfield code="8">5\p</subfield>
+      <subfield code="0">(DE-588)1064053424</subfield>
+      <subfield code="0">https://d-nb.info/gnd/1064053424</subfield>
+      <subfield code="0">(DE-101)1064053424</subfield>
+      <subfield code="a">AT Verlag</subfield>
+      <subfield code="e">Verlag</subfield>
+      <subfield code="4">pbl</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="776" ind1="0" ind2="8">
+      <subfield code="i">Erscheint auch als</subfield>
+      <subfield code="n">Druck-Ausgabe</subfield>
+      <subfield code="a">Storl, Wolf-Dieter, 1942-</subfield>
+      <subfield code="t">Pflanzen der Kelten</subfield>
+      <subfield code="d">Aarau ; München : AT Verlag, 2025</subfield>
+      <subfield code="h">333 Seiten</subfield>
+      <subfield code="w">(DE-101)1363522019</subfield>
+      <subfield code="b">13. Auflage</subfield>
+    </datafield>
+    <datafield tag="850" ind1=" " ind2=" ">
+      <subfield code="a">DE-101a</subfield>
+    </datafield>
+    <datafield tag="856" ind1="4" ind2="0">
+      <subfield code="u">https://nbn-resolving.org/urn:nbn:de:101:1-2512171823452.233481860089</subfield>
+      <subfield code="x">Resolving-System</subfield>
+    </datafield>
+    <datafield tag="856" ind1=" " ind2="0">
+      <subfield code="u">https://d-nb.info/1384619429/34</subfield>
+      <subfield code="x">Langzeitarchivierung Nationalbibliothek</subfield>
+    </datafield>
+    <datafield tag="856" ind1="4" ind2=" ">
+      <subfield code="q">epub</subfield>
+    </datafield>
+    <datafield tag="856" ind1="4" ind2=" ">
+      <subfield code="u">https://at-verlag.ch/buch/978-3-03902-292-2/wolf-dieter-storl-pflanzen-der-kelten.html</subfield>
+      <subfield code="x">Verlag</subfield>
+    </datafield>
+    <datafield tag="883" ind1="2" ind2=" ">
+      <subfield code="8">1\p</subfield>
+      <subfield code="a">dnb-pa</subfield>
+      <subfield code="d">20260323</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb-pa</subfield>
+    </datafield>
+    <datafield tag="883" ind1="1" ind2=" ">
+      <subfield code="8">2\p</subfield>
+      <subfield code="a">npi</subfield>
+      <subfield code="d">20251217</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#npi</subfield>
+    </datafield>
+    <datafield tag="883" ind1="1" ind2=" ">
+      <subfield code="8">3\p</subfield>
+      <subfield code="a">npi</subfield>
+      <subfield code="d">20251217</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#npi</subfield>
+    </datafield>
+    <datafield tag="883" ind1="0" ind2=" ">
+      <subfield code="8">4\p</subfield>
+      <subfield code="a">ptc001</subfield>
+      <subfield code="d">20260117</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#ptc001</subfield>
+    </datafield>
+    <datafield tag="883" ind1="1" ind2=" ">
+      <subfield code="8">5\p</subfield>
+      <subfield code="a">adb-pa</subfield>
+      <subfield code="d">20251218</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#adb-pa</subfield>
+    </datafield>
+    <datafield tag="883" ind1="2" ind2=" ">
+      <subfield code="8">6\p</subfield>
+      <subfield code="a">dnb-pa</subfield>
+      <subfield code="d">20251218</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb-pa</subfield>
+    </datafield>
+    <datafield tag="883" ind1="2" ind2=" ">
+      <subfield code="8">7\p</subfield>
+      <subfield code="a">dnb-pa</subfield>
+      <subfield code="d">20251218</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb-pa</subfield>
+    </datafield>
+    <datafield tag="883" ind1="2" ind2=" ">
+      <subfield code="8">8\p</subfield>
+      <subfield code="a">dnb-pa</subfield>
+      <subfield code="d">20251218</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb-pa</subfield>
+    </datafield>
+    <datafield tag="883" ind1="2" ind2=" ">
+      <subfield code="8">9\p</subfield>
+      <subfield code="a">dnb-pa</subfield>
+      <subfield code="d">20251218</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb-pa</subfield>
+    </datafield>
+    <datafield tag="883" ind1="2" ind2=" ">
+      <subfield code="8">10\p</subfield>
+      <subfield code="a">dnb-pa</subfield>
+      <subfield code="d">20251218</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb-pa</subfield>
+    </datafield>
+    <datafield tag="883" ind1="2" ind2=" ">
+      <subfield code="8">11\p</subfield>
+      <subfield code="a">dnb-pa</subfield>
+      <subfield code="d">20251218</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb-pa</subfield>
+    </datafield>
+    <datafield tag="883" ind1="2" ind2=" ">
+      <subfield code="8">12\p</subfield>
+      <subfield code="a">dnb-pa</subfield>
+      <subfield code="d">20251218</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb-pa</subfield>
+    </datafield>
+    <datafield tag="883" ind1="2" ind2=" ">
+      <subfield code="8">13\p</subfield>
+      <subfield code="a">dnb-pa</subfield>
+      <subfield code="d">20251218</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb-pa</subfield>
+    </datafield>
+    <datafield tag="883" ind1="2" ind2=" ">
+      <subfield code="8">14\p</subfield>
+      <subfield code="a">dnb-pa</subfield>
+      <subfield code="d">20251218</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb-pa</subfield>
+    </datafield>
+    <datafield tag="883" ind1="2" ind2=" ">
+      <subfield code="8">15\p</subfield>
+      <subfield code="a">dnb-pa</subfield>
+      <subfield code="d">20251218</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb-pa</subfield>
+    </datafield>
+    <datafield tag="883" ind1="2" ind2=" ">
+      <subfield code="8">16\p</subfield>
+      <subfield code="a">dnb-pa</subfield>
+      <subfield code="d">20251218</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb-pa</subfield>
+    </datafield>
+    <datafield tag="883" ind1="2" ind2=" ">
+      <subfield code="8">17\p</subfield>
+      <subfield code="a">dnb-pa</subfield>
+      <subfield code="d">20251218</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb-pa</subfield>
+    </datafield>
+    <datafield tag="883" ind1="2" ind2=" ">
+      <subfield code="8">18\p</subfield>
+      <subfield code="a">dnb-pa</subfield>
+      <subfield code="d">20251218</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb-pa</subfield>
+    </datafield>
+    <datafield tag="883" ind1="2" ind2=" ">
+      <subfield code="8">19\p</subfield>
+      <subfield code="a">dnb-pa</subfield>
+      <subfield code="d">20251218</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb-pa</subfield>
+    </datafield>
+    <datafield tag="883" ind1="2" ind2=" ">
+      <subfield code="8">20\p</subfield>
+      <subfield code="a">dnb-pa</subfield>
+      <subfield code="d">20251218</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb-pa</subfield>
+    </datafield>
+    <datafield tag="883" ind1="2" ind2=" ">
+      <subfield code="8">21\p</subfield>
+      <subfield code="a">dnb-pa</subfield>
+      <subfield code="d">20251218</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb-pa</subfield>
+    </datafield>
+    <datafield tag="883" ind1="2" ind2=" ">
+      <subfield code="8">22\p</subfield>
+      <subfield code="a">dnb-pa</subfield>
+      <subfield code="d">20251218</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb-pa</subfield>
+    </datafield>
+    <datafield tag="883" ind1="2" ind2=" ">
+      <subfield code="8">23\p</subfield>
+      <subfield code="a">dnb-pa</subfield>
+      <subfield code="d">20251218</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb-pa</subfield>
+    </datafield>
+    <datafield tag="883" ind1="2" ind2=" ">
+      <subfield code="8">24\p</subfield>
+      <subfield code="a">dnb-pa</subfield>
+      <subfield code="d">20251218</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb-pa</subfield>
+    </datafield>
+    <datafield tag="883" ind1="0" ind2=" ">
+      <subfield code="8">25\p</subfield>
+      <subfield code="a">emagnd</subfield>
+      <subfield code="c">0,60828</subfield>
+      <subfield code="d">20251218</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#emagnd</subfield>
+    </datafield>
+    <datafield tag="883" ind1="0" ind2=" ">
+      <subfield code="8">26\p</subfield>
+      <subfield code="a">emagnd</subfield>
+      <subfield code="c">0,31023</subfield>
+      <subfield code="d">20251218</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#emagnd</subfield>
+    </datafield>
+    <datafield tag="883" ind1="0" ind2=" ">
+      <subfield code="8">27\p</subfield>
+      <subfield code="a">emagnd</subfield>
+      <subfield code="c">0,28864</subfield>
+      <subfield code="d">20251218</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#emagnd</subfield>
+    </datafield>
+    <datafield tag="883" ind1="0" ind2=" ">
+      <subfield code="8">28\p</subfield>
+      <subfield code="a">emagnd</subfield>
+      <subfield code="c">0,21184</subfield>
+      <subfield code="d">20251218</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#emagnd</subfield>
+    </datafield>
+    <datafield tag="883" ind1="0" ind2=" ">
+      <subfield code="8">29\p</subfield>
+      <subfield code="a">emagnd</subfield>
+      <subfield code="c">0,15536</subfield>
+      <subfield code="d">20251218</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#emagnd</subfield>
+    </datafield>
+    <datafield tag="883" ind1="0" ind2=" ">
+      <subfield code="8">30\p</subfield>
+      <subfield code="a">emagnd</subfield>
+      <subfield code="c">0,07745</subfield>
+      <subfield code="d">20251218</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#emagnd</subfield>
+    </datafield>
+    <datafield tag="883" ind1=" " ind2=" ">
+      <subfield code="8">32\p</subfield>
+      <subfield code="a">dnb-cgwrk</subfield>
+      <subfield code="d">20251218</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb-cgwrk</subfield>
+    </datafield>
+    <datafield tag="883" ind1=" " ind2=" ">
+      <subfield code="8">34\p</subfield>
+      <subfield code="a">dnb-cgwrk</subfield>
+      <subfield code="d">20251218</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb-cgwrk</subfield>
+    </datafield>
+    <datafield tag="883" ind1="2" ind2=" ">
+      <subfield code="8">35\p</subfield>
+      <subfield code="a">dnb-pa</subfield>
+      <subfield code="d">20260323</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb-pa</subfield>
+    </datafield>
+    <datafield tag="925" ind1="r" ind2=" ">
+      <subfield code="a">ro</subfield>
+      <subfield code="a">ra</subfield>
+    </datafield>
+    <datafield tag="926" ind1="1" ind2=" ">
+      <subfield code="a">VX</subfield>
+      <subfield code="o">93</subfield>
+      <subfield code="v">1.6</subfield>
+    </datafield>
+    <datafield tag="926" ind1="2" ind2=" ">
+      <subfield code="a">NHDC</subfield>
+      <subfield code="o">93</subfield>
+      <subfield code="v">1.6</subfield>
+    </datafield>
+    <datafield tag="927" ind1=" " ind2=" ">
+      <subfield code="a">316932137</subfield>
+    </datafield>
+  </record></recordData><recordPosition>1</recordPosition></record><record><recordSchema>MARC21-xml</recordSchema><recordPacking>xml</recordPacking><recordData><record xmlns="http://www.loc.gov/MARC21/slim" type="Bibliographic">
+    <leader>00000pam a2200000 c 4500</leader>
+    <controlfield tag="001">1363522019</controlfield>
+    <controlfield tag="003">DE-101</controlfield>
+    <controlfield tag="005">20260401220036.0</controlfield>
+    <controlfield tag="007">tu</controlfield>
+    <controlfield tag="008">250419s2025    gw ||||| |||| 00||||ger  </controlfield>
+    <datafield tag="015" ind1=" " ind2=" ">
+      <subfield code="a">26,A14</subfield>
+      <subfield code="z">25,N17</subfield>
+      <subfield code="2">dnb</subfield>
+    </datafield>
+    <datafield tag="016" ind1="7" ind2=" ">
+      <subfield code="2">DE-101</subfield>
+      <subfield code="a">1363522019</subfield>
+    </datafield>
+    <datafield tag="020" ind1=" " ind2=" ">
+      <subfield code="a">9783039022922</subfield>
+      <subfield code="c">Festeinband : circa EUR 32.00 (DE), circa EUR 33.00 (AT), circa CHF 38.00 (freier Preis)</subfield>
+      <subfield code="9">978-3-03902-292-2</subfield>
+    </datafield>
+    <datafield tag="020" ind1=" " ind2=" ">
+      <subfield code="a">303902292X</subfield>
+      <subfield code="9">3-03902-292-X</subfield>
+    </datafield>
+    <datafield tag="024" ind1="3" ind2=" ">
+      <subfield code="a">9783039022922</subfield>
+    </datafield>
+    <datafield tag="035" ind1=" " ind2=" ">
+      <subfield code="a">(DE-599)DNB1363522019</subfield>
+    </datafield>
+    <datafield tag="035" ind1=" " ind2=" ">
+      <subfield code="a">(OCoLC)1545789073</subfield>
+    </datafield>
+    <datafield tag="040" ind1=" " ind2=" ">
+      <subfield code="a">1145</subfield>
+      <subfield code="b">ger</subfield>
+      <subfield code="c">DE-101</subfield>
+      <subfield code="d">9999</subfield>
+      <subfield code="e">rda</subfield>
+    </datafield>
+    <datafield tag="041" ind1=" " ind2=" ">
+      <subfield code="a">ger</subfield>
+    </datafield>
+    <datafield tag="044" ind1=" " ind2=" ">
+      <subfield code="c">XA-DE</subfield>
+      <subfield code="c">XA-CH</subfield>
+    </datafield>
+    <datafield tag="082" ind1="0" ind2="4">
+      <subfield code="8">4\u</subfield>
+      <subfield code="a">581.63089916</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="2">23/ger</subfield>
+    </datafield>
+    <datafield tag="083" ind1="0" ind2=" ">
+      <subfield code="8">5\u</subfield>
+      <subfield code="a">299.16</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="2">23/ger</subfield>
+    </datafield>
+    <datafield tag="083" ind1="7" ind2=" ">
+      <subfield code="8">6\p</subfield>
+      <subfield code="a">580</subfield>
+      <subfield code="a">610</subfield>
+      <subfield code="a">290</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="2">23sdnb</subfield>
+    </datafield>
+    <datafield tag="085" ind1=" " ind2=" ">
+      <subfield code="8">4\u</subfield>
+      <subfield code="b">581.63</subfield>
+    </datafield>
+    <datafield tag="085" ind1=" " ind2=" ">
+      <subfield code="8">4\u</subfield>
+      <subfield code="z">5</subfield>
+      <subfield code="s">916</subfield>
+    </datafield>
+    <datafield tag="085" ind1=" " ind2=" ">
+      <subfield code="8">5\u</subfield>
+      <subfield code="b">299.16</subfield>
+    </datafield>
+    <datafield tag="100" ind1="1" ind2=" ">
+      <subfield code="8">1\p</subfield>
+      <subfield code="0">(DE-588)120340410</subfield>
+      <subfield code="0">https://d-nb.info/gnd/120340410</subfield>
+      <subfield code="0">(DE-101)120340410</subfield>
+      <subfield code="0">(isni)0000000081544915</subfield>
+      <subfield code="a">Storl, Wolf-Dieter</subfield>
+      <subfield code="d">1942-</subfield>
+      <subfield code="e">Verfasser</subfield>
+      <subfield code="4">aut</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="245" ind1="1" ind2="0">
+      <subfield code="a">Pflanzen der Kelten</subfield>
+      <subfield code="b">Heilkunde, Pflanzenzauber, Baumkalender</subfield>
+      <subfield code="c">Wolf Dieter Storl</subfield>
+    </datafield>
+    <datafield tag="250" ind1=" " ind2=" ">
+      <subfield code="a">13. Auflage</subfield>
+    </datafield>
+    <datafield tag="264" ind1=" " ind2="1">
+      <subfield code="a">Aarau</subfield>
+      <subfield code="a">München</subfield>
+      <subfield code="b">AT Verlag</subfield>
+      <subfield code="c">2025</subfield>
+    </datafield>
+    <datafield tag="300" ind1=" " ind2=" ">
+      <subfield code="a">333 Seiten</subfield>
+      <subfield code="c">24 cm</subfield>
+    </datafield>
+    <datafield tag="336" ind1=" " ind2=" ">
+      <subfield code="a">Text</subfield>
+      <subfield code="b">txt</subfield>
+      <subfield code="2">rdacontent</subfield>
+    </datafield>
+    <datafield tag="337" ind1=" " ind2=" ">
+      <subfield code="a">ohne Hilfsmittel zu benutzen</subfield>
+      <subfield code="b">n</subfield>
+      <subfield code="2">rdamedia</subfield>
+    </datafield>
+    <datafield tag="338" ind1=" " ind2=" ">
+      <subfield code="a">Band</subfield>
+      <subfield code="b">nc</subfield>
+      <subfield code="2">rdacarrier</subfield>
+    </datafield>
+    <datafield tag="648" ind1=" " ind2="7">
+      <subfield code="a">Geschichte</subfield>
+      <subfield code="9">rswk-swf</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="648" ind1=" " ind2="7">
+      <subfield code="a">Geschichte</subfield>
+      <subfield code="9">rswk-swf</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="648" ind1=" " ind2="7">
+      <subfield code="a">Geschichte</subfield>
+      <subfield code="9">rswk-swf</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="650" ind1=" " ind2="7">
+      <subfield code="0">(DE-588)4030206-4</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4030206-4</subfield>
+      <subfield code="0">(DE-101)040302067</subfield>
+      <subfield code="a">Kelten</subfield>
+      <subfield code="9">rswk-swf</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="650" ind1=" " ind2="7">
+      <subfield code="0">(DE-588)4045539-7</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4045539-7</subfield>
+      <subfield code="0">(DE-101)040455394</subfield>
+      <subfield code="a">Pflanzen</subfield>
+      <subfield code="9">rswk-swf</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="650" ind1=" " ind2="7">
+      <subfield code="0">(DE-588)4050164-4</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4050164-4</subfield>
+      <subfield code="0">(DE-101)040501647</subfield>
+      <subfield code="a">Ritual</subfield>
+      <subfield code="9">rswk-swf</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="650" ind1=" " ind2="7">
+      <subfield code="0">(DE-588)4030206-4</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4030206-4</subfield>
+      <subfield code="0">(DE-101)040302067</subfield>
+      <subfield code="a">Kelten</subfield>
+      <subfield code="9">rswk-swf</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="650" ind1=" " ind2="7">
+      <subfield code="0">(DE-588)4045539-7</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4045539-7</subfield>
+      <subfield code="0">(DE-101)040455394</subfield>
+      <subfield code="a">Pflanzen</subfield>
+      <subfield code="9">rswk-swf</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="650" ind1=" " ind2="7">
+      <subfield code="0">(DE-588)4133903-4</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4133903-4</subfield>
+      <subfield code="0">(DE-101)041339037</subfield>
+      <subfield code="a">Kulturanthropologie</subfield>
+      <subfield code="9">rswk-swf</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="650" ind1=" " ind2="7">
+      <subfield code="0">(DE-588)4030206-4</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4030206-4</subfield>
+      <subfield code="0">(DE-101)040302067</subfield>
+      <subfield code="a">Kelten</subfield>
+      <subfield code="9">rswk-swf</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="650" ind1=" " ind2="7">
+      <subfield code="0">(DE-588)4024076-9</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4024076-9</subfield>
+      <subfield code="0">(DE-101)040240762</subfield>
+      <subfield code="a">Heilpflanzen</subfield>
+      <subfield code="9">rswk-swf</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">(Produktform)Hardback</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">(VLB-WN)1470: Hardcover, Softcover / Ratgeber/Spiritualität</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Pflanzen</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Jahreskreis</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Baumkalender</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Heilpflanzen</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Beltane Ritual</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Julfest feiern</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Naturheilkunde</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Keltische Feste</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Heidnische Feste</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Jahreskreisfeste</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Julfest Bräuche</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Samhain Bräuche</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Keltische Druiden</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Keltische Götter</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Keltische Göttin</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Keltische Rituale</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Keltische Feiertage</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Keltischer Kalender</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Keltische Gottheiten</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Keltische Mythologie</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Germanische Feiertage</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Keltischer Jahreskreis</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Wintersonnenwende Fest</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Sommersonnenwende Rituale</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">(Produktgruppe)SG2: SachGrp. 2 Heilkunde, Mensch und Natur</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">(BISAC Subject Heading)HEA000000</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">(BISAC Subject Heading)OCC027000</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">(BISAC Subject Heading)HIS010000</subfield>
+    </datafield>
+    <datafield tag="689" ind1="0" ind2="0">
+      <subfield code="0">(DE-588)4030206-4</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4030206-4</subfield>
+      <subfield code="0">(DE-101)040302067</subfield>
+      <subfield code="D">s</subfield>
+      <subfield code="a">Kelten</subfield>
+    </datafield>
+    <datafield tag="689" ind1="0" ind2="1">
+      <subfield code="0">(DE-588)4045539-7</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4045539-7</subfield>
+      <subfield code="0">(DE-101)040455394</subfield>
+      <subfield code="D">s</subfield>
+      <subfield code="a">Pflanzen</subfield>
+    </datafield>
+    <datafield tag="689" ind1="0" ind2="2">
+      <subfield code="0">(DE-588)4050164-4</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4050164-4</subfield>
+      <subfield code="0">(DE-101)040501647</subfield>
+      <subfield code="D">s</subfield>
+      <subfield code="a">Ritual</subfield>
+    </datafield>
+    <datafield tag="689" ind1="0" ind2="3">
+      <subfield code="A">z</subfield>
+      <subfield code="a">Geschichte</subfield>
+    </datafield>
+    <datafield tag="689" ind1="0" ind2=" ">
+      <subfield code="5">DE-101</subfield>
+      <subfield code="5">DE-101</subfield>
+    </datafield>
+    <datafield tag="689" ind1="1" ind2="0">
+      <subfield code="0">(DE-588)4030206-4</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4030206-4</subfield>
+      <subfield code="0">(DE-101)040302067</subfield>
+      <subfield code="D">s</subfield>
+      <subfield code="a">Kelten</subfield>
+    </datafield>
+    <datafield tag="689" ind1="1" ind2="1">
+      <subfield code="0">(DE-588)4045539-7</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4045539-7</subfield>
+      <subfield code="0">(DE-101)040455394</subfield>
+      <subfield code="D">s</subfield>
+      <subfield code="a">Pflanzen</subfield>
+    </datafield>
+    <datafield tag="689" ind1="1" ind2="2">
+      <subfield code="0">(DE-588)4133903-4</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4133903-4</subfield>
+      <subfield code="0">(DE-101)041339037</subfield>
+      <subfield code="D">s</subfield>
+      <subfield code="a">Kulturanthropologie</subfield>
+    </datafield>
+    <datafield tag="689" ind1="1" ind2="3">
+      <subfield code="A">z</subfield>
+      <subfield code="a">Geschichte</subfield>
+    </datafield>
+    <datafield tag="689" ind1="1" ind2=" ">
+      <subfield code="5">DE-101</subfield>
+      <subfield code="5">DE-101</subfield>
+    </datafield>
+    <datafield tag="689" ind1="2" ind2="0">
+      <subfield code="0">(DE-588)4030206-4</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4030206-4</subfield>
+      <subfield code="0">(DE-101)040302067</subfield>
+      <subfield code="D">s</subfield>
+      <subfield code="a">Kelten</subfield>
+    </datafield>
+    <datafield tag="689" ind1="2" ind2="1">
+      <subfield code="0">(DE-588)4024076-9</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4024076-9</subfield>
+      <subfield code="0">(DE-101)040240762</subfield>
+      <subfield code="D">s</subfield>
+      <subfield code="a">Heilpflanzen</subfield>
+    </datafield>
+    <datafield tag="689" ind1="2" ind2="2">
+      <subfield code="A">z</subfield>
+      <subfield code="a">Geschichte</subfield>
+    </datafield>
+    <datafield tag="689" ind1="2" ind2=" ">
+      <subfield code="5">DE-101</subfield>
+      <subfield code="5">DE-101</subfield>
+    </datafield>
+    <datafield tag="700" ind1="1" ind2=" ">
+      <subfield code="8">2\p</subfield>
+      <subfield code="0">(DE-588)1221324306</subfield>
+      <subfield code="0">https://d-nb.info/gnd/1221324306</subfield>
+      <subfield code="0">(DE-101)1221324306</subfield>
+      <subfield code="a">Storl, Lisa</subfield>
+      <subfield code="e">Fotograf</subfield>
+      <subfield code="4">pht</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="710" ind1="2" ind2=" ">
+      <subfield code="8">3\p</subfield>
+      <subfield code="0">(DE-588)1064053424</subfield>
+      <subfield code="0">https://d-nb.info/gnd/1064053424</subfield>
+      <subfield code="0">(DE-101)1064053424</subfield>
+      <subfield code="a">AT Verlag</subfield>
+      <subfield code="e">Verlag</subfield>
+      <subfield code="4">pbl</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="776" ind1="0" ind2="8">
+      <subfield code="i">Erscheint auch als</subfield>
+      <subfield code="n">Online-Ausgabe</subfield>
+      <subfield code="a">Storl, Wolf-Dieter, 1942-</subfield>
+      <subfield code="t">Pflanzen der Kelten</subfield>
+      <subfield code="d">Aarau : AT Verlag, 2025</subfield>
+      <subfield code="h">Online-Ressource, 336 Seiten, 33 farbige Abbildungen</subfield>
+      <subfield code="w">(DE-101)1384619429</subfield>
+      <subfield code="b">13. Auflage</subfield>
+    </datafield>
+    <datafield tag="850" ind1=" " ind2=" ">
+      <subfield code="a">DE-101a</subfield>
+      <subfield code="a">DE-101b</subfield>
+    </datafield>
+    <datafield tag="856" ind1="4" ind2="2">
+      <subfield code="m">X:MVB</subfield>
+      <subfield code="q">text/html</subfield>
+      <subfield code="u">https://services.dnb.de/plus/idn/1363522019/blurb/</subfield>
+      <subfield code="3">Inhaltstext</subfield>
+    </datafield>
+    <datafield tag="856" ind1="4" ind2="2">
+      <subfield code="m">B:DE-101</subfield>
+      <subfield code="q">application/pdf</subfield>
+      <subfield code="u">https://d-nb.info/1363522019/04</subfield>
+      <subfield code="3">Inhaltsverzeichnis</subfield>
+    </datafield>
+    <datafield tag="883" ind1="2" ind2=" ">
+      <subfield code="8">1\p</subfield>
+      <subfield code="a">dnb</subfield>
+      <subfield code="d">20260313</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb</subfield>
+    </datafield>
+    <datafield tag="883" ind1="0" ind2=" ">
+      <subfield code="8">2\p</subfield>
+      <subfield code="a">ptc001</subfield>
+      <subfield code="d">20250611</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#ptc001</subfield>
+    </datafield>
+    <datafield tag="883" ind1="1" ind2=" ">
+      <subfield code="8">3\p</subfield>
+      <subfield code="a">adb</subfield>
+      <subfield code="d">20250419</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#adb</subfield>
+    </datafield>
+    <datafield tag="883" ind1="2" ind2=" ">
+      <subfield code="8">6\p</subfield>
+      <subfield code="a">dnb</subfield>
+      <subfield code="d">20260323</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb</subfield>
+    </datafield>
+    <datafield tag="925" ind1="r" ind2=" ">
+      <subfield code="a">ra</subfield>
+    </datafield>
+    <datafield tag="926" ind1="1" ind2=" ">
+      <subfield code="a">VX</subfield>
+      <subfield code="o">93</subfield>
+      <subfield code="q">Publisher</subfield>
+      <subfield code="v">1.6</subfield>
+      <subfield code="x">Körper und Geist</subfield>
+    </datafield>
+    <datafield tag="926" ind1="2" ind2=" ">
+      <subfield code="a">NHDC</subfield>
+      <subfield code="o">93</subfield>
+      <subfield code="q">Publisher</subfield>
+      <subfield code="v">1.6</subfield>
+      <subfield code="x">Europäische Geschichte: Kelten</subfield>
+    </datafield>
+  </record></recordData><recordPosition>2</recordPosition></record><record><recordSchema>MARC21-xml</recordSchema><recordPacking>xml</recordPacking><recordData><record xmlns="http://www.loc.gov/MARC21/slim" type="Bibliographic">
+    <leader>00000nam a2200000 c 4500</leader>
+    <controlfield tag="001">1237508541</controlfield>
+    <controlfield tag="003">DE-101</controlfield>
+    <controlfield tag="005">20211117220159.0</controlfield>
+    <controlfield tag="007">tu</controlfield>
+    <controlfield tag="008">210723s2020    xr ||||| |||| 00||||cze  </controlfield>
+    <datafield tag="015" ind1=" " ind2=" ">
+      <subfield code="a">21,A46</subfield>
+      <subfield code="2">dnb</subfield>
+    </datafield>
+    <datafield tag="016" ind1="7" ind2=" ">
+      <subfield code="2">DE-101</subfield>
+      <subfield code="a">1237508541</subfield>
+    </datafield>
+    <datafield tag="020" ind1=" " ind2=" ">
+      <subfield code="a">9788076510135</subfield>
+      <subfield code="c">Broschur</subfield>
+      <subfield code="9">978-80-7651-013-5</subfield>
+    </datafield>
+    <datafield tag="020" ind1=" " ind2=" ">
+      <subfield code="a">8076510139</subfield>
+      <subfield code="9">80-7651-013-9</subfield>
+    </datafield>
+    <datafield tag="035" ind1=" " ind2=" ">
+      <subfield code="a">(DE-599)DNB1237508541</subfield>
+    </datafield>
+    <datafield tag="035" ind1=" " ind2=" ">
+      <subfield code="a">(OCoLC)1285505582</subfield>
+    </datafield>
+    <datafield tag="035" ind1=" " ind2=" ">
+      <subfield code="a">(OCoLC)on1226361052</subfield>
+    </datafield>
+    <datafield tag="035" ind1=" " ind2=" ">
+      <subfield code="a">(OCoLC)1226361052</subfield>
+    </datafield>
+    <datafield tag="040" ind1=" " ind2=" ">
+      <subfield code="a">1130</subfield>
+      <subfield code="b">ger</subfield>
+      <subfield code="c">DE-101</subfield>
+      <subfield code="d">9999</subfield>
+      <subfield code="e">rda</subfield>
+    </datafield>
+    <datafield tag="041" ind1=" " ind2=" ">
+      <subfield code="a">cze</subfield>
+      <subfield code="h">ger</subfield>
+    </datafield>
+    <datafield tag="044" ind1=" " ind2=" ">
+      <subfield code="c">XA-CZ</subfield>
+    </datafield>
+    <datafield tag="082" ind1="0" ind2="4">
+      <subfield code="8">3\u</subfield>
+      <subfield code="a">581.63089916</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="2">23/ger</subfield>
+    </datafield>
+    <datafield tag="083" ind1="0" ind2=" ">
+      <subfield code="8">4\u</subfield>
+      <subfield code="a">299.16</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="2">23/ger</subfield>
+    </datafield>
+    <datafield tag="083" ind1="7" ind2=" ">
+      <subfield code="8">5\p</subfield>
+      <subfield code="a">580</subfield>
+      <subfield code="a">610</subfield>
+      <subfield code="a">290</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="2">23sdnb</subfield>
+    </datafield>
+    <datafield tag="084" ind1=" " ind2=" ">
+      <subfield code="a">633.88</subfield>
+      <subfield code="2">udc</subfield>
+    </datafield>
+    <datafield tag="084" ind1=" " ind2=" ">
+      <subfield code="a">633.8:133</subfield>
+      <subfield code="2">udc</subfield>
+    </datafield>
+    <datafield tag="084" ind1=" " ind2=" ">
+      <subfield code="a">615.89:633.88</subfield>
+      <subfield code="2">udc</subfield>
+    </datafield>
+    <datafield tag="084" ind1=" " ind2=" ">
+      <subfield code="a">615.83+615.89</subfield>
+      <subfield code="2">udc</subfield>
+    </datafield>
+    <datafield tag="084" ind1=" " ind2=" ">
+      <subfield code="a">133.4(=15)</subfield>
+      <subfield code="2">udc</subfield>
+    </datafield>
+    <datafield tag="084" ind1=" " ind2=" ">
+      <subfield code="a">257.62-726.6</subfield>
+      <subfield code="2">udc</subfield>
+    </datafield>
+    <datafield tag="084" ind1=" " ind2=" ">
+      <subfield code="a">(0.062)</subfield>
+      <subfield code="2">udc</subfield>
+    </datafield>
+    <datafield tag="085" ind1=" " ind2=" ">
+      <subfield code="8">3\u</subfield>
+      <subfield code="b">581.63</subfield>
+    </datafield>
+    <datafield tag="085" ind1=" " ind2=" ">
+      <subfield code="8">3\u</subfield>
+      <subfield code="z">5</subfield>
+      <subfield code="s">916</subfield>
+    </datafield>
+    <datafield tag="085" ind1=" " ind2=" ">
+      <subfield code="8">4\u</subfield>
+      <subfield code="b">299.16</subfield>
+    </datafield>
+    <datafield tag="100" ind1="1" ind2=" ">
+      <subfield code="8">1\p</subfield>
+      <subfield code="0">(DE-588)120340410</subfield>
+      <subfield code="0">https://d-nb.info/gnd/120340410</subfield>
+      <subfield code="0">(DE-101)120340410</subfield>
+      <subfield code="a">Storl, Wolf-Dieter</subfield>
+      <subfield code="d">1942-</subfield>
+      <subfield code="e">Verfasser</subfield>
+      <subfield code="4">aut</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="240" ind1="1" ind2="0">
+      <subfield code="a">Pflanzen der Kelten</subfield>
+    </datafield>
+    <datafield tag="245" ind1="1" ind2="0">
+      <subfield code="a">Léčivé rostliny Keltů</subfield>
+      <subfield code="c">Wolf-Dieter Storl ; přeložila Diana Rykrová</subfield>
+    </datafield>
+    <datafield tag="250" ind1=" " ind2=" ">
+      <subfield code="a">Vydání první</subfield>
+    </datafield>
+    <datafield tag="264" ind1=" " ind2="1">
+      <subfield code="a">Olomouc</subfield>
+      <subfield code="b">FONTÁNA</subfield>
+      <subfield code="c">[2020]</subfield>
+    </datafield>
+    <datafield tag="300" ind1=" " ind2=" ">
+      <subfield code="a">388 Seiten</subfield>
+      <subfield code="b">Illustrationen</subfield>
+      <subfield code="c">23 cm</subfield>
+    </datafield>
+    <datafield tag="336" ind1=" " ind2=" ">
+      <subfield code="a">Text</subfield>
+      <subfield code="b">txt</subfield>
+      <subfield code="2">rdacontent</subfield>
+    </datafield>
+    <datafield tag="337" ind1=" " ind2=" ">
+      <subfield code="a">ohne Hilfsmittel zu benutzen</subfield>
+      <subfield code="b">n</subfield>
+      <subfield code="2">rdamedia</subfield>
+    </datafield>
+    <datafield tag="338" ind1=" " ind2=" ">
+      <subfield code="a">Band</subfield>
+      <subfield code="b">nc</subfield>
+      <subfield code="2">rdacarrier</subfield>
+    </datafield>
+    <datafield tag="648" ind1=" " ind2="7">
+      <subfield code="a">Geschichte</subfield>
+      <subfield code="9">rswk-swf</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="648" ind1=" " ind2="7">
+      <subfield code="a">Geschichte</subfield>
+      <subfield code="9">rswk-swf</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="648" ind1=" " ind2="7">
+      <subfield code="a">Geschichte</subfield>
+      <subfield code="9">rswk-swf</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="650" ind1=" " ind2="7">
+      <subfield code="0">(DE-588)4030206-4</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4030206-4</subfield>
+      <subfield code="0">(DE-101)040302067</subfield>
+      <subfield code="a">Kelten</subfield>
+      <subfield code="9">rswk-swf</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="650" ind1=" " ind2="7">
+      <subfield code="0">(DE-588)4045539-7</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4045539-7</subfield>
+      <subfield code="0">(DE-101)040455394</subfield>
+      <subfield code="a">Pflanzen</subfield>
+      <subfield code="9">rswk-swf</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="650" ind1=" " ind2="7">
+      <subfield code="0">(DE-588)4050164-4</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4050164-4</subfield>
+      <subfield code="0">(DE-101)040501647</subfield>
+      <subfield code="a">Ritual</subfield>
+      <subfield code="9">rswk-swf</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="650" ind1=" " ind2="7">
+      <subfield code="0">(DE-588)4030206-4</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4030206-4</subfield>
+      <subfield code="0">(DE-101)040302067</subfield>
+      <subfield code="a">Kelten</subfield>
+      <subfield code="9">rswk-swf</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="650" ind1=" " ind2="7">
+      <subfield code="0">(DE-588)4045539-7</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4045539-7</subfield>
+      <subfield code="0">(DE-101)040455394</subfield>
+      <subfield code="a">Pflanzen</subfield>
+      <subfield code="9">rswk-swf</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="650" ind1=" " ind2="7">
+      <subfield code="0">(DE-588)4133903-4</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4133903-4</subfield>
+      <subfield code="0">(DE-101)041339037</subfield>
+      <subfield code="a">Kulturanthropologie</subfield>
+      <subfield code="9">rswk-swf</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="650" ind1=" " ind2="7">
+      <subfield code="0">(DE-588)4030206-4</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4030206-4</subfield>
+      <subfield code="0">(DE-101)040302067</subfield>
+      <subfield code="a">Kelten</subfield>
+      <subfield code="9">rswk-swf</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="650" ind1=" " ind2="7">
+      <subfield code="0">(DE-588)4024076-9</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4024076-9</subfield>
+      <subfield code="0">(DE-101)040240762</subfield>
+      <subfield code="a">Heilpflanzen</subfield>
+      <subfield code="9">rswk-swf</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2="0">
+      <subfield code="a">(czenas)léčivé rostliny.</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2="0">
+      <subfield code="a">(czenas)magické rostliny.</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2="0">
+      <subfield code="a">(czenas)fytoterapie.</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2="0">
+      <subfield code="a">(czenas)přírodní léčitelství.</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2="0">
+      <subfield code="a">(czenas)keltská magie.</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2="0">
+      <subfield code="a">(czenas)druidismus.</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2="0">
+      <subfield code="a">(czenas)medicinal plants.</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2="0">
+      <subfield code="a">(czenas)magical plants.</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2="0">
+      <subfield code="a">(czenas)phytotherapy.</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2="0">
+      <subfield code="a">(czenas)natural healing.</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2="0">
+      <subfield code="a">(czenas)Celtic magic.</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2="0">
+      <subfield code="a">(czenas)Druidism.</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2="6">
+      <subfield code="a">(czenas)populárně-naučné publikace.</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2="6">
+      <subfield code="a">(czenas)popular works.</subfield>
+    </datafield>
+    <datafield tag="689" ind1="0" ind2="0">
+      <subfield code="0">(DE-588)4030206-4</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4030206-4</subfield>
+      <subfield code="0">(DE-101)040302067</subfield>
+      <subfield code="D">s</subfield>
+      <subfield code="a">Kelten</subfield>
+    </datafield>
+    <datafield tag="689" ind1="0" ind2="1">
+      <subfield code="0">(DE-588)4045539-7</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4045539-7</subfield>
+      <subfield code="0">(DE-101)040455394</subfield>
+      <subfield code="D">s</subfield>
+      <subfield code="a">Pflanzen</subfield>
+    </datafield>
+    <datafield tag="689" ind1="0" ind2="2">
+      <subfield code="0">(DE-588)4050164-4</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4050164-4</subfield>
+      <subfield code="0">(DE-101)040501647</subfield>
+      <subfield code="D">s</subfield>
+      <subfield code="a">Ritual</subfield>
+    </datafield>
+    <datafield tag="689" ind1="0" ind2="3">
+      <subfield code="A">z</subfield>
+      <subfield code="a">Geschichte</subfield>
+    </datafield>
+    <datafield tag="689" ind1="0" ind2=" ">
+      <subfield code="5">DE-101</subfield>
+      <subfield code="5">DE-101</subfield>
+    </datafield>
+    <datafield tag="689" ind1="1" ind2="0">
+      <subfield code="0">(DE-588)4030206-4</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4030206-4</subfield>
+      <subfield code="0">(DE-101)040302067</subfield>
+      <subfield code="D">s</subfield>
+      <subfield code="a">Kelten</subfield>
+    </datafield>
+    <datafield tag="689" ind1="1" ind2="1">
+      <subfield code="0">(DE-588)4045539-7</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4045539-7</subfield>
+      <subfield code="0">(DE-101)040455394</subfield>
+      <subfield code="D">s</subfield>
+      <subfield code="a">Pflanzen</subfield>
+    </datafield>
+    <datafield tag="689" ind1="1" ind2="2">
+      <subfield code="0">(DE-588)4133903-4</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4133903-4</subfield>
+      <subfield code="0">(DE-101)041339037</subfield>
+      <subfield code="D">s</subfield>
+      <subfield code="a">Kulturanthropologie</subfield>
+    </datafield>
+    <datafield tag="689" ind1="1" ind2="3">
+      <subfield code="A">z</subfield>
+      <subfield code="a">Geschichte</subfield>
+    </datafield>
+    <datafield tag="689" ind1="1" ind2=" ">
+      <subfield code="5">DE-101</subfield>
+      <subfield code="5">DE-101</subfield>
+    </datafield>
+    <datafield tag="689" ind1="2" ind2="0">
+      <subfield code="0">(DE-588)4030206-4</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4030206-4</subfield>
+      <subfield code="0">(DE-101)040302067</subfield>
+      <subfield code="D">s</subfield>
+      <subfield code="a">Kelten</subfield>
+    </datafield>
+    <datafield tag="689" ind1="2" ind2="1">
+      <subfield code="0">(DE-588)4024076-9</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4024076-9</subfield>
+      <subfield code="0">(DE-101)040240762</subfield>
+      <subfield code="D">s</subfield>
+      <subfield code="a">Heilpflanzen</subfield>
+    </datafield>
+    <datafield tag="689" ind1="2" ind2="2">
+      <subfield code="A">z</subfield>
+      <subfield code="a">Geschichte</subfield>
+    </datafield>
+    <datafield tag="689" ind1="2" ind2=" ">
+      <subfield code="5">DE-101</subfield>
+      <subfield code="5">DE-101</subfield>
+    </datafield>
+    <datafield tag="700" ind1="1" ind2=" ">
+      <subfield code="8">2\p</subfield>
+      <subfield code="a">Rykrová, Diana.</subfield>
+      <subfield code="e">Übersetzer</subfield>
+      <subfield code="4">trl</subfield>
+    </datafield>
+    <datafield tag="850" ind1=" " ind2=" ">
+      <subfield code="a">DE-101a</subfield>
+    </datafield>
+    <datafield tag="856" ind1="4" ind2="2">
+      <subfield code="m">B:DE-101</subfield>
+      <subfield code="q">application/pdf</subfield>
+      <subfield code="u">https://d-nb.info/1237508541/04</subfield>
+      <subfield code="3">Inhaltsverzeichnis</subfield>
+    </datafield>
+    <datafield tag="883" ind1="2" ind2=" ">
+      <subfield code="8">1\p</subfield>
+      <subfield code="a">dnb</subfield>
+      <subfield code="d">20211109</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb</subfield>
+    </datafield>
+    <datafield tag="883" ind1="1" ind2=" ">
+      <subfield code="8">2\p</subfield>
+      <subfield code="a">bcs</subfield>
+      <subfield code="d">20210723</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#bcs</subfield>
+    </datafield>
+    <datafield tag="883" ind1="2" ind2=" ">
+      <subfield code="8">5\p</subfield>
+      <subfield code="a">dnb</subfield>
+      <subfield code="d">20211112</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb</subfield>
+    </datafield>
+    <datafield tag="925" ind1="r" ind2=" ">
+      <subfield code="a">ru</subfield>
+    </datafield>
+  </record></recordData><recordPosition>3</recordPosition></record><record><recordSchema>MARC21-xml</recordSchema><recordPacking>xml</recordPacking><recordData><record xmlns="http://www.loc.gov/MARC21/slim" type="Bibliographic">
+    <leader>00000nam a2200000uc 4500</leader>
+    <controlfield tag="001">1304442764</controlfield>
+    <controlfield tag="003">DE-101</controlfield>
+    <controlfield tag="005">20250902223648.0</controlfield>
+    <controlfield tag="007">cr||||||||||||</controlfield>
+    <controlfield tag="008">230929s2014    sz |||||o|||| 00||||ger  </controlfield>
+    <datafield tag="015" ind1=" " ind2=" ">
+      <subfield code="a">23,O10</subfield>
+      <subfield code="2">dnb</subfield>
+    </datafield>
+    <datafield tag="016" ind1="7" ind2=" ">
+      <subfield code="2">DE-101</subfield>
+      <subfield code="a">1304442764</subfield>
+    </datafield>
+    <datafield tag="020" ind1=" " ind2=" ">
+      <subfield code="a">9783038001300</subfield>
+      <subfield code="9">978-3-03800-130-0</subfield>
+    </datafield>
+    <datafield tag="024" ind1="3" ind2=" ">
+      <subfield code="a">9783038001300</subfield>
+    </datafield>
+    <datafield tag="024" ind1="7" ind2=" ">
+      <subfield code="2">urn</subfield>
+      <subfield code="a">urn:nbn:de:101:1-2023092913000712460433</subfield>
+    </datafield>
+    <datafield tag="035" ind1=" " ind2=" ">
+      <subfield code="a">(DE-599)DNB1304442764</subfield>
+    </datafield>
+    <datafield tag="035" ind1=" " ind2=" ">
+      <subfield code="a">(OCoLC)1585424056</subfield>
+    </datafield>
+    <datafield tag="040" ind1=" " ind2=" ">
+      <subfield code="a">1140</subfield>
+      <subfield code="b">ger</subfield>
+      <subfield code="c">DE-101</subfield>
+      <subfield code="d">9999</subfield>
+    </datafield>
+    <datafield tag="041" ind1=" " ind2=" ">
+      <subfield code="8">1\p</subfield>
+      <subfield code="a">ger</subfield>
+    </datafield>
+    <datafield tag="043" ind1=" " ind2=" ">
+      <subfield code="c">XA</subfield>
+      <subfield code="c">XA</subfield>
+      <subfield code="c">XA</subfield>
+    </datafield>
+    <datafield tag="044" ind1=" " ind2=" ">
+      <subfield code="c">XA-CH</subfield>
+    </datafield>
+    <datafield tag="082" ind1="0" ind2="4">
+      <subfield code="8">27\u</subfield>
+      <subfield code="8">28\p</subfield>
+      <subfield code="a">581.63089916</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="2">22/ger</subfield>
+    </datafield>
+    <datafield tag="083" ind1="0" ind2=" ">
+      <subfield code="8">29\u</subfield>
+      <subfield code="8">30\p</subfield>
+      <subfield code="a">299.16</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="2">22/ger</subfield>
+    </datafield>
+    <datafield tag="083" ind1="7" ind2=" ">
+      <subfield code="8">31\p</subfield>
+      <subfield code="a">580</subfield>
+      <subfield code="a">610</subfield>
+      <subfield code="a">290</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="2">23sdnb</subfield>
+    </datafield>
+    <datafield tag="084" ind1=" " ind2=" ">
+      <subfield code="a">24.2b</subfield>
+      <subfield code="a">3.1</subfield>
+      <subfield code="a">17.2</subfield>
+      <subfield code="a">24.2b</subfield>
+      <subfield code="a">17.1</subfield>
+      <subfield code="a">24.2b</subfield>
+      <subfield code="a">27.8a</subfield>
+      <subfield code="a">27.1b</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="2">sswd</subfield>
+    </datafield>
+    <datafield tag="085" ind1=" " ind2=" ">
+      <subfield code="8">27\u</subfield>
+      <subfield code="b">581.63</subfield>
+    </datafield>
+    <datafield tag="085" ind1=" " ind2=" ">
+      <subfield code="8">27\u</subfield>
+      <subfield code="z">5</subfield>
+      <subfield code="s">916</subfield>
+    </datafield>
+    <datafield tag="085" ind1=" " ind2=" ">
+      <subfield code="8">29\u</subfield>
+      <subfield code="b">299.16</subfield>
+    </datafield>
+    <datafield tag="100" ind1="1" ind2=" ">
+      <subfield code="8">2\p</subfield>
+      <subfield code="0">(DE-588)120340410</subfield>
+      <subfield code="0">https://d-nb.info/gnd/120340410</subfield>
+      <subfield code="0">(DE-101)120340410</subfield>
+      <subfield code="a">Storl, Wolf-Dieter</subfield>
+      <subfield code="d">1942-</subfield>
+      <subfield code="e">Verfasser</subfield>
+      <subfield code="4">aut</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="245" ind1="1" ind2="0">
+      <subfield code="a">Pflanzen der Kelten</subfield>
+      <subfield code="b">Heilkunde Pflanzenzauber Baumkalender</subfield>
+      <subfield code="c">Wolf-Dieter Storl</subfield>
+    </datafield>
+    <datafield tag="264" ind1=" " ind2="1">
+      <subfield code="a">Aarau</subfield>
+      <subfield code="b">AT Verlag</subfield>
+      <subfield code="c">2014</subfield>
+    </datafield>
+    <datafield tag="300" ind1=" " ind2=" ">
+      <subfield code="a">Online-Ressource, 368 Seiten</subfield>
+    </datafield>
+    <datafield tag="336" ind1=" " ind2=" ">
+      <subfield code="a">Text</subfield>
+      <subfield code="b">txt</subfield>
+      <subfield code="2">rdacontent</subfield>
+    </datafield>
+    <datafield tag="337" ind1=" " ind2=" ">
+      <subfield code="a">Computermedien</subfield>
+      <subfield code="b">c</subfield>
+      <subfield code="2">rdamedia</subfield>
+    </datafield>
+    <datafield tag="338" ind1=" " ind2=" ">
+      <subfield code="a">Online-Ressource</subfield>
+      <subfield code="b">cr</subfield>
+      <subfield code="2">rdacarrier</subfield>
+    </datafield>
+    <datafield tag="583" ind1="1" ind2=" ">
+      <subfield code="a">Archivierung/Langzeitarchivierung gewährleistet</subfield>
+      <subfield code="5">DE-101</subfield>
+      <subfield code="2">pdager</subfield>
+    </datafield>
+    <datafield tag="648" ind1=" " ind2="7">
+      <subfield code="a">Geschichte</subfield>
+      <subfield code="9">rswk-swf</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="648" ind1=" " ind2="7">
+      <subfield code="a">Geschichte</subfield>
+      <subfield code="9">rswk-swf</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="648" ind1=" " ind2="7">
+      <subfield code="a">Geschichte</subfield>
+      <subfield code="9">rswk-swf</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="650" ind1=" " ind2="7">
+      <subfield code="8">4\p</subfield>
+      <subfield code="0">(DE-588)4030206-4</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4030206-4</subfield>
+      <subfield code="0">(DE-101)040302067</subfield>
+      <subfield code="a">Kelten</subfield>
+      <subfield code="9">rswk-swf</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="650" ind1=" " ind2="7">
+      <subfield code="8">6\p</subfield>
+      <subfield code="0">(DE-588)4045539-7</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4045539-7</subfield>
+      <subfield code="0">(DE-101)040455394</subfield>
+      <subfield code="a">Pflanzen</subfield>
+      <subfield code="9">rswk-swf</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="650" ind1=" " ind2="7">
+      <subfield code="8">8\p</subfield>
+      <subfield code="0">(DE-588)4050164-4</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4050164-4</subfield>
+      <subfield code="0">(DE-101)040501647</subfield>
+      <subfield code="a">Ritual</subfield>
+      <subfield code="9">rswk-swf</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="650" ind1=" " ind2="7">
+      <subfield code="8">11\p</subfield>
+      <subfield code="0">(DE-588)4030206-4</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4030206-4</subfield>
+      <subfield code="0">(DE-101)040302067</subfield>
+      <subfield code="a">Kelten</subfield>
+      <subfield code="9">rswk-swf</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="650" ind1=" " ind2="7">
+      <subfield code="8">13\p</subfield>
+      <subfield code="0">(DE-588)4045539-7</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4045539-7</subfield>
+      <subfield code="0">(DE-101)040455394</subfield>
+      <subfield code="a">Pflanzen</subfield>
+      <subfield code="9">rswk-swf</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="650" ind1=" " ind2="7">
+      <subfield code="8">15\p</subfield>
+      <subfield code="0">(DE-588)4133903-4</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4133903-4</subfield>
+      <subfield code="0">(DE-101)041339037</subfield>
+      <subfield code="a">Kulturanthropologie</subfield>
+      <subfield code="9">rswk-swf</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="650" ind1=" " ind2="7">
+      <subfield code="8">18\p</subfield>
+      <subfield code="0">(DE-588)4030206-4</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4030206-4</subfield>
+      <subfield code="0">(DE-101)040302067</subfield>
+      <subfield code="a">Kelten</subfield>
+      <subfield code="9">rswk-swf</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="650" ind1=" " ind2="7">
+      <subfield code="8">20\p</subfield>
+      <subfield code="0">(DE-588)4024076-9</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4024076-9</subfield>
+      <subfield code="0">(DE-101)040240762</subfield>
+      <subfield code="a">Heilpflanzen</subfield>
+      <subfield code="9">rswk-swf</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="650" ind1=" " ind2="7">
+      <subfield code="8">23\p</subfield>
+      <subfield code="0">(DE-588)4030206-4</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4030206-4</subfield>
+      <subfield code="0">(DE-101)040302067</subfield>
+      <subfield code="a">Kelten</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="650" ind1=" " ind2="7">
+      <subfield code="8">24\p</subfield>
+      <subfield code="0">(DE-588)4125698-0</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4125698-0</subfield>
+      <subfield code="0">(DE-101)041256980</subfield>
+      <subfield code="a">Kultur</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="650" ind1=" " ind2="7">
+      <subfield code="8">25\p</subfield>
+      <subfield code="0">(DE-588)4024076-9</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4024076-9</subfield>
+      <subfield code="0">(DE-101)040240762</subfield>
+      <subfield code="a">Heilpflanzen</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="650" ind1=" " ind2="7">
+      <subfield code="8">26\p</subfield>
+      <subfield code="0">(DE-588)4008017-1</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4008017-1</subfield>
+      <subfield code="0">(DE-101)04008017X</subfield>
+      <subfield code="a">Brauch</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">(Produktform)Electronic book text</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">(BISAC Subject Heading)HEA000000</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Heilpflanzen</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Naturheilkunde</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Pflanzen</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">(VLB-WN)9460</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Jahreskreis</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Baumkalender</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Beltane Ritual</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Julfest feiern</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Keltische Feste</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Heidnische Feste</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Jahreskreisfeste</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Julfest Bräuche</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Samhain Bräuche</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Keltische Druiden</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Keltische Götter</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Keltische Göttin</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Keltische Rituale</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Keltische Feiertage</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Keltischer Kalender</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Keltische Gottheiten</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Keltische Mythologie</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Germanische Feiertage</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Keltischer Jahreskreis</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Wintersonnenwende Fest</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Sommersonnenwende Rituale</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">(Produktgruppe)SG2: SachGrp. 2 Heilkunde, Mensch und Natur</subfield>
+    </datafield>
+    <datafield tag="689" ind1="0" ind2="0">
+      <subfield code="8">5\p</subfield>
+      <subfield code="0">(DE-588)4030206-4</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4030206-4</subfield>
+      <subfield code="0">(DE-101)040302067</subfield>
+      <subfield code="D">s</subfield>
+      <subfield code="a">Kelten</subfield>
+    </datafield>
+    <datafield tag="689" ind1="0" ind2="1">
+      <subfield code="8">7\p</subfield>
+      <subfield code="0">(DE-588)4045539-7</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4045539-7</subfield>
+      <subfield code="0">(DE-101)040455394</subfield>
+      <subfield code="D">s</subfield>
+      <subfield code="a">Pflanzen</subfield>
+    </datafield>
+    <datafield tag="689" ind1="0" ind2="2">
+      <subfield code="8">9\p</subfield>
+      <subfield code="0">(DE-588)4050164-4</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4050164-4</subfield>
+      <subfield code="0">(DE-101)040501647</subfield>
+      <subfield code="D">s</subfield>
+      <subfield code="a">Ritual</subfield>
+    </datafield>
+    <datafield tag="689" ind1="0" ind2="3">
+      <subfield code="8">10\p</subfield>
+      <subfield code="A">z</subfield>
+      <subfield code="a">Geschichte</subfield>
+    </datafield>
+    <datafield tag="689" ind1="0" ind2=" ">
+      <subfield code="5">DE-101</subfield>
+      <subfield code="5">DE-101</subfield>
+    </datafield>
+    <datafield tag="689" ind1="1" ind2="0">
+      <subfield code="8">12\p</subfield>
+      <subfield code="0">(DE-588)4030206-4</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4030206-4</subfield>
+      <subfield code="0">(DE-101)040302067</subfield>
+      <subfield code="D">s</subfield>
+      <subfield code="a">Kelten</subfield>
+    </datafield>
+    <datafield tag="689" ind1="1" ind2="1">
+      <subfield code="8">14\p</subfield>
+      <subfield code="0">(DE-588)4045539-7</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4045539-7</subfield>
+      <subfield code="0">(DE-101)040455394</subfield>
+      <subfield code="D">s</subfield>
+      <subfield code="a">Pflanzen</subfield>
+    </datafield>
+    <datafield tag="689" ind1="1" ind2="2">
+      <subfield code="8">16\p</subfield>
+      <subfield code="0">(DE-588)4133903-4</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4133903-4</subfield>
+      <subfield code="0">(DE-101)041339037</subfield>
+      <subfield code="D">s</subfield>
+      <subfield code="a">Kulturanthropologie</subfield>
+    </datafield>
+    <datafield tag="689" ind1="1" ind2="3">
+      <subfield code="8">17\p</subfield>
+      <subfield code="A">z</subfield>
+      <subfield code="a">Geschichte</subfield>
+    </datafield>
+    <datafield tag="689" ind1="1" ind2=" ">
+      <subfield code="5">DE-101</subfield>
+      <subfield code="5">DE-101</subfield>
+    </datafield>
+    <datafield tag="689" ind1="2" ind2="0">
+      <subfield code="8">19\p</subfield>
+      <subfield code="0">(DE-588)4030206-4</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4030206-4</subfield>
+      <subfield code="0">(DE-101)040302067</subfield>
+      <subfield code="D">s</subfield>
+      <subfield code="a">Kelten</subfield>
+    </datafield>
+    <datafield tag="689" ind1="2" ind2="1">
+      <subfield code="8">21\p</subfield>
+      <subfield code="0">(DE-588)4024076-9</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4024076-9</subfield>
+      <subfield code="0">(DE-101)040240762</subfield>
+      <subfield code="D">s</subfield>
+      <subfield code="a">Heilpflanzen</subfield>
+    </datafield>
+    <datafield tag="689" ind1="2" ind2="2">
+      <subfield code="8">22\p</subfield>
+      <subfield code="A">z</subfield>
+      <subfield code="a">Geschichte</subfield>
+    </datafield>
+    <datafield tag="689" ind1="2" ind2=" ">
+      <subfield code="5">DE-101</subfield>
+      <subfield code="5">DE-101</subfield>
+    </datafield>
+    <datafield tag="710" ind1="2" ind2=" ">
+      <subfield code="8">3\p</subfield>
+      <subfield code="0">(DE-588)1064053424</subfield>
+      <subfield code="0">https://d-nb.info/gnd/1064053424</subfield>
+      <subfield code="0">(DE-101)1064053424</subfield>
+      <subfield code="a">AT Verlag</subfield>
+      <subfield code="e">Verlag</subfield>
+      <subfield code="4">pbl</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="776" ind1="0" ind2="8">
+      <subfield code="i">Erscheint auch als</subfield>
+      <subfield code="n">Druck-Ausgabe</subfield>
+      <subfield code="a">Storl, Wolf-Dieter, 1942-</subfield>
+      <subfield code="t">Pflanzen der Kelten</subfield>
+      <subfield code="d">Aarau, Schweiz : AT-Verl., 2000</subfield>
+      <subfield code="h">366 S., Ill., graph. Darst.</subfield>
+      <subfield code="w">(DE-101)960384650</subfield>
+    </datafield>
+    <datafield tag="850" ind1=" " ind2=" ">
+      <subfield code="a">DE-101a</subfield>
+      <subfield code="a">DE-101b</subfield>
+    </datafield>
+    <datafield tag="856" ind1="4" ind2="0">
+      <subfield code="u">https://nbn-resolving.org/urn:nbn:de:101:1-2023092913000712460433</subfield>
+      <subfield code="x">Resolving-System</subfield>
+    </datafield>
+    <datafield tag="856" ind1="4" ind2="2">
+      <subfield code="m">X:MVB</subfield>
+      <subfield code="q">text/html</subfield>
+      <subfield code="u">https://services.dnb.de/plus/idn/1304442764/blurb/</subfield>
+      <subfield code="3">Inhaltstext</subfield>
+    </datafield>
+    <datafield tag="856" ind1=" " ind2="0">
+      <subfield code="u">https://d-nb.info/1304442764/34</subfield>
+      <subfield code="x">Langzeitarchivierung Nationalbibliothek</subfield>
+    </datafield>
+    <datafield tag="856" ind1="4" ind2=" ">
+      <subfield code="q">epub</subfield>
+      <subfield code="u">https://at-verlag.ch/</subfield>
+      <subfield code="x">Verlag</subfield>
+    </datafield>
+    <datafield tag="883" ind1="2" ind2=" ">
+      <subfield code="8">1\p</subfield>
+      <subfield code="a">dnb-pa</subfield>
+      <subfield code="d">20250902</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb-pa</subfield>
+    </datafield>
+    <datafield tag="883" ind1="2" ind2=" ">
+      <subfield code="8">2\p</subfield>
+      <subfield code="a">dnb-pa</subfield>
+      <subfield code="d">20230930</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb-pa</subfield>
+    </datafield>
+    <datafield tag="883" ind1="1" ind2=" ">
+      <subfield code="8">3\p</subfield>
+      <subfield code="a">adb-pa</subfield>
+      <subfield code="d">20250902</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#adb-pa</subfield>
+    </datafield>
+    <datafield tag="883" ind1="2" ind2=" ">
+      <subfield code="8">4\p</subfield>
+      <subfield code="a">dnb-pa</subfield>
+      <subfield code="d">20230930</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb-pa</subfield>
+    </datafield>
+    <datafield tag="883" ind1="2" ind2=" ">
+      <subfield code="8">5\p</subfield>
+      <subfield code="a">dnb-pa</subfield>
+      <subfield code="d">20230930</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb-pa</subfield>
+    </datafield>
+    <datafield tag="883" ind1="2" ind2=" ">
+      <subfield code="8">6\p</subfield>
+      <subfield code="a">dnb-pa</subfield>
+      <subfield code="d">20230930</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb-pa</subfield>
+    </datafield>
+    <datafield tag="883" ind1="2" ind2=" ">
+      <subfield code="8">7\p</subfield>
+      <subfield code="a">dnb-pa</subfield>
+      <subfield code="d">20230930</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb-pa</subfield>
+    </datafield>
+    <datafield tag="883" ind1="2" ind2=" ">
+      <subfield code="8">8\p</subfield>
+      <subfield code="a">dnb-pa</subfield>
+      <subfield code="d">20230930</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb-pa</subfield>
+    </datafield>
+    <datafield tag="883" ind1="2" ind2=" ">
+      <subfield code="8">9\p</subfield>
+      <subfield code="a">dnb-pa</subfield>
+      <subfield code="d">20230930</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb-pa</subfield>
+    </datafield>
+    <datafield tag="883" ind1="2" ind2=" ">
+      <subfield code="8">10\p</subfield>
+      <subfield code="a">dnb-pa</subfield>
+      <subfield code="d">20230930</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb-pa</subfield>
+    </datafield>
+    <datafield tag="883" ind1="2" ind2=" ">
+      <subfield code="8">11\p</subfield>
+      <subfield code="a">dnb-pa</subfield>
+      <subfield code="d">20230930</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb-pa</subfield>
+    </datafield>
+    <datafield tag="883" ind1="2" ind2=" ">
+      <subfield code="8">12\p</subfield>
+      <subfield code="a">dnb-pa</subfield>
+      <subfield code="d">20230930</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb-pa</subfield>
+    </datafield>
+    <datafield tag="883" ind1="2" ind2=" ">
+      <subfield code="8">13\p</subfield>
+      <subfield code="a">dnb-pa</subfield>
+      <subfield code="d">20230930</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb-pa</subfield>
+    </datafield>
+    <datafield tag="883" ind1="2" ind2=" ">
+      <subfield code="8">14\p</subfield>
+      <subfield code="a">dnb-pa</subfield>
+      <subfield code="d">20230930</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb-pa</subfield>
+    </datafield>
+    <datafield tag="883" ind1="2" ind2=" ">
+      <subfield code="8">15\p</subfield>
+      <subfield code="a">dnb-pa</subfield>
+      <subfield code="d">20230930</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb-pa</subfield>
+    </datafield>
+    <datafield tag="883" ind1="2" ind2=" ">
+      <subfield code="8">16\p</subfield>
+      <subfield code="a">dnb-pa</subfield>
+      <subfield code="d">20230930</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb-pa</subfield>
+    </datafield>
+    <datafield tag="883" ind1="2" ind2=" ">
+      <subfield code="8">17\p</subfield>
+      <subfield code="a">dnb-pa</subfield>
+      <subfield code="d">20230930</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb-pa</subfield>
+    </datafield>
+    <datafield tag="883" ind1="2" ind2=" ">
+      <subfield code="8">18\p</subfield>
+      <subfield code="a">dnb-pa</subfield>
+      <subfield code="d">20230930</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb-pa</subfield>
+    </datafield>
+    <datafield tag="883" ind1="2" ind2=" ">
+      <subfield code="8">19\p</subfield>
+      <subfield code="a">dnb-pa</subfield>
+      <subfield code="d">20230930</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb-pa</subfield>
+    </datafield>
+    <datafield tag="883" ind1="2" ind2=" ">
+      <subfield code="8">20\p</subfield>
+      <subfield code="a">dnb-pa</subfield>
+      <subfield code="d">20230930</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb-pa</subfield>
+    </datafield>
+    <datafield tag="883" ind1="2" ind2=" ">
+      <subfield code="8">21\p</subfield>
+      <subfield code="a">dnb-pa</subfield>
+      <subfield code="d">20230930</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb-pa</subfield>
+    </datafield>
+    <datafield tag="883" ind1="2" ind2=" ">
+      <subfield code="8">22\p</subfield>
+      <subfield code="a">dnb-pa</subfield>
+      <subfield code="d">20230930</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb-pa</subfield>
+    </datafield>
+    <datafield tag="883" ind1="0" ind2=" ">
+      <subfield code="8">23\p</subfield>
+      <subfield code="a">emagnd</subfield>
+      <subfield code="c">0,49738</subfield>
+      <subfield code="d">20230930</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#emagnd</subfield>
+    </datafield>
+    <datafield tag="883" ind1="0" ind2=" ">
+      <subfield code="8">24\p</subfield>
+      <subfield code="a">emagnd</subfield>
+      <subfield code="c">0,09855</subfield>
+      <subfield code="d">20230930</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#emagnd</subfield>
+    </datafield>
+    <datafield tag="883" ind1="0" ind2=" ">
+      <subfield code="8">25\p</subfield>
+      <subfield code="a">emagnd</subfield>
+      <subfield code="c">0,08896</subfield>
+      <subfield code="d">20230930</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#emagnd</subfield>
+    </datafield>
+    <datafield tag="883" ind1="0" ind2=" ">
+      <subfield code="8">26\p</subfield>
+      <subfield code="a">emagnd</subfield>
+      <subfield code="c">0,08058</subfield>
+      <subfield code="d">20230930</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#emagnd</subfield>
+    </datafield>
+    <datafield tag="883" ind1=" " ind2=" ">
+      <subfield code="8">28\p</subfield>
+      <subfield code="a">dnb-cgwrk</subfield>
+      <subfield code="d">20250717</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb-cgwrk</subfield>
+    </datafield>
+    <datafield tag="883" ind1=" " ind2=" ">
+      <subfield code="8">30\p</subfield>
+      <subfield code="a">dnb-cgwrk</subfield>
+      <subfield code="d">20250717</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb-cgwrk</subfield>
+    </datafield>
+    <datafield tag="883" ind1=" " ind2=" ">
+      <subfield code="8">31\p</subfield>
+      <subfield code="a">dnb-cgwrk</subfield>
+      <subfield code="d">20250717</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb-cgwrk</subfield>
+    </datafield>
+    <datafield tag="925" ind1="r" ind2=" ">
+      <subfield code="a">ro</subfield>
+      <subfield code="a">ra</subfield>
+    </datafield>
+    <datafield tag="926" ind1="1" ind2=" ">
+      <subfield code="a">VFD</subfield>
+      <subfield code="o">93</subfield>
+      <subfield code="v">1.5</subfield>
+    </datafield>
+    <datafield tag="927" ind1=" " ind2=" ">
+      <subfield code="a">316932137</subfield>
+    </datafield>
+  </record></recordData><recordPosition>4</recordPosition></record><record><recordSchema>MARC21-xml</recordSchema><recordPacking>xml</recordPacking><recordData><record xmlns="http://www.loc.gov/MARC21/slim" type="Bibliographic">
+    <leader>00000pam a2200000 c 4500</leader>
+    <controlfield tag="001">998028940</controlfield>
+    <controlfield tag="003">DE-101</controlfield>
+    <controlfield tag="005">20171202122509.0</controlfield>
+    <controlfield tag="007">tu</controlfield>
+    <controlfield tag="008">091111s2010    gw ||||| |||| 00||||ger  </controlfield>
+    <datafield tag="015" ind1=" " ind2=" ">
+      <subfield code="a">10,A41</subfield>
+      <subfield code="z">09,N48,0092</subfield>
+      <subfield code="2">dnb</subfield>
+    </datafield>
+    <datafield tag="016" ind1="7" ind2=" ">
+      <subfield code="2">DE-101</subfield>
+      <subfield code="a">998028940</subfield>
+    </datafield>
+    <datafield tag="020" ind1=" " ind2=" ">
+      <subfield code="a">9783426874653</subfield>
+      <subfield code="c">kart. : EUR 12.99 (DE), EUR 13.40 (AT)</subfield>
+      <subfield code="9">978-3-426-87465-3</subfield>
+    </datafield>
+    <datafield tag="024" ind1="3" ind2=" ">
+      <subfield code="a">9783426874653</subfield>
+    </datafield>
+    <datafield tag="035" ind1=" " ind2=" ">
+      <subfield code="a">(DE-599)DNB998028940</subfield>
+    </datafield>
+    <datafield tag="035" ind1=" " ind2=" ">
+      <subfield code="a">(OCoLC)670207061</subfield>
+    </datafield>
+    <datafield tag="040" ind1=" " ind2=" ">
+      <subfield code="a">1245</subfield>
+      <subfield code="b">ger</subfield>
+      <subfield code="c">DE-101</subfield>
+      <subfield code="d">9999</subfield>
+    </datafield>
+    <datafield tag="041" ind1=" " ind2=" ">
+      <subfield code="a">ger</subfield>
+    </datafield>
+    <datafield tag="044" ind1=" " ind2=" ">
+      <subfield code="c">XA-DE-BY</subfield>
+    </datafield>
+    <datafield tag="082" ind1="0" ind2="4">
+      <subfield code="8">2\u</subfield>
+      <subfield code="a">581.63089916</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="2">22/ger</subfield>
+    </datafield>
+    <datafield tag="083" ind1="0" ind2=" ">
+      <subfield code="8">3\u</subfield>
+      <subfield code="a">299.16</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="2">22/ger</subfield>
+    </datafield>
+    <datafield tag="083" ind1="7" ind2=" ">
+      <subfield code="8">4\p</subfield>
+      <subfield code="a">580</subfield>
+      <subfield code="a">610</subfield>
+      <subfield code="a">290</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="2">22sdnb</subfield>
+    </datafield>
+    <datafield tag="085" ind1=" " ind2=" ">
+      <subfield code="8">2\u</subfield>
+      <subfield code="b">581.63</subfield>
+    </datafield>
+    <datafield tag="085" ind1=" " ind2=" ">
+      <subfield code="8">2\u</subfield>
+      <subfield code="z">5</subfield>
+      <subfield code="s">916</subfield>
+    </datafield>
+    <datafield tag="085" ind1=" " ind2=" ">
+      <subfield code="8">3\u</subfield>
+      <subfield code="b">299.16</subfield>
+    </datafield>
+    <datafield tag="100" ind1="1" ind2=" ">
+      <subfield code="0">(DE-588)120340410</subfield>
+      <subfield code="0">https://d-nb.info/gnd/120340410</subfield>
+      <subfield code="0">(DE-101)120340410</subfield>
+      <subfield code="a">Storl, Wolf-Dieter</subfield>
+      <subfield code="d">1942-</subfield>
+      <subfield code="e">Verfasser</subfield>
+      <subfield code="4">aut</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="245" ind1="1" ind2="0">
+      <subfield code="a">&#152;Die&#156; Pflanzen der Kelten</subfield>
+      <subfield code="b">Heilkunde - Pflanzenzauber - Baumkalender</subfield>
+      <subfield code="c">Wolf-Dieter Storl</subfield>
+    </datafield>
+    <datafield tag="250" ind1=" " ind2=" ">
+      <subfield code="a">Vollst. Taschenbuchausg.</subfield>
+    </datafield>
+    <datafield tag="264" ind1=" " ind2="1">
+      <subfield code="a">München</subfield>
+      <subfield code="b">Knaur-Taschenbuch</subfield>
+      <subfield code="c">2010</subfield>
+    </datafield>
+    <datafield tag="300" ind1=" " ind2=" ">
+      <subfield code="a">488 S.</subfield>
+      <subfield code="b">Ill.</subfield>
+      <subfield code="c">19 cm</subfield>
+    </datafield>
+    <datafield tag="336" ind1=" " ind2=" ">
+      <subfield code="a">Text</subfield>
+      <subfield code="b">txt</subfield>
+      <subfield code="2">rdacontent</subfield>
+    </datafield>
+    <datafield tag="337" ind1=" " ind2=" ">
+      <subfield code="a">ohne Hilfsmittel zu benutzen</subfield>
+      <subfield code="b">n</subfield>
+      <subfield code="2">rdamedia</subfield>
+    </datafield>
+    <datafield tag="338" ind1=" " ind2=" ">
+      <subfield code="a">Band</subfield>
+      <subfield code="b">nc</subfield>
+      <subfield code="2">rdacarrier</subfield>
+    </datafield>
+    <datafield tag="490" ind1="1" ind2=" ">
+      <subfield code="a">Knaur</subfield>
+      <subfield code="v">87465 : Mens sana</subfield>
+    </datafield>
+    <datafield tag="500" ind1=" " ind2=" ">
+      <subfield code="a">Literaturangaben</subfield>
+    </datafield>
+    <datafield tag="648" ind1=" " ind2="7">
+      <subfield code="a">Geschichte</subfield>
+      <subfield code="9">rswk-swf</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="648" ind1=" " ind2="7">
+      <subfield code="a">Geschichte</subfield>
+      <subfield code="9">rswk-swf</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="648" ind1=" " ind2="7">
+      <subfield code="a">Geschichte</subfield>
+      <subfield code="9">rswk-swf</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="650" ind1=" " ind2="7">
+      <subfield code="0">(DE-588)4030206-4</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4030206-4</subfield>
+      <subfield code="0">(DE-101)040302067</subfield>
+      <subfield code="a">Kelten</subfield>
+      <subfield code="9">rswk-swf</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="650" ind1=" " ind2="7">
+      <subfield code="0">(DE-588)4045539-7</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4045539-7</subfield>
+      <subfield code="0">(DE-101)040455394</subfield>
+      <subfield code="a">Pflanzen</subfield>
+      <subfield code="9">rswk-swf</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="650" ind1=" " ind2="7">
+      <subfield code="0">(DE-588)4050164-4</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4050164-4</subfield>
+      <subfield code="0">(DE-101)040501647</subfield>
+      <subfield code="a">Ritual</subfield>
+      <subfield code="9">rswk-swf</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="650" ind1=" " ind2="7">
+      <subfield code="0">(DE-588)4030206-4</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4030206-4</subfield>
+      <subfield code="0">(DE-101)040302067</subfield>
+      <subfield code="a">Kelten</subfield>
+      <subfield code="9">rswk-swf</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="650" ind1=" " ind2="7">
+      <subfield code="0">(DE-588)4045539-7</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4045539-7</subfield>
+      <subfield code="0">(DE-101)040455394</subfield>
+      <subfield code="a">Pflanzen</subfield>
+      <subfield code="9">rswk-swf</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="650" ind1=" " ind2="7">
+      <subfield code="0">(DE-588)4133903-4</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4133903-4</subfield>
+      <subfield code="0">(DE-101)041339037</subfield>
+      <subfield code="a">Kulturanthropologie</subfield>
+      <subfield code="9">rswk-swf</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="650" ind1=" " ind2="7">
+      <subfield code="0">(DE-588)4030206-4</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4030206-4</subfield>
+      <subfield code="0">(DE-101)040302067</subfield>
+      <subfield code="a">Kelten</subfield>
+      <subfield code="9">rswk-swf</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="650" ind1=" " ind2="7">
+      <subfield code="0">(DE-588)4024076-9</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4024076-9</subfield>
+      <subfield code="0">(DE-101)040240762</subfield>
+      <subfield code="a">Heilpflanzen</subfield>
+      <subfield code="9">rswk-swf</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="650" ind1=" " ind2="7">
+      <subfield code="8">1\p</subfield>
+      <subfield code="0">(DE-588)4114299-8</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4114299-8</subfield>
+      <subfield code="0">(DE-101)041142993</subfield>
+      <subfield code="a">Kräuter</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">(VLB-PF)BC: Paperback</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">(VLB-WN)2475: Taschenbuch / Ratgeber/Spiritualität/Altes Wissen, alte Kulturen</subfield>
+    </datafield>
+    <datafield tag="689" ind1="0" ind2="0">
+      <subfield code="0">(DE-588)4030206-4</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4030206-4</subfield>
+      <subfield code="0">(DE-101)040302067</subfield>
+      <subfield code="D">s</subfield>
+      <subfield code="a">Kelten</subfield>
+    </datafield>
+    <datafield tag="689" ind1="0" ind2="1">
+      <subfield code="0">(DE-588)4045539-7</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4045539-7</subfield>
+      <subfield code="0">(DE-101)040455394</subfield>
+      <subfield code="D">s</subfield>
+      <subfield code="a">Pflanzen</subfield>
+    </datafield>
+    <datafield tag="689" ind1="0" ind2="2">
+      <subfield code="0">(DE-588)4050164-4</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4050164-4</subfield>
+      <subfield code="0">(DE-101)040501647</subfield>
+      <subfield code="D">s</subfield>
+      <subfield code="a">Ritual</subfield>
+    </datafield>
+    <datafield tag="689" ind1="0" ind2="3">
+      <subfield code="A">z</subfield>
+      <subfield code="a">Geschichte</subfield>
+    </datafield>
+    <datafield tag="689" ind1="0" ind2=" ">
+      <subfield code="5">DE-101</subfield>
+      <subfield code="5">DE-101</subfield>
+    </datafield>
+    <datafield tag="689" ind1="1" ind2="0">
+      <subfield code="0">(DE-588)4030206-4</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4030206-4</subfield>
+      <subfield code="0">(DE-101)040302067</subfield>
+      <subfield code="D">s</subfield>
+      <subfield code="a">Kelten</subfield>
+    </datafield>
+    <datafield tag="689" ind1="1" ind2="1">
+      <subfield code="0">(DE-588)4045539-7</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4045539-7</subfield>
+      <subfield code="0">(DE-101)040455394</subfield>
+      <subfield code="D">s</subfield>
+      <subfield code="a">Pflanzen</subfield>
+    </datafield>
+    <datafield tag="689" ind1="1" ind2="2">
+      <subfield code="0">(DE-588)4133903-4</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4133903-4</subfield>
+      <subfield code="0">(DE-101)041339037</subfield>
+      <subfield code="D">s</subfield>
+      <subfield code="a">Kulturanthropologie</subfield>
+    </datafield>
+    <datafield tag="689" ind1="1" ind2="3">
+      <subfield code="A">z</subfield>
+      <subfield code="a">Geschichte</subfield>
+    </datafield>
+    <datafield tag="689" ind1="1" ind2=" ">
+      <subfield code="5">DE-101</subfield>
+      <subfield code="5">DE-101</subfield>
+    </datafield>
+    <datafield tag="689" ind1="2" ind2="0">
+      <subfield code="0">(DE-588)4030206-4</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4030206-4</subfield>
+      <subfield code="0">(DE-101)040302067</subfield>
+      <subfield code="D">s</subfield>
+      <subfield code="a">Kelten</subfield>
+    </datafield>
+    <datafield tag="689" ind1="2" ind2="1">
+      <subfield code="0">(DE-588)4024076-9</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4024076-9</subfield>
+      <subfield code="0">(DE-101)040240762</subfield>
+      <subfield code="D">s</subfield>
+      <subfield code="a">Heilpflanzen</subfield>
+    </datafield>
+    <datafield tag="689" ind1="2" ind2="2">
+      <subfield code="A">z</subfield>
+      <subfield code="a">Geschichte</subfield>
+    </datafield>
+    <datafield tag="689" ind1="2" ind2=" ">
+      <subfield code="5">DE-101</subfield>
+      <subfield code="5">DE-101</subfield>
+    </datafield>
+    <datafield tag="830" ind1=" " ind2="0">
+      <subfield code="a">Knaur</subfield>
+      <subfield code="v">87465 : Mens sana</subfield>
+      <subfield code="w">(DE-101)015116468</subfield>
+      <subfield code="w">(DE-600)969893-0</subfield>
+      <subfield code="9">587465</subfield>
+      <subfield code="7">as</subfield>
+    </datafield>
+    <datafield tag="850" ind1=" " ind2=" ">
+      <subfield code="a">DE-101a</subfield>
+      <subfield code="a">DE-101b</subfield>
+    </datafield>
+    <datafield tag="856" ind1="4" ind2="2">
+      <subfield code="m">X:MVB</subfield>
+      <subfield code="q">text/html</subfield>
+      <subfield code="u">https://services.dnb.de/plus/idn/998028940/blurb/</subfield>
+      <subfield code="3">Inhaltstext</subfield>
+    </datafield>
+    <datafield tag="856" ind1="4" ind2="2">
+      <subfield code="m">B:DE-101</subfield>
+      <subfield code="q">application/pdf</subfield>
+      <subfield code="u">https://d-nb.info/998028940/04</subfield>
+      <subfield code="3">Inhaltsverzeichnis</subfield>
+    </datafield>
+    <datafield tag="883" ind1="1" ind2=" ">
+      <subfield code="8">1\p</subfield>
+      <subfield code="a">gndddc</subfield>
+      <subfield code="c">1</subfield>
+      <subfield code="d">20190524</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#gndddc</subfield>
+    </datafield>
+    <datafield tag="883" ind1="2" ind2=" ">
+      <subfield code="8">4\p</subfield>
+      <subfield code="a">dnb</subfield>
+      <subfield code="d">20160229</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb</subfield>
+    </datafield>
+    <datafield tag="925" ind1="r" ind2=" ">
+      <subfield code="a">ra</subfield>
+    </datafield>
+  </record></recordData><recordPosition>5</recordPosition></record></records><nextRecordPosition>6</nextRecordPosition><echoedSearchRetrieveRequest><version>1.1</version><query>tit="Pflanzen der Kelten" and per=Storl</query><xQuery xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true"/><maximumRecords>5</maximumRecords><recordSchema>MARC21-xml</recordSchema></echoedSearchRetrieveRequest></searchRetrieveResponse>

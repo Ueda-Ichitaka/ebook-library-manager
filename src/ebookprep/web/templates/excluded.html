@@ -1,21 +1,6 @@
-{# About this file: input files excluded as duplicates, with restore. #}
+{# About this file: files left out of the build (excluded duplicates, ignored files, categories that are not books), with restore. #}
 {% extends "base.html" %}
-{% block title %}Excluded Files - Ebook Library Manager<h2 id="ignored">Ignored Files</h2>
-<p class="muted">These input files were ignored in the review (not a book). Restoring one puts it back into the review.</p>
-<table>
-  <tr><th>Ignored file</th><th>Since</th><th></th></tr>
-  {% for i in ignored %}
-  <tr>
-    <td>{{ i.path }}</td>
-    <td class="muted">{{ i.ignored_at }}</td>
-    <td><form method="post" action="/ignored/restore"><input type="hidden" name="path" value="{{ i.path }}">
-      <button class="secondary" type="submit">Restore</button></form></td>
-  </tr>
-  {% else %}
-  <tr><td colspan="3" class="muted">No ignored files.</td></tr>
-  {% endfor %}
-</table>
-{% endblock %}
+{% block title %}Excluded Files - Ebook Library Manager{% endblock %}
 {% block content %}
 <h2>Excluded Files</h2>
 <p class="muted">These input files are not built because another file was kept. Restoring one builds it again.</p>
@@ -46,6 +31,23 @@
   </tr>
   {% else %}
   <tr><td colspan="3" class="muted">No ignored files.</td></tr>
+  {% endfor %}
+</table>
+<h2 id="not-books">Not Books</h2>
+<p class="muted">These categories hold no books (e.g. magazines, blueprints). The build copies all their files
+  unchanged to {{ misplaced_folder }}/ with their folders. Restoring one puts its books back into review and build
+  (run "Identify new books" for files that were never identified).</p>
+<table>
+  <tr><th>Category</th><th>Since</th><th></th></tr>
+  {% for c in not_books %}
+  <tr>
+    <td>{{ c.placement }}</td>
+    <td class="muted">{{ c.flagged_at }}</td>
+    <td><form method="post" action="/categories/restore-books"><input type="hidden" name="placement" value="{{ c.placement }}">
+      <button class="secondary" type="submit">Restore</button></form></td>
+  </tr>
+  {% else %}
+  <tr><td colspan="3" class="muted">No categories flagged as not books.</td></tr>
   {% endfor %}
 </table>
 {% endblock %}

@@ -2,7 +2,8 @@
 
 The tests never use books from the real library. The helpers can reproduce the damage
 found there: a PDF without a trailer, which calibre's PDF backend can't write metadata
-into, while pikepdf can still read and repair it.
+into, while pikepdf can still read and repair it; and a damaged download, whose start the
+download site's rate-limit message overwrote.
 """
 
 import zipfile
@@ -90,4 +91,33 @@ def make_pdf_with_unmergeable_xmp(path: Path) -> Path:
     stream.Subtype = pikepdf.Name.XML
     pdf.Root.Metadata = pdf.make_indirect(stream)
     pdf.save(path)
+    return path
+
+
+# The message as found at the start of two damaged files in the library (154 bytes).
+MESSAGE = (
+    b"Too many downloads at the same time from the same IP address... Visit annas-archive.org, .li, or .se to "
+    b"become a member and get more concurrent downloads."
+)
+
+
+def overwrite_start(path: Path) -> Path:
+    data = path.read_bytes()
+    path.write_bytes(MESSAGE + data[len(MESSAGE):])
+    return path
+
+
+def pdf_with_long_catalog(path: Path) -> Path:
+    """A PDF whose catalog (object 1, right after the header) is longer than the message,
+    like the damaged Handbook of Attachment."""
+    make_text_pdf(path, [["Handbook of Attachment"], ["Chapter 1"]])
+    with pikepdf.open(path, allow_overwriting_input=True) as pdf:
+        pdf.Root.OutputIntents = pikepdf.Array([pikepdf.Dictionary(
+            Type=pikepdf.Name.OutputIntent, S=pikepdf.Name.GTS_PDFA1,
+            OutputConditionIdentifier=pikepdf.String("sRGB IEC61966-2.1 " * 6),
+        )])
+        pdf.Root.ViewerPreferences = pikepdf.Dictionary(Direction=pikepdf.Name.L2R)
+        pdf.save(path, object_stream_mode=pikepdf.ObjectStreamMode.disable, normalize_content=False, linearize=False)
+    data = path.read_bytes()
+    assert data.index(b"1 0 obj") < len(MESSAGE) < data.index(b"endobj"), "catalog must span the damaged range"
     return path

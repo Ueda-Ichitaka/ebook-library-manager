@@ -10,6 +10,9 @@
   <a href="#mislabeled">Content Differs From Filename ({{ report.mislabeled | length }})</a>
   <a href="#excluded">Excluded Duplicates ({{ report.excluded | length }})</a>
   <a href="#ignored">Ignored in Review ({{ report.ignored | length }})</a>
+  <a href="#not-books">Not Books ({{ report.not_books | length }})</a>
+  <a href="#damaged">Damaged Downloads ({{ report.damaged | length }})</a>
+  <a href="#moved">Moved Files ({{ report.moved | length }})</a>
   <a href="#retried">Retried ({{ report.retried | length }})</a>
   <a href="#repaired">Repaired PDFs ({{ report.repaired | length }})</a>
   <a href="#converted">Converted to EPUB ({{ report.converted | length }})</a>
@@ -44,6 +47,25 @@
 
 <h3 id="ignored">Ignored in Review</h3>
 <ul>{% for i in report.ignored %}<li class="muted">{{ i.path }}</li>{% else %}<li class="muted">none</li>{% endfor %}</ul>
+
+<h3 id="not-books">Not Books</h3>
+<p class="muted">All files of these categories are copied unchanged to the misplaced folder.</p>
+<ul>{% for c in report.not_books %}<li>{{ c.placement }}</li>{% else %}<li class="muted">none</li>{% endfor %}</ul>
+
+<h3 id="damaged">Damaged Downloads</h3>
+<p class="muted">Broken downloads in the input. Repairable ones are repaired in the work copy while building;
+  the others are skipped until you replace them with a new download.</p>
+<table>
+  <tr><th>File</th><th>Damage</th><th>Repairable</th><th>Note</th></tr>
+  {% for d in report.damaged %}
+  <tr><td>{{ d.path }}</td><td class="muted">{{ d.damage }}</td><td>{{ "✅" if d.repairable else "❌" }}</td>
+      <td class="muted">{{ d.note }}</td></tr>
+  {% else %}<tr><td colspan="4" class="muted">none</td></tr>{% endfor %}
+</table>
+
+<h3 id="moved">Moved Files</h3>
+<p class="muted">Known input files found under a new path; their books moved along.</p>
+{% with moved = report.moved %}{% include "_moved_table.html" %}{% endwith %}
 
 <h3 id="retried">Retried, Embedded XMP Metadata Removed</h3>
 {% for r in report.retried %}

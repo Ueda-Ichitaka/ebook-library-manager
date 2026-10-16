@@ -6,6 +6,12 @@ very likely the right book, which mirrors opening the file and checking by hand.
 text comes from calibre's bundled pdftotext (poppler); EPUB text from the first
 documents in reading order. Files without text (scans), unreadable files and other
 formats give empty evidence. ISBNs are compared in both their 10- and 13-digit forms.
+
+Many books (often German ones and EPUBs) print the copyright page at the back instead.
+The last pages are therefore searched too, but only for numbers right after the word
+"ISBN", and they are kept apart as back ISBNs: the back pages also advertise other books
+with their ISBNs, so a back ISBN is weaker evidence (see scoring.py). The placeholder
+ISBN 0-12-345678-9 used in templates is never taken.
 """
 
 import os
@@ -21,11 +27,15 @@ from ebookprep.filenames import is_valid_isbn
 
 PDFTOTEXT = Path(os.environ.get("EBOOKPREP_PDFTOTEXT", "/opt/calibre/bin/pdftotext"))
 CALIBRE_LIB = os.environ.get("EBOOKPREP_CALIBRE_LIB", "/opt/calibre/lib")
+PDFINFO = PDFTOTEXT.with_name("pdfinfo")
 DEFAULT_PAGES = 10
-# EPUBs have no pages; this many characters from the start stand in for the first pages.
+BACK_PAGES = 5
+# EPUBs have no pages; this many characters from the start (and from the end) stand in
+# for the first (and last) pages.
 EPUB_CHARS = 20000
 
 _ISBN_LIKE = re.compile(r"(?<![\dX])(\d[\d\- ]{8,16}[\dX])(?![\dX])")
+_ISBN_AFTER_WORD = re.compile(r"isbn(?:[- ]?1[03])?[^\d]{0,25}?(\d[\d\- ]{8,16}[\dX])(?![\dX])", re.IGNORECASE)
 _CONTAINER = "{urn:oasis:names:tc:opendocument:xmlns:container}"
 _OPF = "{http://www.idpf.org/2007/opf}"
 
@@ -36,6 +46,8 @@ class Evidence:
     text: str
     # Valid ISBNs found in the text, each in its 10- and 13-digit forms.
     isbns: frozenset[str]
+    # Valid ISBNs after the word "ISBN" on the last pages, not among isbns.
+    back_isbns: frozenset[str] = frozenset()
 
 
 EMPTY = Evidence(text="", isbns=frozenset())
@@ -44,12 +56,17 @@ EMPTY = Evidence(text="", isbns=frozenset())
 def extract_evidence(path: Path, pages: int = DEFAULT_PAGES) -> Evidence:
     suffix = path.suffix.lower()
     if suffix == ".pdf":
-        raw = _pdf_text(path, pages)
+        raw, back = _pdf_text(path, 1, pages), _pdf_back_text(path, pages)
     elif suffix == ".epub":
-        raw = _epub_text(path)
+        raw, back = _epub_texts(path)
     else:
-        raw = ""
-    return Evidence(text=re.sub(r"\s+", " ", raw.casefold()).strip(), isbns=frozenset(_find_isbns(raw)))
+        raw, back = "", ""
+    isbns = frozenset(_find_isbns(raw))
+    return Evidence(
+        text=re.sub(r"\s+", " ", raw.casefold()).strip(),
+        isbns=isbns,
+        back_isbns=frozenset(_find_isbns(back, _ISBN_AFTER_WORD)) - isbns,
+    )
 
 
 def isbn_forms(isbn: str) -> set[str]:
@@ -72,25 +89,41 @@ def _isbn10(first9: str) -> str:
     return first9 + ("X" if check == 10 else str(check))
 
 
-def _find_isbns(text: str) -> set[str]:
+_PLACEHOLDER = isbn_forms("0123456789")
+
+
+def _find_isbns(text: str, pattern: re.Pattern = _ISBN_LIKE) -> set[str]:
     found: set[str] = set()
-    for match in _ISBN_LIKE.findall(text):
+    for match in pattern.findall(text):
         digits = re.sub(r"[\- ]", "", match)
-        if len(digits) in (10, 13) and is_valid_isbn(digits):
+        if len(digits) in (10, 13) and is_valid_isbn(digits) and digits not in _PLACEHOLDER:
             found |= isbn_forms(digits)
     return found
 
 
-def _pdf_text(path: Path, pages: int) -> str:
-    if not PDFTOTEXT.exists():
+def _poppler(tool: Path, args: list[str]) -> str:
+    """Output of one of calibre's bundled poppler tools, empty if it fails."""
+    if not tool.exists():
         return ""
-    command = [str(PDFTOTEXT), "-f", "1", "-l", str(pages), "-enc", "UTF-8", str(path), "-"]
     env = {**os.environ, "LD_LIBRARY_PATH": CALIBRE_LIB}
     try:
-        result = subprocess.run(command, capture_output=True, timeout=120, env=env)
+        result = subprocess.run([str(tool), *args], capture_output=True, timeout=120, env=env)
     except subprocess.TimeoutExpired:
         return ""
     return result.stdout.decode("utf-8", errors="replace") if result.returncode == 0 else ""
+
+
+def _pdf_text(path: Path, first: int, last: int) -> str:
+    return _poppler(PDFTOTEXT, ["-f", str(first), "-l", str(last), "-enc", "UTF-8", str(path), "-"])
+
+
+def _pdf_back_text(path: Path, front_pages: int) -> str:
+    """Text of the last pages that are not among the first pages."""
+    match = re.search(r"^Pages:\s+(\d+)", _poppler(PDFINFO, [str(path)]), re.MULTILINE)
+    count = int(match.group(1)) if match else 0
+    if count <= front_pages:
+        return ""
+    return _pdf_text(path, max(front_pages + 1, count - BACK_PAGES + 1), count)
 
 
 class TextCollector(HTMLParser):
@@ -116,7 +149,8 @@ class TextCollector(HTMLParser):
             self.parts.append(data)
 
 
-def _epub_text(path: Path) -> str:
+def _epub_texts(path: Path) -> tuple[str, str]:
+    """The text of the EPUB's start and of its end (not overlapping the start)."""
     try:
         with zipfile.ZipFile(path) as epub:
             text = ""
@@ -124,11 +158,9 @@ def _epub_text(path: Path) -> str:
                 collector = TextCollector()
                 collector.feed(epub.read(name).decode("utf-8", errors="replace"))
                 text += " " + " ".join(collector.parts)
-                if len(text) >= EPUB_CHARS:
-                    break
-            return text[:EPUB_CHARS]
     except (zipfile.BadZipFile, KeyError, ET.ParseError, OSError):
-        return ""
+        return "", ""
+    return text[:EPUB_CHARS], text[max(EPUB_CHARS, len(text) - EPUB_CHARS) :]
 
 
 def spine_documents(epub: zipfile.ZipFile) -> list[str]:

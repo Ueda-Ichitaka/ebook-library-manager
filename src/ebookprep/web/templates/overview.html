@@ -1,6 +1,8 @@
-{# About this file: overview page: counts, filters and the books of the selected status, sectioned by placement. #}
+{# About this file: overview page: counts, filters and the books of the selected status, sectioned by placement, each section with a "Not books" button; the folder overview next to it. #}
 {% extends "base.html" %}
 {% block content %}
+<div class="with-sidebar">
+<div>
 <div class="card counts">
   <span>Waiting for review: {{ counts.review }} books ({{ counts.review_files }} files)</span>
   <span>Accepted: {{ counts.accepted }}</span>
@@ -21,6 +23,7 @@
 {% for placement, books in sections.items() %}
 <details {{ "open" if sections | length <= 3 }}>
   <summary>{{ placement }} ({{ books | length }})</summary>
+  {% include "_not_books_form.html" %}
   <table>
     <tr><th>Title</th><th>Authors</th><th>Files</th><th>Why</th></tr>
     {% for book in books %}
@@ -36,4 +39,7 @@
 {% else %}
 <p class="muted">Nothing here.</p>
 {% endfor %}
+</div>
+<aside>{% include "_folders.html" %}</aside>
+</div>
 {% endblock %}

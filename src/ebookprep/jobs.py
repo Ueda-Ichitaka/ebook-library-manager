@@ -3,7 +3,10 @@
 A job is a command such as identify or build, started as its own process so the web UI
 stays responsive and a crashing job can't take it down. Only one job runs at a time,
 because the commands share the state and the output folder. Output goes to a log file
-per job, and status and exit code are stored in the SQLite state. A job can be stopped.
+per job, and status and exit code are stored in the SQLite state: "succeeded" (exit code
+0), "flagged" (FLAGGED_EXIT_CODE: the command ran through, but flagged some items, e.g. a
+build that couldn't build some books) or "failed" (any other code, e.g. a crash). A job
+can be stopped.
 Jobs still marked as running when the web UI starts were cut off by a restart and are
 marked as interrupted.
 """
@@ -15,6 +18,9 @@ from pathlib import Path
 from ebookprep.state import JobRow, StateStore
 
 STOP_GRACE_SECONDS = 10
+# Exit code of a command that ran through but flagged some items (Python itself exits with
+# 1 on an uncaught error, so that code stays "failed").
+FLAGGED_EXIT_CODE = 3
 
 
 class JobBusy(Exception):
@@ -53,7 +59,7 @@ class JobRunner:
         if job_id in self._stopping:
             status = "stopped"
         else:
-            status = "succeeded" if exit_code == 0 else "failed"
+            status = {0: "succeeded", FLAGGED_EXIT_CODE: "flagged"}.get(exit_code, "failed")
         self.store.finish_job(job_id, status, exit_code)
         self._processes.pop(job_id, None)
 

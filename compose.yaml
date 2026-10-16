@@ -1,6 +1,9 @@
 # About this file: docker compose services for the ebookprep tool.
 # "identify" decides the metadata of new books in ./input (read-only): accepted, or
-#   waiting for review. "rescore" re-decides stored books with the current rules. "build" writes accepted books into ./output. "report" writes
+#   waiting for review. "detect-moves" recognises known files moved or renamed in ./input
+#   (identify and build do this first, too). "relookup" asks the sources again for the books waiting for
+#   review. The Google Books API key is read from ./api-keys.env (optional,
+#   git-ignored), by identify, relookup and the review UI (its actions and ISBN lookups). "rescore" re-decides stored books with the current rules. "build" writes accepted books into ./output. "report" writes
 #   ./work/report.md with the newest result of every book across all runs. State, reports
 #   and temporary files go to ./work. Extra arguments are passed on, e.g.
 #     docker compose run --rm identify --only IT/Android
@@ -35,7 +38,23 @@ x-ebookprep: &ebookprep
 services:
   identify:
     <<: *ebookprep
+    env_file:
+      - path: api-keys.env
+        required: false
     entrypoint: ["python", "-m", "ebookprep", "identify",
+                 "--input", "/data/input", "--work", "/data/work", "--config", "/app/config.toml"]
+
+  detect-moves:
+    <<: *ebookprep
+    entrypoint: ["python", "-m", "ebookprep", "detect-moves",
+                 "--input", "/data/input", "--work", "/data/work", "--config", "/app/config.toml"]
+
+  relookup:
+    <<: *ebookprep
+    env_file:
+      - path: api-keys.env
+        required: false
+    entrypoint: ["python", "-m", "ebookprep", "relookup",
                  "--input", "/data/input", "--work", "/data/work", "--config", "/app/config.toml"]
 
   rescore:
@@ -61,7 +80,10 @@ services:
 
   review:
     <<: *ebookprep
-    env_file: kavita.env
+    env_file:
+      - kavita.env
+      - path: api-keys.env
+        required: false
     entrypoint: ["python", "-m", "ebookprep", "review", "--input", "/data/input", "--work", "/data/work",
                  "--output", "/data/output", "--config", "/app/config.toml", "--kavita-url", "http://kavita:5000",
                  "--host", "0.0.0.0", "--port", "8000"]

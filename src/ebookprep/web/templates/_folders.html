@@ -1,0 +1,85 @@
+{# About this file: the folder overview next to the review list: input tree (files processed, complete mark), output tree (books, files, ready and live marks) and moved files/books (variable "folders", see folders.py). #}
+{% macro input_row(n) %}
+<div class="tree-row" data-folder="{{ n.path }}" title="{{ n.reasons | join('; ') if n.reasons else 'complete: ready for the live library' }}">
+  <span class="tree-name">{{ "✅" if n.complete }} {{ n.name }}</span>
+  <span class="tree-num">{{ n.done }}/{{ n.total }}</span>
+  <span class="bar"><span style="width: {{ (100 * n.done / n.total) | round | int if n.total else 0 }}%"></span></span>
+</div>
+{% if n.reasons %}<div class="tree-reasons muted">{{ n.reasons | join("; ") }}</div>{% endif %}
+{% endmacro %}
+{% macro output_row(n) %}
+<div class="tree-row" data-folder="{{ n.path }}" title="{{ n.reasons | join('; ') if n.reasons else ('outside the libraries' if n.outside else 'ready for the live library') }}">
+  <span class="tree-name">{{ "✅" if n.ready }} {{ n.name }}</span>
+  <span class="tree-num">{{ n.books or "-" }}</span>
+  <span class="tree-num">{{ n.files }}</span>
+  {% if not n.outside %}
+  <form method="post" action="/folders/live" class="live" onclick="event.stopPropagation()">
+    <input type="hidden" name="path" value="{{ n.path }}">
+    <input type="hidden" name="live" value="{{ '0' if n.live else '1' }}">
+    <label title="copied to the live library"><input type="checkbox" {{ "checked" if n.live }} onchange="this.form.submit()"> live</label>
+  </form>
+  {% endif %}
+</div>
+{% if n.live and n.changed_since_live %}<div class="tree-reasons warn">changed since it was copied to the live library</div>{% endif %}
+{% if n.reasons %}<div class="tree-reasons muted">{{ n.reasons | join("; ") }}</div>{% endif %}
+{% endmacro %}
+
+<div class="card folders">
+  <h3>Input Folders</h3>
+  <p class="muted">Files done per folder. ✅ = every file done, no open mislabeled book, every book passed Kavita.</p>
+  {% for n in folders.inputs recursive %}
+    {% if n.children %}
+    <details class="tree"><summary>{{ input_row(n) }}</summary><div class="tree-children">{{ loop(n.children) }}</div></details>
+    {% else %}
+    <div class="tree leaf">{{ input_row(n) }}</div>
+    {% endif %}
+  {% else %}
+  <p class="muted">No input files.</p>
+  {% endfor %}
+</div>
+
+<div class="card folders">
+  <h3>Output Folders</h3>
+  <p class="muted">Books and files per folder (book folders are counted, not listed). ✅ = ready for the live library;
+    "live" remembers that you copied it there.</p>
+  <div class="tree-row tree-head muted"><span class="tree-name">Folder</span><span class="tree-num">books</span><span class="tree-num">files</span></div>
+  {% for n in folders.outputs recursive %}
+    {% if n.children %}
+    <details class="tree"><summary>{{ output_row(n) }}</summary><div class="tree-children">{{ loop(n.children) }}</div></details>
+    {% else %}
+    <div class="tree leaf">{{ output_row(n) }}</div>
+    {% endif %}
+  {% else %}
+  <p class="muted">No output yet.</p>
+  {% endfor %}
+</div>
+
+<div class="card folders">
+  <h3>Moved</h3>
+  <details class="tree" {{ "open" if folders.moved.resorted }}>
+    <summary>Re-sorted input folders ({{ folders.moved.resorted | length }})</summary>
+    {% for r in folders.moved.resorted %}
+    <details class="tree-children"><summary>{{ r.old_folder }} &rarr; {{ r.new_folder }} ({{ r.files | length }})</summary>
+      <ul class="tree-list">{% for m in r.files %}<li class="muted">{{ m.new_path.rsplit("/", 1)[-1] }} ({{ m.method }})</li>{% endfor %}</ul>
+    </details>
+    {% else %}<p class="muted tree-children">No moved files recognised.</p>{% endfor %}
+  </details>
+  <details class="tree">
+    <summary>Books you moved ({{ folders.moved.moved_books | length }})</summary>
+    <ul class="tree-list">
+    {% for b in folders.moved.moved_books %}
+      <li><a href="/books/{{ b.id }}">{{ b.metadata.title }}</a> <span class="muted">{{ b.placement }} &rarr; {{ b.target_placement }}</span></li>
+    {% else %}<li class="muted">None.</li>{% endfor %}
+    </ul>
+  </details>
+  {% for o in folders.moved.outside %}
+  <details class="tree">
+    <summary>{{ o.folder }} ({{ o.groups | map(attribute="items") | map("length") | sum }})</summary>
+    {% for g in o.groups %}
+    <details class="tree-children"><summary>{{ g.origin }} ({{ g.items | length }})</summary>
+      <ul class="tree-list">{% for item in g.items %}<li class="muted">{{ item.rsplit("/", 1)[-1] }}</li>{% endfor %}</ul>
+    </details>
+    {% else %}<p class="muted tree-children">Empty.</p>{% endfor %}
+  </details>
+  {% endfor %}
+</div>

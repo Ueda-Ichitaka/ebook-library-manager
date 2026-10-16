@@ -5,7 +5,8 @@ share a record (one .opf and one cover for all of them); a second file of the sa
 format gets its own record, named "<name> (2)" and so on. MOBI/AZW files are converted
 to EPUB, which Kavita can read, and the original is kept in the same record.
 
-Each record is built in a work folder: PDFs are repaired first, then the files go into a
+Each record is built in a work folder: damaged downloads are repaired first when nothing
+of their content is lost (see damaged.py), PDFs are repaired, then the files go into a
 temporary calibre library, get the metadata (series = title, or the given series name
 when titles clash, see series.py) and are exported. Every
 exported PDF/EPUB is then checked the way Kavita reads it. calibre sometimes fails to
@@ -26,6 +27,7 @@ from pathlib import Path
 from ebookprep.calibre import CalibreError, ExportedRecord, convert, temporary_library, write_metadata_from_opf
 from ebookprep.kavita_check import KavitaView, SeriesSource, kavita_view
 from ebookprep.metadata import BookMetadata
+from ebookprep.damaged import DownloadRepairError, overwritten_length, repair_download
 from ebookprep.pdf_repair import PdfRepairError, RepairReport, repair_pdf, strip_xmp
 from ebookprep.scan import BookFile
 
@@ -55,6 +57,8 @@ class RecordOutcome:
     # (output file name, removed XMP packet) for PDFs whose XMP was removed in the retry
     removed_xmp: tuple[tuple[str, str], ...] = ()
     error: str | None = None
+    # (source, what was restored) for damaged downloads repaired in the work copy
+    download_repairs: tuple[tuple[Path, str], ...] = ()
 
     @property
     def flagged(self) -> bool:
@@ -127,6 +131,7 @@ class _State:
     repairs: list[tuple[Path, RepairReport]] = field(default_factory=list)
     converted: list[Path] = field(default_factory=list)
     removed_xmp: list[tuple[str, str]] = field(default_factory=list)
+    download_repairs: list[tuple[Path, str]] = field(default_factory=list)
     retried: bool = False
 
     def outcome(
@@ -141,29 +146,44 @@ class _State:
             retried=self.retried,
             removed_xmp=tuple(self.removed_xmp),
             error=error,
+            download_repairs=tuple(self.download_repairs),
         )
 
 
 def _prepare(plan: RecordPlan, folder: Path, state: _State) -> list[Path]:
-    """Copies the sources into the work folder: PDFs repaired, MOBI/AZW also converted."""
+    """Copies the sources into the work folder: damaged downloads and PDFs repaired,
+    MOBI/AZW also converted."""
     folder.mkdir(parents=True)
     prepared: list[Path] = []
     for index, book_file in enumerate(plan.sources):
         suffix = book_file.path.suffix.lower()
         target = folder / f"{index}{suffix}"
+        source = _repaired_download(book_file.path, folder / f"{index}.download{suffix}", state)
         if suffix == ".pdf":
-            state.repairs.append((book_file.path, repair_pdf(book_file.path, target)))
+            state.repairs.append((book_file.path, repair_pdf(source, target)))
             prepared.append(target)
         elif suffix in CONVERTED_FORMATS:
-            shutil.copyfile(book_file.path, target)
+            shutil.copyfile(source, target)
             converted = folder / f"{index}.epub"
             convert(target, converted)
             state.converted.append(book_file.path)
             prepared.extend([converted, target])
         else:
-            shutil.copyfile(book_file.path, target)
+            shutil.copyfile(source, target)
             prepared.append(target)
     return prepared
+
+
+def _repaired_download(path: Path, repaired: Path, state: _State) -> Path:
+    """The file itself, or a repaired copy when it is a damaged download (see damaged.py)."""
+    with path.open("rb") as handle:
+        if not overwritten_length(handle.read(1000)):
+            return path
+    try:
+        state.download_repairs.append((path, repair_download(path, repaired)))
+    except DownloadRepairError as error:
+        raise _BuildFailed(f"damaged download: {error}") from error
+    return repaired
 
 
 def _verify_with_retry(

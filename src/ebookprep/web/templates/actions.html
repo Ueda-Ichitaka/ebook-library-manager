@@ -29,7 +29,7 @@
   {% for job in jobs %}
   <tr>
     <td><a href="/jobs/{{ job.id }}">{{ commands[job.name].label if job.name in commands else job.name }}</a></td>
-    <td class="{{ 'ok' if job.status == 'succeeded' else 'warn' if job.status != 'running' else '' }}">{{ job.status }}</td>
+    <td class="{{ 'ok' if job.status == 'succeeded' else 'warn' if job.status != 'running' else '' }}">{{ status_label(job.status) }}</td>
     <td class="muted">{{ job.started_at }}</td>
     <td class="muted">{{ job.finished_at or "" }}</td>
     <td>{{ job.exit_code if job.exit_code is not none else "" }}</td>

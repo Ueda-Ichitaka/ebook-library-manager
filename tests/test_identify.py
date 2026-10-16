@@ -8,7 +8,7 @@ import pytest
 from conftest import make_epub, make_pdf, make_text_pdf
 
 from ebookprep.config import Config
-from ebookprep.identify import identify
+from ebookprep.identify import identify, relookup
 from ebookprep.metadata import BookMetadata
 from ebookprep.sources import Candidate, SourceError
 from ebookprep.state import StateStore
@@ -88,6 +88,27 @@ def test_isbn_printed_in_book_accepts_matching_candidate(tmp_path):
     assert "9781593278656" in book.evidence_isbns
     (stored,) = store.candidates(book.id)
     assert stored.isbn_match and stored.auto_acceptable
+
+
+def test_isbns_on_the_last_pages_are_looked_up_with_the_title(tmp_path):
+    folder = tmp_path / "input" / "Beziehungskonzepte" / "unsortiert"
+    folder.mkdir(parents=True)
+    pages = [["MANY LOVE", "A Memoir of Polyamory"]] + [[f"page {n}"] for n in range(2, 20)]
+    pages += [["Also available: ISBN 978-0-06-170780-3"], ["Copyright", "ISBN 978-1-5011-8978-4"]]
+    make_text_pdf(folder / "Many love - Sophie Lucido Johnson.pdf", pages)
+    advertised = found("Sex at Dawn", ("Christopher Ryan",), "9780061707803")
+    right = found("Many Love", ("Sophie Lucido Johnson",), "9781501189784")
+    source = FakeSource(answers={"9780061707803": [advertised], "9781501189784": [right]})
+
+    _, store = run(tmp_path, [source])
+
+    assert [(q.isbn, q.title) for q in source.queries] == [
+        ("9780061707803", "Many love"), ("9781501189784", "Many love"), (None, "Many love")
+    ]
+    (book,) = store.books()
+    assert (book.status, book.metadata.title, book.metadata.isbn) == ("accepted", "Many Love", "9781501189784")
+    assert book.evidence_isbns == () and "9781501189784" in book.evidence_back_isbns
+    assert [c.back_isbn_match for c in store.candidates(book.id)] == [True, True]
 
 
 def test_unverified_candidate_goes_to_review_with_local_proposal(tmp_path):
@@ -175,6 +196,21 @@ def test_only_filter(tmp_path):
     _, store = run(tmp_path, [FakeSource()], only=("Woodworking",))
 
     assert [b.placement for b in store.books()] == ["Woodworking/joinery"]
+
+
+def test_categories_flagged_as_not_books_are_not_identified(tmp_path):
+    for placement in ("Magazine/elektor", "Magazine/elektor/2011", "Woodworking/joinery"):
+        folder = tmp_path / "input" / placement
+        folder.mkdir(parents=True)
+        make_pdf(folder / "Book - Author.pdf")
+    StateStore(tmp_path / "work" / "state.db").flag_not_books("Magazine/elektor")
+    source = FakeSource()
+
+    summary, store = run(tmp_path, [source])
+
+    assert [b.placement for b in store.books()] == ["Woodworking/joinery"]
+    assert len(source.queries) == 1
+    assert summary.not_books == 2
 
 
 def test_decision_by_user_and_build_bookkeeping(tmp_path):
@@ -313,3 +349,55 @@ def test_log_names_books_and_explains_the_summary(tmp_path):
     assert lines[-1] == (
         "identify: 2 books in the input; 1 new (0 accepted, 1 waiting for review), 1 already known, 0 failed"
     )
+
+
+def test_relookup_asks_the_sources_again_for_books_waiting_for_review(tmp_path):
+    for placement, name in (("IT/Android", "Beginning Android Games - Robert Green.pdf"),
+                            ("IT/Python", "Learning Python - Mark Lutz.pdf"),
+                            ("Magazine/elektor", "Elektor - Redaktion.pdf")):
+        (tmp_path / "input" / placement).mkdir(parents=True)
+        make_text_pdf(tmp_path / "input" / placement / name, [[name.removesuffix(".pdf").replace(" - ", " by ")]])
+    old = found("Beginning Android", ("Someone",))
+    _, store = run(tmp_path, [FakeSource(answers={"Beginning Android Games": [old]})])
+    python = book_by_source(store, "Learning Python")
+    store.decide(python.id, python.metadata, decided_by="user")
+    store.flag_not_books("Magazine/elektor")
+    right = found("Beginning Android Games", ("Robert Green",), "9781430230427", source="New")
+    source = FakeSource(name="New", answers={"Beginning Android Games": [right]})
+
+    summary = relookup(tmp_path / "input", tmp_path / "work", [source], log=lambda _: None)
+
+    assert [q.title for q in source.queries] == ["Beginning Android Games"]
+    android = book_by_source(store, "Beginning Android")
+    assert (android.status, android.decided_by, android.metadata.isbn) == ("accepted", "auto: New", "9781430230427")
+    assert {c.metadata.title for c in store.candidates(android.id)} == {"Beginning Android Games", "Beginning Android"}
+    assert (summary.looked_up, summary.accepted) == (1, 1)
+
+
+def test_relookup_command(tmp_path, capsys):
+    from ebookprep.__main__ import main
+
+    (tmp_path / "config.toml").write_text('sources = []\n')
+    exit_code = main(["relookup", "--input", str(tmp_path / "input"), "--work", str(tmp_path / "work"),
+                      "--config", str(tmp_path / "config.toml")])
+
+    assert exit_code == 0
+    assert "relookup:" in capsys.readouterr().out
+
+
+def test_rescore_keeps_a_book_whose_files_are_in_different_categories_in_review(tmp_path):
+    from ebookprep.identify import rescore
+    from ebookprep.moves import REASON_SPLIT_PLACEMENT
+
+    folder = tmp_path / "input" / "IT" / "Security"
+    folder.mkdir(parents=True)
+    make_text_pdf(folder / "Black Hat Go - Tom Steele.pdf", [["BLACK HAT GO"], ["ISBN 978-1-59327-865-6"]])
+    right = found("Black Hat Go", ("Tom Steele",), "9781593278656")
+    _, store = run(tmp_path, [FakeSource(answers={"9781593278656": [right]})])
+    (book,) = store.books()
+    store.require_review(book.id, REASON_SPLIT_PLACEMENT)
+
+    rescore(tmp_path / "input", tmp_path / "work", log=lambda _: None)
+
+    book = store.book(book.id)
+    assert book.status == "review" and REASON_SPLIT_PLACEMENT in book.review_reasons

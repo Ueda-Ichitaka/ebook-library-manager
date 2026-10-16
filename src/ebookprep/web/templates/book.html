@@ -1,4 +1,4 @@
-{# About this file: review page of one book: files, reasons, evidence, candidates, form. #}
+{# About this file: review page of one book: files, reasons, Kavita problem, evidence, candidates, form. #}
 {% extends "base.html" %}
 {% block title %}{{ book.metadata.title }} - Ebook Library Manager{% endblock %}
 {% block content %}
@@ -46,7 +46,7 @@
               {% if c.metadata.publisher %}<br><span class="muted">{{ c.metadata.publisher }}</span>{% endif %}</td>
           <td>{{ c.metadata.isbn or "" }}</td>
           <td>{{ c.metadata.year or "" }}</td>
-          <td>{{ "✅" if c.isbn_match else "❌" }}</td>
+          <td>{{ "✅" if c.isbn_match else "✅ last pages" if c.back_isbn_match else "❌" }}</td>
           <td>{{ "✅" if c.title_in_text else "❌" }}</td>
           <td>{{ "✅" if c.author_in_text else "❌" }}</td>
           <td class="sticky-right"><button class="secondary" hx-get="/books/{{ book.id }}/use/{{ loop.index0 }}"
@@ -60,9 +60,17 @@
       {% for name, error in book.lookup_errors %}<p class="muted">{{ name }}: {{ error }}</p>{% endfor %}
     </div>
 
+    {% if book.kavita_problem %}
+    <div class="card"><p class="warn">Kavita: {{ book.kavita_problem }}</p>
+      <p class="muted">Fix it here (accept the corrected metadata, then build) or on the <a href="/kavita">Kavita page</a>.</p></div>
+    {% endif %}
     <div class="card">
       <h3>First pages</h3>
       <p class="muted">ISBNs found: {{ book.evidence_isbns | join(", ") or "none" }}</p>
+      {% if book.evidence_back_isbns %}
+      <p class="muted">ISBNs on the last pages: {{ book.evidence_back_isbns | join(", ") }}
+        (may include advertised books; a match counts only with the title on the first pages)</p>
+      {% endif %}
       <div class="excerpt">{{ book.evidence_excerpt or "No text found (scan, or not read)." }}</div>
     </div>
   </div>

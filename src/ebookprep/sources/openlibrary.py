@@ -3,6 +3,10 @@
 It uses Open Library's public search API, which needs no key: by ISBN when one is known,
 otherwise by title and first author. Each result becomes a candidate with title (plus
 subtitle), authors, ISBN, publisher, language, first publication year and a cover URL.
+When the search finds nothing for an ISBN, the ISBN API (/isbn/<isbn>.json, the edition
+record) is asked as well; the edition's authors (or else its work's authors) are read
+from their own records, at most MAX_AUTHORS of them. An unknown ISBN (HTTP 404) gives no
+candidate.
 
 Open Library allows 1 request per second for anonymous clients and 3 per second when the
 User-Agent names a contact; requests are spaced accordingly (see
@@ -10,7 +14,9 @@ https://openlibrary.org/developers/api). The contact is only sent when configure
 """
 
 import json
+import re
 import time
+import urllib.error
 import urllib.parse
 import urllib.request
 from collections.abc import Callable
@@ -18,9 +24,11 @@ from collections.abc import Callable
 from ebookprep.filenames import is_valid_isbn
 from ebookprep.metadata import BookMetadata
 from ebookprep.naming import main_title
-from ebookprep.sources import Candidate, LookupQuery, SourceError
+from ebookprep.sources import Candidate, LookupQuery, SourceError, Throttle
 
-SEARCH_URL = "https://openlibrary.org/search.json"
+BASE_URL = "https://openlibrary.org"
+SEARCH_URL = f"{BASE_URL}/search.json"
+MAX_AUTHORS = 4
 COVER_URL = "https://covers.openlibrary.org/b/id/{}-L.jpg"
 FIELDS = "title,subtitle,author_name,isbn,publisher,first_publish_year,language,cover_i"
 APP_NAME = "ebookprep"
@@ -46,21 +54,12 @@ class OpenLibrarySource:
         self.limit = limit
         if min_interval is None:
             min_interval = IDENTIFIED_INTERVAL if contact else ANONYMOUS_INTERVAL
-        self.min_interval = min_interval
-        self.clock, self.sleep = clock, sleep
-        self._last_request: float | None = None
+        self.throttle = Throttle(min_interval, clock, sleep)
 
     def _http_get_json(self, url: str) -> dict:
         request = urllib.request.Request(url, headers={"User-Agent": self.user_agent})
         with urllib.request.urlopen(request, timeout=TIMEOUT_SECONDS) as response:
             return json.load(response)
-
-    def _wait_for_turn(self) -> None:
-        if self._last_request is not None:
-            remaining = self.min_interval - (self.clock() - self._last_request)
-            if remaining > 0:
-                self.sleep(remaining)
-        self._last_request = self.clock()
 
     def search(self, query: LookupQuery) -> list[Candidate]:
         if query.isbn:
@@ -72,12 +71,49 @@ class OpenLibrarySource:
         params |= {"fields": FIELDS, "limit": str(self.limit)}
         url = f"{SEARCH_URL}?{urllib.parse.urlencode(params)}"
 
-        self._wait_for_turn()
+        answer = self._get(url)
+        candidates = [self._candidate(doc, query) for doc in answer.get("docs", []) if doc.get("title")]
+        if not candidates and query.isbn:
+            return self._edition_candidates(query.isbn)
+        return candidates
+
+    def _get(self, url: str, missing_ok: bool = False) -> dict | None:
+        """The JSON answer; None for HTTP 404 when missing_ok."""
+        self.throttle.wait()
         try:
-            answer = self.fetch_json(url)
+            return self.fetch_json(url)
+        except urllib.error.HTTPError as error:
+            if missing_ok and error.code == 404:
+                return None
+            raise SourceError(f"Open Library request failed: {error}") from error
         except (OSError, ValueError) as error:
             raise SourceError(f"Open Library request failed: {error}") from error
-        return [self._candidate(doc, query) for doc in answer.get("docs", []) if doc.get("title")]
+
+    def _edition_candidates(self, isbn: str) -> list[Candidate]:
+        edition = self._get(f"{BASE_URL}/isbn/{isbn}.json", missing_ok=True)
+        if not edition or not edition.get("title"):
+            return []
+        author_keys = [a["key"] for a in edition.get("authors", ()) if a.get("key")]
+        if not author_keys and edition.get("works"):
+            work = self._get(f"{BASE_URL}{edition['works'][0]['key']}.json", missing_ok=True) or {}
+            author_keys = [a["author"]["key"] for a in work.get("authors", ()) if a.get("author", {}).get("key")]
+        authors = []
+        for key in author_keys[:MAX_AUTHORS]:
+            author = self._get(f"{BASE_URL}{key}.json", missing_ok=True)
+            if author and author.get("name"):
+                authors.append(author["name"])
+        year = re.search(r"\b(\d{4})\b", edition.get("publish_date", ""))
+        language = next((lang["key"].rsplit("/", 1)[-1] for lang in edition.get("languages", ()) if lang.get("key")), None)
+        metadata = BookMetadata(
+            title=edition["title"] + (f": {edition['subtitle']}" if edition.get("subtitle") else ""),
+            authors=tuple(authors),
+            isbn=isbn,
+            publisher=next(iter(edition.get("publishers", ())), None),
+            language=language,
+            pubdate=year.group(1) if year else None,
+        )
+        cover = COVER_URL.format(edition["covers"][0]) if edition.get("covers") else None
+        return [Candidate(source=self.name, metadata=metadata, cover_url=cover)]
 
     def _candidate(self, doc: dict, query: LookupQuery) -> Candidate:
         title = doc["title"] + (f": {doc['subtitle']}" if doc.get("subtitle") else "")

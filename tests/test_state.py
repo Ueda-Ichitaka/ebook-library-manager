@@ -249,3 +249,171 @@ def test_move_book_sets_and_clears_the_target_placement(tmp_path):
 
     store.move_book(book_id, None)
     assert store.book(book_id).target_placement is None
+
+
+def test_not_book_categories_leave_all_their_files_unused(tmp_path):
+    from ebookprep.metadata import BookMetadata
+    from ebookprep.state import NewBook
+
+    store = StateStore(tmp_path / "state.db")
+    meta = BookMetadata(title="Elektor")
+    for key, placement, source in (("a", "Magazine/elektor", "Magazine/elektor/DE2010.pdf"),
+                                   ("b", "Magazine/elektor/2011", "Magazine/elektor/2011/DE2011.pdf"),
+                                   ("c", "Magazine/elektorx", "Magazine/elektorx/x.pdf")):
+        store.add_book(
+            NewBook(key=key, placement=placement, group_reason="single", book_folder=None, sources=(source,),
+                    local_metadata=meta, local_source="filename", local_notes=(), evidence_excerpt="",
+                    evidence_isbns=(), lookup_errors=(), status="review", decided_by="", review_reasons=(), metadata=meta)
+        )
+
+    store.flag_not_books("Magazine/elektor")
+
+    assert [c.placement for c in store.not_book_categories()] == ["Magazine/elektor"]
+    assert store.not_book_paths() == {"Magazine/elektor/DE2010.pdf", "Magazine/elektor/2011/DE2011.pdf"}
+    assert store.unused_paths() == store.not_book_paths()
+    store.restore_books("Magazine/elektor")
+    assert store.not_book_categories() == [] and store.unused_paths() == set()
+
+
+def test_is_not_book_placement():
+    from ebookprep.state import is_under
+
+    assert is_under("Magazine/elektor", {"Magazine/elektor"})
+    assert is_under("Magazine/elektor/2011", {"Magazine/elektor"})
+    assert not is_under("Magazine/elektorx", {"Magazine/elektor"})
+    assert not is_under("Magazine", {"Magazine/elektor"})
+
+
+def test_summary_report_lists_categories_that_are_not_books(tmp_path):
+    from ebookprep.report import summary_report
+
+    store = StateStore(tmp_path / "state.db")
+    store.flag_not_books("Magazine/elektor")
+
+    report = write_summary_report(store, tmp_path / "report.md").read_text()
+
+    assert "## Not books" in report and "- `Magazine/elektor`" in report
+    assert [c.placement for c in summary_report(store).not_books] == ["Magazine/elektor"]
+
+
+# --- moved files
+
+
+def _book(store, key, placement, sources, **extra):
+    from ebookprep.metadata import BookMetadata
+    from ebookprep.state import NewBook
+
+    meta = BookMetadata(title=key)
+    values = dict(key=key, placement=placement, group_reason="single", book_folder=None, sources=sources,
+                  local_metadata=meta, local_source="filename", local_notes=(), evidence_excerpt="",
+                  evidence_isbns=(), lookup_errors=(), status="accepted", decided_by="user", review_reasons=(),
+                  metadata=meta)
+    values.update(extra)
+    return store.add_book(NewBook(**values))
+
+
+def test_file_hashes_are_stored_and_replaced(tmp_path):
+    from ebookprep.state import FileHash
+
+    store = StateStore(tmp_path / "state.db")
+    store.save_file_hashes([FileHash("a.pdf", 10, 1, "aa"), FileHash("b.pdf", 20, 2, "bb")])
+    store.save_file_hashes([FileHash("a.pdf", 11, 3, "cc")])
+
+    assert store.file_hashes() == {"a.pdf": FileHash("a.pdf", 11, 3, "cc"), "b.pdf": FileHash("b.pdf", 20, 2, "bb")}
+
+
+def test_move_source_renames_the_path_everywhere(tmp_path):
+    from ebookprep.metadata import BookMetadata
+    from ebookprep.state import FileHash
+
+    store = StateStore(tmp_path / "state.db")
+    book_id = _book(store, "k", "DIY/Nähen", ("DIY/Nähen/a.pdf", "DIY/Nähen/a.epub"))
+    store.mark_built(book_id, BookMetadata(title="k"), "DIY/Nähen/k", sources=("DIY/Nähen/a.pdf",))
+    store.exclude_sources(["DIY/Nähen/a.epub"], kept="DIY/Nähen/a.pdf", group="g")
+    store.ignore_sources(["DIY/Nähen/x.pdf"])
+    store.save_file_hashes([FileHash("DIY/Nähen/a.pdf", 1, 1, "h")])
+
+    store.move_source("DIY/Nähen/a.pdf", "DIY/Schnittmuster/a.pdf")
+    store.move_source("DIY/Nähen/x.pdf", "DIY/Schnittmuster/x.pdf")
+
+    book = store.book(book_id)
+    assert book.sources == ("DIY/Schnittmuster/a.pdf", "DIY/Nähen/a.epub")
+    assert book.built_sources == ("DIY/Schnittmuster/a.pdf",)
+    assert store.known_sources() == {"DIY/Schnittmuster/a.pdf", "DIY/Nähen/a.epub"}
+    assert [(e.path, e.kept) for e in store.excluded_sources()] == [("DIY/Nähen/a.epub", "DIY/Schnittmuster/a.pdf")]
+    assert store.ignored_paths() == {"DIY/Schnittmuster/x.pdf"}
+    assert set(store.file_hashes()) == {"DIY/Schnittmuster/a.pdf"}
+
+
+def test_moved_files_are_recorded_and_placement_and_review_can_be_set(tmp_path):
+    store = StateStore(tmp_path / "state.db")
+    book_id = _book(store, "k", "DIY/Nähen", ("DIY/Nähen/a.pdf",))
+
+    store.record_move("DIY/Nähen/a.pdf", "DIY/Schnittmuster/a.pdf", "same content", book_id)
+    store.set_placement(book_id, "DIY/Schnittmuster")
+    store.require_review(book_id, "files in different categories")
+    store.require_review(book_id, "files in different categories")
+
+    (move,) = store.moved_files()
+    assert (move.old_path, move.new_path, move.method, move.book_id) == (
+        "DIY/Nähen/a.pdf", "DIY/Schnittmuster/a.pdf", "same content", book_id
+    )
+    book = store.book(book_id)
+    assert (book.placement, book.status, book.review_reasons) == ("DIY/Schnittmuster", "review", ("files in different categories",))
+
+
+def test_summary_report_lists_moved_files(tmp_path):
+    store = StateStore(tmp_path / "state.db")
+    store.record_move("A/x/a.pdf", "A/y/a.pdf", "same content", None)
+
+    report = write_summary_report(store, tmp_path / "report.md").read_text()
+
+    assert "## Moved files" in report and "| `A/x/a.pdf` | `A/y/a.pdf` | same content |" in report
+
+
+# --- Kavita check results and live marks
+
+
+def test_kavita_check_passes_only_without_problem_and_after_the_last_build(tmp_path):
+    from ebookprep.metadata import BookMetadata
+    from ebookprep.state import KavitaIssue
+
+    store = StateStore(tmp_path / "state.db")
+    ok, broken = _book(store, "ok", "IT/Android", ("a.pdf",)), _book(store, "broken", "IT/Android", ("b.pdf",))
+    for book_id in (ok, broken):
+        store.mark_built(book_id, BookMetadata(title="T"), f"IT/Android/{book_id}")
+    assert store.book(ok).built_at is not None and not store.book(ok).kavita_passed
+
+    store.record_kavita_check({ok, broken}, [KavitaIssue(kind="missing", path="IT/Android/2/T.pdf", book_id=broken)])
+
+    assert store.book(ok).kavita_passed and not store.book(broken).kavita_passed
+    assert store.book(broken).kavita_problem == "missing in Kavita: T.pdf"
+    store.mark_built(ok, BookMetadata(title="T2"), "IT/Android/1")
+    assert not store.book(ok).kavita_passed
+
+
+def test_live_marks_are_stored_and_removed(tmp_path):
+    store = StateStore(tmp_path / "state.db")
+
+    store.mark_live("IT/Android")
+    store.mark_live("Romane/Tolkien")
+    store.unmark_live("Romane/Tolkien")
+
+    assert list(store.live_folders()) == ["IT/Android"]
+
+
+def test_existing_jobs_table_learns_the_flagged_status(tmp_path):
+    path = tmp_path / "state.db"
+    with sqlite3.connect(path) as db:
+        db.execute(
+            "CREATE TABLE jobs (id INTEGER PRIMARY KEY, name TEXT NOT NULL, status TEXT NOT NULL CHECK (status IN "
+            "('running', 'succeeded', 'failed', 'stopped', 'interrupted')), log_path TEXT NOT NULL, exit_code INTEGER, "
+            "started_at TEXT NOT NULL, finished_at TEXT)"
+        )
+        db.execute("INSERT INTO jobs VALUES (7, 'build', 'failed', 'job-7.log', 1, '2026-10-13', '2026-10-13')")
+
+    store = StateStore(path)
+    job_id = store.add_job("build", "job.log")
+    store.finish_job(job_id, "flagged", 3)
+
+    assert [(j.id, j.status) for j in store.jobs()] == [(job_id, "flagged"), (7, "failed")]

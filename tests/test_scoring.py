@@ -35,6 +35,17 @@ def test_isbn_match_with_local_isbn_in_other_form():
     assert result.isbn_match
 
 
+def test_back_isbn_match_needs_the_title_on_the_first_pages_too():
+    evidence = Evidence(text=TEXT, isbns=frozenset(), back_isbns=frozenset({"9781718503748"}))
+    advertised = assess(candidate("Black Hat Bash", authors=("Dolev Farhi",), isbn="9781718503748"), LOCAL, evidence)
+    printed = assess(candidate("Black Hat Go", authors=("Nobody",), isbn="9781718503748"), LOCAL, evidence)
+
+    assert advertised.back_isbn_match and not advertised.isbn_match
+    assert not advertised.auto_acceptable
+    assert printed.auto_acceptable
+    assert printed.score > assess(candidate("Black Hat Go", authors=("Nobody",)), LOCAL, evidence).score
+
+
 def test_title_and_author_in_text():
     result = assess(candidate("Black Hat Go: Go Programming for Hackers and Pentesters"), LOCAL, EVIDENCE)
 

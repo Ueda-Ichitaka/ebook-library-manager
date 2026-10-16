@@ -1,4 +1,4 @@
-{# About this file: progress overview: state of every input file, totals per placement. #}
+{# About this file: progress overview: state of every input file, totals per placement with a "Not books" button per category, moved files. #}
 {% extends "base.html" %}
 {% block title %}Files - Ebook Library Manager{% endblock %}
 {% block content %}
@@ -17,10 +17,17 @@
     <td>{{ totals.counts["waiting for review"] or "" }}</td>
     <td>{{ totals.counts["not identified yet"] or "" }}</td>
     <td class="warn">{{ totals.counts["build failed"] or "" }}</td>
-    <td></td>
+    <td>{% if is_not_book(placement) %}<a class="muted" href="/excluded#not-books">not books</a>
+      {% elif "/" in placement %}{% set back = "/files" %}{% include "_not_books_form.html" %}{% endif %}</td>
   </tr>
   {% endfor %}
 </table>
+<details {{ "open" if moved and not state }}>
+  <summary>Moved Files ({{ moved | length }})</summary>
+  <p class="muted">Known input files found under a new path (identify and build check this first; or use
+    "Detect moved files" on the Actions page). Their books, decisions and states moved along.</p>
+  {% include "_moved_table.html" %}
+</details>
 <h3>{{ state or "All files" }} ({{ files | length }})</h3>
 <p>{% if state %}<a href="/files">show all</a>{% endif %}</p>
 <table>

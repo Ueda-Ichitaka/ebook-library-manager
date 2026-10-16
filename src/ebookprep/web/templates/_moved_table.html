@@ -1,0 +1,14 @@
+{# About this file: table of the input files recognised as moved (variable "moved"). #}
+<table>
+  <tr><th>Old path</th><th>New path</th><th>Recognised by</th><th>When</th></tr>
+  {% for m in moved %}
+  <tr>
+    <td class="muted">{{ m.old_path }}</td>
+    <td>{% if m.book_id %}<a href="/books/{{ m.book_id }}">{{ m.new_path }}</a>{% else %}{{ m.new_path }}{% endif %}</td>
+    <td>{{ m.method }}</td>
+    <td class="muted">{{ m.moved_at }}</td>
+  </tr>
+  {% else %}
+  <tr><td colspan="4" class="muted">No moved files.</td></tr>
+  {% endfor %}
+</table>

@@ -1,0 +1,7 @@
+{# About this file: button that flags the placement in the variable "placement" as not books (magazines, blueprints). #}
+<form method="post" action="/categories/not-books" class="not-books"
+      onsubmit="return confirm('Flag {{ placement }} as not books? All its files leave review and build and are copied unchanged to the misplaced folder. This can be restored on the Excluded Files page.')">
+  <input type="hidden" name="placement" value="{{ placement }}">
+  <input type="hidden" name="back" value="{{ back | default('/') }}">
+  <button class="secondary" type="submit" title="Magazines, blueprints and the like: copy the whole category unchanged to the misplaced folder">Not books</button>
+</form>

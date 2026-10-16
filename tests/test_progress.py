@@ -95,3 +95,64 @@ def test_ignored_files_count_as_skipped(tmp_path):
     (f,) = file_progress(root, store, Config())
 
     assert (f.state, f.detail) == (SKIPPED, "ignored in review")
+
+
+def test_files_of_categories_that_are_not_books_count_as_skipped(tmp_path):
+    root = tmp_path / "input"
+    touch(root, "Magazine/elektor/DE2010.pdf", "Magazine/elektor/new.pdf", "Magazine/elektor/plans.zip")
+    store = StateStore(tmp_path / "state.db")
+    add_book(store, ("Magazine/elektor/DE2010.pdf",), status="review")
+
+    store.flag_not_books("Magazine/elektor")
+    files = file_progress(root, store, Config())
+
+    assert {(f.path, f.state, f.detail) for f in files} == {
+        ("Magazine/elektor/DE2010.pdf", SKIPPED, "not a book"),
+        ("Magazine/elektor/new.pdf", SKIPPED, "not a book"),
+        ("Magazine/elektor/plans.zip", SKIPPED, "not a book"),
+    }
+    assert {f.placement for f in files} == {"Magazine/elektor"}
+
+
+def test_known_files_missing_from_the_input_are_listed(tmp_path):
+    from ebookprep.progress import MISSING
+
+    root = tmp_path / "input"
+    touch(root, "IT/Android/here.pdf")
+    store = StateStore(tmp_path / "state.db")
+    book_id = add_book(store, ("IT/Android/gone.pdf",))
+
+    files = {f.path: f for f in file_progress(root, store, Config())}
+
+    assert (files["IT/Android/gone.pdf"].state, files["IT/Android/gone.pdf"].book_id) == (MISSING, book_id)
+    assert files["IT/Android/gone.pdf"].placement == "IT/Android"
+
+
+def test_built_book_whose_metadata_changed_since_is_not_done(tmp_path):
+    root = tmp_path / "input"
+    touch(root, "IT/Android/a.pdf")
+    store = StateStore(tmp_path / "state.db")
+    book_id = add_book(store, ("IT/Android/a.pdf",))
+    store.mark_built(book_id, BookMetadata(title="Old title"), "IT/Android/Old title")
+
+    (f,) = file_progress(root, store, Config())
+
+    assert (f.state, f.detail) == (ACCEPTED, "changed since the last build")
+
+
+def test_damaged_downloads_that_cant_be_repaired_are_not_done(tmp_path):
+    from ebookprep.progress import DAMAGED
+    from ebookprep.state import DownloadCheck
+
+    root = tmp_path / "input"
+    touch(root, "A/b/lost.epub", "A/b/fixable.pdf")
+    store = StateStore(tmp_path / "state.db")
+    add_book(store, ("A/b/lost.epub",))
+    add_book(store, ("A/b/fixable.pdf",))
+    store.save_download_checks([DownloadCheck("A/b/lost.epub", 1, 1, "overwritten", False, "lost content: Ch01"),
+                                DownloadCheck("A/b/fixable.pdf", 1, 1, "overwritten", True, "header rebuilt")])
+
+    files = {f.path: f for f in file_progress(root, store, Config())}
+
+    assert (files["A/b/lost.epub"].state, files["A/b/lost.epub"].detail) == (DAMAGED, "overwritten; lost content: Ch01")
+    assert files["A/b/fixable.pdf"].state == ACCEPTED

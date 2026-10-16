@@ -1,0 +1,249 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<searchRetrieveResponse xmlns="http://www.loc.gov/zing/srw/"><version>1.1</version><numberOfRecords>1</numberOfRecords><records><record><recordSchema>MARC21-xml</recordSchema><recordPacking>xml</recordPacking><recordData><record xmlns="http://www.loc.gov/MARC21/slim" type="Bibliographic">
+    <leader>00000pam a2200000 c 4500</leader>
+    <controlfield tag="001">1021674753</controlfield>
+    <controlfield tag="003">DE-101</controlfield>
+    <controlfield tag="005">20210310110016.0</controlfield>
+    <controlfield tag="007">tu</controlfield>
+    <controlfield tag="008">120423s2012    sz ||||| |||| 00||||ger  </controlfield>
+    <datafield tag="015" ind1=" " ind2=" ">
+      <subfield code="a">12,A45</subfield>
+      <subfield code="z">12,N18</subfield>
+      <subfield code="2">dnb</subfield>
+    </datafield>
+    <datafield tag="016" ind1="7" ind2=" ">
+      <subfield code="2">DE-101</subfield>
+      <subfield code="a">1021674753</subfield>
+    </datafield>
+    <datafield tag="020" ind1=" " ind2=" ">
+      <subfield code="a">9783868993639</subfield>
+      <subfield code="c">kart. : EUR 34.90 (DE)</subfield>
+      <subfield code="9">978-3-86899-363-9</subfield>
+    </datafield>
+    <datafield tag="020" ind1=" " ind2=" ">
+      <subfield code="a">3868993630</subfield>
+      <subfield code="9">3-86899-363-0</subfield>
+    </datafield>
+    <datafield tag="024" ind1="3" ind2=" ">
+      <subfield code="a">9783868993639</subfield>
+    </datafield>
+    <datafield tag="035" ind1=" " ind2=" ">
+      <subfield code="a">(DE-599)DNB1021674753</subfield>
+    </datafield>
+    <datafield tag="035" ind1=" " ind2=" ">
+      <subfield code="a">(OCoLC)799199720</subfield>
+    </datafield>
+    <datafield tag="035" ind1=" " ind2=" ">
+      <subfield code="a">(OCoLC)816516549</subfield>
+    </datafield>
+    <datafield tag="040" ind1=" " ind2=" ">
+      <subfield code="a">1145</subfield>
+      <subfield code="b">ger</subfield>
+      <subfield code="c">DE-101</subfield>
+      <subfield code="d">1150</subfield>
+    </datafield>
+    <datafield tag="041" ind1=" " ind2=" ">
+      <subfield code="a">ger</subfield>
+      <subfield code="h">eng</subfield>
+    </datafield>
+    <datafield tag="044" ind1=" " ind2=" ">
+      <subfield code="c">XA-CH</subfield>
+      <subfield code="c">XA-DE-NW</subfield>
+    </datafield>
+    <datafield tag="082" ind1="0" ind2="4">
+      <subfield code="8">2\u</subfield>
+      <subfield code="a">643.6</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="2">23/ger</subfield>
+    </datafield>
+    <datafield tag="083" ind1="0" ind2=" ">
+      <subfield code="8">3\u</subfield>
+      <subfield code="a">696</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="2">23/ger</subfield>
+    </datafield>
+    <datafield tag="083" ind1="7" ind2=" ">
+      <subfield code="8">4\p</subfield>
+      <subfield code="a">640</subfield>
+      <subfield code="a">690</subfield>
+      <subfield code="a">621.3</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="2">22sdnb</subfield>
+    </datafield>
+    <datafield tag="085" ind1=" " ind2=" ">
+      <subfield code="8">2\u</subfield>
+      <subfield code="b">643.6</subfield>
+    </datafield>
+    <datafield tag="085" ind1=" " ind2=" ">
+      <subfield code="8">3\u</subfield>
+      <subfield code="b">696</subfield>
+    </datafield>
+    <datafield tag="090" ind1=" " ind2=" ">
+      <subfield code="a">b</subfield>
+    </datafield>
+    <datafield tag="100" ind1="1" ind2=" ">
+      <subfield code="8">1\p</subfield>
+      <subfield code="0">(DE-588)129843946</subfield>
+      <subfield code="0">https://d-nb.info/gnd/129843946</subfield>
+      <subfield code="0">(DE-101)129843946</subfield>
+      <subfield code="a">Riley, Mike</subfield>
+      <subfield code="e">Verfasser</subfield>
+      <subfield code="4">aut</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="245" ind1="1" ind2="0">
+      <subfield code="a">&#152;Das&#156; intelligente Haus</subfield>
+      <subfield code="b">Heimautomation mit Arduino, Android und PC ; [geekige Heimautomationsprojekte ; Arduino, Smartphone und Google_372home clever einsetzen ; Inspiration für kreative Projekte]</subfield>
+      <subfield code="c">Mike Riley. Dt. Übers. von Thomas Demming</subfield>
+    </datafield>
+    <datafield tag="264" ind1=" " ind2="1">
+      <subfield code="a">Beijing</subfield>
+      <subfield code="a">Cambridge</subfield>
+      <subfield code="a">Farnham</subfield>
+      <subfield code="a">Köln</subfield>
+      <subfield code="a">Sebastopol</subfield>
+      <subfield code="a">Tokyo</subfield>
+      <subfield code="b">O'Reilly</subfield>
+      <subfield code="c">2012</subfield>
+    </datafield>
+    <datafield tag="300" ind1=" " ind2=" ">
+      <subfield code="a">XVII, 226 S.</subfield>
+      <subfield code="b">Ill., graph. Darst.</subfield>
+      <subfield code="c">23 cm</subfield>
+    </datafield>
+    <datafield tag="336" ind1=" " ind2=" ">
+      <subfield code="a">Text</subfield>
+      <subfield code="b">txt</subfield>
+      <subfield code="2">rdacontent</subfield>
+    </datafield>
+    <datafield tag="337" ind1=" " ind2=" ">
+      <subfield code="a">ohne Hilfsmittel zu benutzen</subfield>
+      <subfield code="b">n</subfield>
+      <subfield code="2">rdamedia</subfield>
+    </datafield>
+    <datafield tag="338" ind1=" " ind2=" ">
+      <subfield code="a">Band</subfield>
+      <subfield code="b">nc</subfield>
+      <subfield code="2">rdacarrier</subfield>
+    </datafield>
+    <datafield tag="490" ind1="0" ind2=" ">
+      <subfield code="a">O'Reilly basics</subfield>
+    </datafield>
+    <datafield tag="500" ind1=" " ind2=" ">
+      <subfield code="a">Literaturangaben</subfield>
+    </datafield>
+    <datafield tag="650" ind1=" " ind2="7">
+      <subfield code="0">(DE-588)4204356-6</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4204356-6</subfield>
+      <subfield code="0">(DE-101)042043565</subfield>
+      <subfield code="a">Gebäudeleittechnik</subfield>
+      <subfield code="9">rswk-swf</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="650" ind1=" " ind2="7">
+      <subfield code="0">(DE-588)4113858-2</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4113858-2</subfield>
+      <subfield code="0">(DE-101)041138589</subfield>
+      <subfield code="a">Haustechnik</subfield>
+      <subfield code="9">rswk-swf</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="650" ind1=" " ind2="7">
+      <subfield code="0">(DE-588)4180815-0</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4180815-0</subfield>
+      <subfield code="0">(DE-101)041808150</subfield>
+      <subfield code="a">Selbstbau</subfield>
+      <subfield code="9">rswk-swf</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">(Produktform)Paperback / softback</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">(VLB-WN)1638: Hardcover, Softcover / Informatik, EDV/Hardware</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">(BISAC Subject Heading)COM051010</subfield>
+    </datafield>
+    <datafield tag="655" ind1=" " ind2="7">
+      <subfield code="0">(DE-588)4142527-3</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4142527-3</subfield>
+      <subfield code="0">(DE-101)041425278</subfield>
+      <subfield code="a">Anleitung</subfield>
+      <subfield code="2">gnd-content</subfield>
+    </datafield>
+    <datafield tag="689" ind1="0" ind2="0">
+      <subfield code="0">(DE-588)4204356-6</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4204356-6</subfield>
+      <subfield code="0">(DE-101)042043565</subfield>
+      <subfield code="D">s</subfield>
+      <subfield code="a">Gebäudeleittechnik</subfield>
+    </datafield>
+    <datafield tag="689" ind1="0" ind2="1">
+      <subfield code="0">(DE-588)4113858-2</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4113858-2</subfield>
+      <subfield code="0">(DE-101)041138589</subfield>
+      <subfield code="D">s</subfield>
+      <subfield code="a">Haustechnik</subfield>
+    </datafield>
+    <datafield tag="689" ind1="0" ind2="2">
+      <subfield code="0">(DE-588)4180815-0</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4180815-0</subfield>
+      <subfield code="0">(DE-101)041808150</subfield>
+      <subfield code="D">s</subfield>
+      <subfield code="a">Selbstbau</subfield>
+    </datafield>
+    <datafield tag="689" ind1="0" ind2=" ">
+      <subfield code="5">DE-101</subfield>
+      <subfield code="5">DE-101</subfield>
+    </datafield>
+    <datafield tag="700" ind1="1" ind2="2">
+      <subfield code="8">1\p</subfield>
+      <subfield code="a">Riley, Mike</subfield>
+      <subfield code="2">gnd</subfield>
+      <subfield code="t">Programming your home</subfield>
+      <subfield code="g">dt.</subfield>
+    </datafield>
+    <datafield tag="776" ind1="0" ind2="8">
+      <subfield code="i">Erscheint auch als</subfield>
+      <subfield code="n">Online-Ausgabe</subfield>
+      <subfield code="a">Riley, Mike</subfield>
+      <subfield code="t">&#152;Das&#156; intelligente Haus - Heimautomation mit Arduino und Android und PC</subfield>
+      <subfield code="d">Sebastopol : O'Reilly Media, 2013</subfield>
+      <subfield code="h">Online-Ressource</subfield>
+      <subfield code="w">(DE-101)1037224043</subfield>
+    </datafield>
+    <datafield tag="850" ind1=" " ind2=" ">
+      <subfield code="a">DE-101a</subfield>
+      <subfield code="a">DE-101b</subfield>
+    </datafield>
+    <datafield tag="856" ind1="4" ind2="2">
+      <subfield code="m">X:MVB</subfield>
+      <subfield code="q">text/html</subfield>
+      <subfield code="u">https://services.dnb.de/plus/idn/1021674753/blurb/</subfield>
+      <subfield code="3">Inhaltstext</subfield>
+    </datafield>
+    <datafield tag="856" ind1="4" ind2="2">
+      <subfield code="m">B:DE-101</subfield>
+      <subfield code="q">application/pdf</subfield>
+      <subfield code="u">https://d-nb.info/1021674753/04</subfield>
+      <subfield code="3">Inhaltsverzeichnis</subfield>
+    </datafield>
+    <datafield tag="883" ind1=" " ind2=" ">
+      <subfield code="8">1\p</subfield>
+      <subfield code="a">cgwrk</subfield>
+      <subfield code="d">20210314</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#cgwrk</subfield>
+    </datafield>
+    <datafield tag="883" ind1="2" ind2=" ">
+      <subfield code="8">4\p</subfield>
+      <subfield code="a">dnb</subfield>
+      <subfield code="d">20210308</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb</subfield>
+    </datafield>
+    <datafield tag="925" ind1="r" ind2=" ">
+      <subfield code="a">ra</subfield>
+    </datafield>
+  </record></recordData><recordPosition>1</recordPosition></record></records><echoedSearchRetrieveRequest><version>1.1</version><query>num=9783868993639</query><xQuery xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true"/><maximumRecords>5</maximumRecords><recordSchema>MARC21-xml</recordSchema></echoedSearchRetrieveRequest></searchRetrieveResponse>

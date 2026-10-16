@@ -201,7 +201,7 @@ def _connections(a: _Features, b: _Features) -> list[tuple[str, str]]:
 def _main_title_words(title: str) -> list[str]:
     """The title without subtitle, edition and remarks in parentheses, as plain words."""
     text = re.sub(r"\([^)]*\)|\[[^\]]*\]", " ", title)
-    text = re.split(r":| - | – ", text, maxsplit=1)[0]
+    text = re.split(":| - | \u2013 ", text, maxsplit=1)[0]
     text = _EDITION.sub(" ", text)
     return _name_words(text)
 

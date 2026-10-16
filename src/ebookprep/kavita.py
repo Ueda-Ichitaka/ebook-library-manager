@@ -2,8 +2,12 @@
 
 Covers what ebookprep needs: registering the first admin of a fresh Kavita (end-to-end
 test), logging in, creating Book libraries with the settings Kavita's own UI uses,
-scanning all libraries and waiting until the scan is committed, and listing every series
-with the files it consists of. Endpoints and payloads were taken from Kavita's
+scanning all libraries and waiting until the scan is committed, listing every series
+with the files it consists of, and renaming a series. Kavita keeps a series' display name
+when a later scan finds a name that only differs in case, spaces or punctuation, so a
+name the build corrected (e.g. missing spaces) needs the rename. The update endpoint sets
+every field it is given (locks, localized name, external IDs), so the rename sends back
+the series' current values for all of them. Endpoints and payloads were taken from Kavita's
 openapi.json and checked against a running Kavita. A scan is complete when the library's
 lastScanned changes; Kavita sets it after the scan's results are saved.
 
@@ -23,6 +27,12 @@ FILE_TYPES_EPUB_PDF = [2, 3]
 # The value Kavita's UI uses for new libraries; 0 (unset) is rejected by the API.
 METADATA_PROVIDER_DEFAULT = 3
 PAGE_SIZE = 200
+# The fields of Kavita's UpdateSeriesDto (Kavita.Models/DTOs/UpdateSeriesDto.cs, v0.9.1.4).
+_UPDATE_SERIES_FIELDS = (
+    "id", "name", "localizedName", "sortName", "coverImageLocked", "nameLocked", "sortNameLocked",
+    "localizedNameLocked", "metadataProviderOverride", "aniListId", "malId", "hardcoverId", "metronId",
+    "comicVineId", "mangaBakaId", "cbrId",
+)
 
 
 class KavitaError(Exception):
@@ -109,6 +119,12 @@ class KavitaClient:
     def series_files(self, series_id: int) -> list[str]:
         volumes = self._request("GET", f"/api/Series/volumes?seriesId={series_id}")
         return [file["filePath"] for volume in volumes for chapter in volume["chapters"] for file in chapter["files"]]
+
+    def rename_series(self, series_id: int, name: str) -> None:
+        series = self._request("GET", f"/api/Series/{series_id}")
+        body = {field: series.get(field) for field in _UPDATE_SERIES_FIELDS}
+        body.update(id=series_id, name=name)
+        self._request("POST", "/api/Series/update", body)
 
     # --- HTTP
 

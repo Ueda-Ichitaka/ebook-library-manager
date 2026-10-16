@@ -7,11 +7,12 @@ source and collects their candidates; a failing source (network error, rate limi
 recorded as an error and doesn't stop the others. Author names are normalized, since
 some sources return them as "Last, First", and publication dates are cut to the plain
 date (sources like Google return full timestamps; calibre's placeholder year 101 is
-dropped).
+dropped). Throttle spaces the requests of a web API source.
 """
 
 import re
-from collections.abc import Iterable
+import time
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass, replace
 from typing import Protocol
 
@@ -41,6 +42,27 @@ class MetadataSource(Protocol):
     name: str
 
     def search(self, query: LookupQuery) -> list[Candidate]: ...
+
+
+class Throttle:
+    """Waits so that consecutive requests are at least min_interval seconds apart."""
+
+    def __init__(
+        self,
+        min_interval: float,
+        clock: Callable[[], float] = time.monotonic,
+        sleep: Callable[[float], None] = time.sleep,
+    ):
+        self.min_interval = min_interval
+        self.clock, self.sleep = clock, sleep
+        self._last: float | None = None
+
+    def wait(self) -> None:
+        if self._last is not None:
+            remaining = self.min_interval - (self.clock() - self._last)
+            if remaining > 0:
+                self.sleep(remaining)
+        self._last = self.clock()
 
 
 @dataclass(frozen=True)

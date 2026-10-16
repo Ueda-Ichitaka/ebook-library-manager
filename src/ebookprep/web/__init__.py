@@ -1,6 +1,9 @@
 """About this file: the web UI "Ebook Library Manager" (FastAPI, server-rendered pages with htmx).
 
-It works on the same SQLite state as the pipeline. The overview shows the review queue;
+It works on the same SQLite state as the pipeline. The overview shows the review queue, and next to it the folder overview (see folders.py):
+the input folders with their processed files and a complete mark, the output folders
+with books, files, a ready mark and a "live" checkbox to remember which folders were
+copied to the live library, and the moved files and books outside the libraries;
 a book page shows the book's files (which can be opened in the browser to check them),
 why it needs review, the evidence from its first pages, and every online candidate with
 its checks. The reviewer can copy a candidate into the form, correct any field and accept,
@@ -22,11 +25,21 @@ until only one is kept or the group is dismissed. Dismissing a group of one book
 files were only grouped by similar names splits it into separate books. Excluded and
 ignored files are listed and can be restored.
 
+A whole category (a placement on the review queue or the files page) can be flagged as
+not books, e.g. magazines or blueprints: its files leave the review and the build and
+are copied unchanged to the misplaced folder. Flagged categories are listed with the
+excluded files and can be restored.
+
 The mislabeled page lists the books whose file contains a different book than its name
 says. Each can be moved to another placement (the next build puts it there instead of
 the mislabeled folder; input stays untouched), moved back, or marked as not mislabeled.
 
-The actions page starts every pipeline command (identify, rescore, build, report, Kavita
+The files page also lists the input files recognised as moved (see moves.py). The
+Kavita page lists the problems of the last Kavita check per book (see kavita_verify.py):
+each can be accepted (and undone), a series with a wrong or run-together name can be
+renamed in Kavita (login from KAVITA_USERNAME and KAVITA_PASSWORD), and the book can be
+opened to correct its metadata; names that only differ in case or punctuation are listed
+as notes. The actions page starts every pipeline command (identify, rescore, build, report, Kavita
 check) as a background job (see jobs.py) and shows its live log; the files page shows the
 state of every input file and the progress per placement (see progress.py); the report
 page shows the report data (see report.py). Accepted books are written to the output by the
@@ -37,9 +50,11 @@ commands are validated so they can never be read as command-line options.
 """
 
 import html
+import os
 import re
 from collections.abc import Callable
 from dataclasses import replace
+from functools import partial
 from pathlib import Path
 from urllib.parse import urlsplit
 
@@ -54,6 +69,7 @@ from ebookprep.duplicates import TIERS, DuplicateGroup, find_duplicates, reconci
 from ebookprep.filenames import is_valid_isbn
 from ebookprep.identify import REASON_SIMILAR_GROUP, evidence_of, stored_candidates
 from ebookprep.fileinfo import FileInfo, file_info
+from ebookprep.folders import folder_overview
 from ebookprep.jobs import JobBusy, JobRunner
 from ebookprep.metadata import BookMetadata
 from ebookprep.progress import STATES, file_progress, summarize
@@ -61,7 +77,8 @@ from ebookprep.report import summary_report
 from ebookprep.scoring import assess, fill_gaps
 from ebookprep.sources import LookupQuery, MetadataSource, lookup_all, plain_date
 from ebookprep.sources.registry import default_sources
-from ebookprep.state import BookRow, StateStore
+from ebookprep.kavita import KavitaClient, KavitaError
+from ebookprep.state import KAVITA_PROBLEM_KINDS, BookRow, KavitaIssue, StateStore, is_under
 
 _HERE = Path(__file__).parent
 _MEDIA_TYPES = {".pdf": "application/pdf", ".epub": "application/epub+zip"}
@@ -79,6 +96,14 @@ def is_image_file(path: str) -> bool:
     return bool(_IMAGE_FILE.search(path))
 # htmx stops polling an element when the response has this status
 HTMX_STOP_POLLING = 286
+# Kavita issues a rename of the series fixes.
+RENAMABLE_KINDS = ("spacing", "wrong_name")
+# Job statuses as the pages show them.
+JOB_STATUS_LABELS = {"flagged": "done with flagged books"}
+
+
+def status_label(status: str) -> str:
+    return JOB_STATUS_LABELS.get(status, status)
 
 
 def create_app(
@@ -89,6 +114,7 @@ def create_app(
     kavita_url: str = "http://127.0.0.1:5000",
     command_builder: Callable[..., list[str]] = command_argv,
     sources_factory: Callable[[], list[MetadataSource]] | None = None,
+    kavita_factory: Callable[[], KavitaClient] | None = None,
 ) -> FastAPI:
     store = StateStore(work_root / "state.db")
     runner = JobRunner(store, work_root / "jobs")
@@ -100,6 +126,7 @@ def create_app(
         kavita_url=kavita_url,
     )
     templates = Jinja2Templates(directory=_HERE / "templates")
+    templates.env.globals["status_label"] = status_label
     app = FastAPI(title="ebookprep review")
     app.mount("/static", StaticFiles(directory=_HERE / "static"), name="static")
 
@@ -172,10 +199,83 @@ def create_app(
                 "status": status,
                 "hide_images": hide_images,
                 "active_files": {b.id: len([s for s in b.sources if s not in unused]) for b in shown},
+                "folders": folder_overview(input_root, settings.output, store, config()),
             },
         )
         response.set_cookie(HIDE_IMAGES_COOKIE, "1" if hide_images else "0", max_age=365 * 24 * 3600, samesite="lax")
         return response
+
+    def kavita() -> KavitaClient:
+        if kavita_factory is not None:
+            return kavita_factory()
+        username, password = os.environ.get("KAVITA_USERNAME", ""), os.environ.get("KAVITA_PASSWORD", "")
+        if not username or not password:
+            raise KavitaError("KAVITA_USERNAME and KAVITA_PASSWORD are not set (see kavita.env)")
+        client = KavitaClient(kavita_url)
+        client.login(username, password)
+        return client
+
+    def get_issue(issue_id: int) -> KavitaIssue:
+        try:
+            return store.kavita_issue(issue_id)
+        except KeyError:
+            raise HTTPException(status_code=404, detail="no such Kavita issue (a newer check replaced it)") from None
+
+    @app.get("/kavita", response_class=HTMLResponse)
+    def kavita_page(request: Request):
+        issues = store.kavita_issues()
+        books = {b.id: b for b in store.books()}
+        checked = [b.kavita_checked_at for b in books.values() if b.kavita_checked_at]
+        problems = [i for i in issues if i.kind in KAVITA_PROBLEM_KINDS]
+        return templates.TemplateResponse(
+            request,
+            "kavita.html",
+            {
+                "open": {k: [i for i in problems if i.open and i.kind == k] for k in KAVITA_PROBLEM_KINDS},
+                "fixed": [i for i in problems if i.fixed and not i.accepted],
+                "accepted": [i for i in problems if i.accepted],
+                "notes": [i for i in issues if i.kind == "case"],
+                "books": books,
+                "renamable": RENAMABLE_KINDS,
+                "last_check": max(checked) if checked else None,
+            },
+        )
+
+    @app.post("/kavita/issues/{issue_id}/accept")
+    def accept_issue(issue_id: int):
+        store.accept_kavita_issue(get_issue(issue_id).id)
+        return RedirectResponse("/kavita", status_code=303)
+
+    @app.post("/kavita/issues/{issue_id}/unaccept")
+    def unaccept_issue(issue_id: int):
+        store.unaccept_kavita_issue(get_issue(issue_id).id)
+        return RedirectResponse("/kavita", status_code=303)
+
+    @app.post("/kavita/issues/{issue_id}/rename")
+    def rename_issue(issue_id: int):
+        issue = get_issue(issue_id)
+        if issue.kind not in RENAMABLE_KINDS or issue.series_id is None or not issue.expected:
+            return HTMLResponse("Only a series with a wrong or run-together name can be renamed.", status_code=422)
+        try:
+            kavita().rename_series(issue.series_id, issue.expected)
+        except KavitaError as error:
+            return HTMLResponse(f"Kavita refused the rename: {html.escape(str(error))}", status_code=502)
+        store.mark_kavita_issue_fixed(issue.id)
+        return RedirectResponse("/kavita", status_code=303)
+
+    @app.post("/folders/live")
+    def mark_live(path: str = Form(""), live: str = Form("1")):
+        output = settings.output.resolve()
+        folder = (settings.output / path).resolve()
+        outside = path.split("/")[0] in {config().mislabeled_folder, config().ignored_folder, config().misplaced_folder}
+        valid = _PLACEMENT.fullmatch(path) and ".." not in path.split("/") and folder.is_relative_to(output)
+        if not valid or outside or folder == output or not folder.is_dir():
+            return HTMLResponse(f"Not a library folder of the output: {html.escape(path)}", status_code=422)
+        if live == "1":
+            store.mark_live(path)
+        else:
+            store.unmark_live(path)
+        return RedirectResponse("/", status_code=303)
 
     @app.post("/refresh")
     def refresh(request: Request):
@@ -320,8 +420,30 @@ def create_app(
     @app.get("/excluded", response_class=HTMLResponse)
     def excluded_list(request: Request):
         return templates.TemplateResponse(
-            request, "excluded.html", {"excluded": store.excluded_sources(), "ignored": store.ignored_sources()}
+            request,
+            "excluded.html",
+            {
+                "excluded": store.excluded_sources(),
+                "ignored": store.ignored_sources(),
+                "not_books": store.not_book_categories(),
+                "misplaced_folder": config().misplaced_folder,
+            },
         )
+
+    @app.post("/categories/not-books")
+    def flag_not_books(placement: str = Form(""), back: str = Form("/")):
+        folder = (input_root / placement).resolve()
+        inside = folder.is_relative_to(input_root.resolve()) and folder != input_root.resolve()
+        if not _PLACEMENT.fullmatch(placement) or ".." in placement.split("/") or not inside or not folder.is_dir():
+            return HTMLResponse(f"Not a category folder of the input: {html.escape(placement)}", status_code=422)
+        store.flag_not_books(placement)
+        reconcile_reviews(store)
+        return RedirectResponse(back if back in ("/", "/files") else "/", status_code=303)
+
+    @app.post("/categories/restore-books")
+    def restore_books(placement: str = Form("")):
+        store.restore_books(placement)
+        return RedirectResponse("/excluded", status_code=303)
 
     @app.post("/excluded/restore")
     def restore(path: str = Form("")):
@@ -333,7 +455,11 @@ def create_app(
 
     @app.get("/mislabeled", response_class=HTMLResponse)
     def mislabeled_list(request: Request):
-        books = sorted((b for b in store.books() if b.mislabeled), key=lambda b: (b.placement, b.metadata.title))
+        unused = store.unused_paths()
+        books = sorted(
+            (b for b in store.books() if b.mislabeled and any(s not in unused for s in b.sources)),
+            key=lambda b: (b.placement, b.metadata.title),
+        )
         placements = sorted({b.placement for b in store.books()})
         return templates.TemplateResponse(request, "mislabeled.html", {"books": books, "placements": placements})
 
@@ -391,7 +517,7 @@ def create_app(
     def job_log(job_id: int):
         job = get_job(job_id)
         text = html.escape(runner.log(job_id, tail_bytes=LOG_TAIL_BYTES), quote=False)
-        body = f'<p class="muted">status: {job.status}</p><pre class="log">{text}</pre>'
+        body = f'<p class="muted">status: {status_label(job.status)}</p><pre class="log">{text}</pre>'
         status = 200 if job.status == "running" else HTMX_STOP_POLLING
         return HTMLResponse(body, status_code=status, headers={"X-Job-Status": job.status})
 
@@ -408,7 +534,14 @@ def create_app(
         return templates.TemplateResponse(
             request,
             "files.html",
-            {"summary": summarize(progress), "files": shown, "states": STATES, "state": state},
+            {
+                "summary": summarize(progress),
+                "files": shown,
+                "states": STATES,
+                "state": state,
+                "is_not_book": partial(is_under, categories={c.placement for c in store.not_book_categories()}),
+                "moved": store.moved_files(),
+            },
         )
 
     @app.get("/report", response_class=HTMLResponse)

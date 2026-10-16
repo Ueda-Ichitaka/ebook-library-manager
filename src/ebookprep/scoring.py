@@ -4,6 +4,8 @@ whether a book's metadata can be accepted automatically.
 Online sources sometimes return the wrong book or authors, so a candidate is only
 accepted without review on strict evidence (the user's rule):
 - its ISBN matches an ISBN found in the book (first pages' text, filename or .opf), or
+- its ISBN matches an ISBN on the book's last pages (see evidence.py) and its main title
+  appears as a phrase in the first pages (the last pages also advertise other books), or
 - its main title appears as a phrase in the first pages and its first author's surname
   appears there too.
 The best acceptable candidate wins; fields it lacks are filled from the local metadata.
@@ -43,14 +45,22 @@ class Assessment:
     author_in_text: bool
     # Word-level similarity of the candidate's and the local main title (0..1).
     title_similarity: float
+    # its ISBN is printed on the book's last pages
+    back_isbn_match: bool = False
 
     @property
     def auto_acceptable(self) -> bool:
-        return self.isbn_match or (self.title_in_text and self.author_in_text)
+        return self.isbn_match or (self.title_in_text and (self.author_in_text or self.back_isbn_match))
 
     @property
     def score(self) -> float:
-        return 4 * self.isbn_match + 2 * self.title_in_text + self.author_in_text + self.title_similarity
+        return (
+            4 * self.isbn_match
+            + 2 * self.back_isbn_match
+            + 2 * self.title_in_text
+            + self.author_in_text
+            + self.title_similarity
+        )
 
 
 @dataclass(frozen=True)
@@ -79,6 +89,7 @@ def assess(candidate: Candidate, local: BookMetadata, evidence: Evidence) -> Ass
         title_in_text=bool(title_words) and _contains_phrase(text_words, title_words),
         author_in_text=bool(surname) and len(surname[0]) > 1 and surname[0] in text_words,
         title_similarity=SequenceMatcher(None, title_words, _words(main_title(local.title))).ratio(),
+        back_isbn_match=bool(candidate_isbns & evidence.back_isbns),
     )
 
 

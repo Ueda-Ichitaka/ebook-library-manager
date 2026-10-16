@@ -33,6 +33,18 @@ COMMANDS = {
         "first pages; accepted, or waiting for review.",
         True,
     ),
+    "detect-moves": Command(
+        "Detect moved files",
+        "Recognise known files that were moved or renamed in the input (same content, or a unique filename) "
+        "and carry their books, decisions and states over. Identify and build do this first, too.",
+        False,
+    ),
+    "relookup": Command(
+        "Look up review books again",
+        "Ask the online sources again for the books waiting for review (e.g. after sources were added), with "
+        "ISBNs from the first and last pages. Earlier candidates are kept; books with strict evidence are accepted.",
+        True,
+    ),
     "rescore": Command(
         "Re-decide stored books",
         "Apply the current rules to all stored books again, from stored candidates (no online requests). "
@@ -45,14 +57,10 @@ COMMANDS = {
         True,
     ),
     "report": Command("Write report", "Write work/report.md with the newest result of every book.", False),
-    "kavita-check": Command(
-        "Check in Kavita",
-        "Ask the Kavita preview whether every built book is its own series named after its title.",
-        False,
-    ),
     "kavita-scan": Command(
         "Rescan Kavita and check",
-        "Rescan all Kavita libraries one after another, then check (use after a build).",
+        "Rescan all Kavita libraries one after another, then check that every built book is its own series named "
+        "after its title. The problems are listed on the Kavita page.",
         False,
     ),
 }
@@ -63,14 +71,16 @@ def command_argv(name: str, settings: CommandSettings, only: tuple[str, ...] = (
     s = settings
     paths = {
         "identify": ["identify", "--input", str(s.input), "--work", str(s.work), "--config", str(s.config)],
+        "detect-moves": ["detect-moves", "--input", str(s.input), "--work", str(s.work), "--config", str(s.config)],
+        "relookup": ["relookup", "--input", str(s.input), "--work", str(s.work), "--config", str(s.config)],
         "rescore": ["rescore", "--input", str(s.input), "--work", str(s.work)],
         "build": ["build", "--input", str(s.input), "--output", str(s.output), "--work", str(s.work),
                   "--config", str(s.config)],
         "report": ["report", "--work", str(s.work)],
-        "kavita-check": ["kavita-check", "--output", str(s.output), "--work", str(s.work), "--config",
-                         str(s.config), "--url", s.kavita_url],
+        "kavita-scan": ["kavita-check", "--output", str(s.output), "--work", str(s.work), "--config",
+                        str(s.config), "--url", s.kavita_url, "--scan"],
     }
-    args = paths["kavita-check"] + ["--scan"] if name == "kavita-scan" else paths[name]
+    args = paths[name]
     if command.supports_only and only:
         args += ["--only", *only]
     return [sys.executable, "-m", "ebookprep", *args]

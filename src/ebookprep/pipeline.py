@@ -7,13 +7,21 @@ books of the same title would be merged by Kavita (see series.py). Source files 
 as duplicates or ignored in the review are left out: a book that loses files is rebuilt
 with the rest, and the output folder of a book whose files are all left out is removed. The ignored files are
 copied unchanged into the ignored folder (e.g. _ignored/DIY/Plans/Plan.jpg.pdf) with their
-input paths; copies of files that are no longer ignored are removed from there. Each book gets a unique folder name in its placement; books whose file
+input paths; copies of files that are no longer ignored are removed from there. All files
+of categories flagged as not books (magazines, blueprints), including subfolders and
+files that are no ebooks, are copied the same way into the misplaced folder (e.g.
+_misplaced/Magazine/elektor/DE201011.pdf) and their books are not built. Each book gets a unique folder name in its placement; books whose file
 contains a different book than its name says go below the mislabeled folder instead
 (e.g. _mislabeled/IT/Security/<Book>), outside the library folders, unless the reviewer
 moved them to another placement; changing that placement moves the book's folder. Rebuilding a book
 replaces its previous folder: the old folder is moved aside first and restored if the new
 build fails, so a working book is never lost. A book is either built completely or not
 at all.
+
+Input files are checked for damaged downloads first (see damaged.py): a repairable one is
+repaired in the work copy while building (and noted in its record); a book with a file
+that can't be restored is skipped without a new attempt or record until the file changes,
+so it doesn't fail every build again (its last failure stays in the report).
 
 Every build result is stored in the SQLite state (one record per calibre record), the
 skipped input files too, and a Markdown report is written per run. An unexpected error
@@ -28,6 +36,7 @@ from pathlib import Path
 
 from ebookprep.build import RecordOutcome, RecordStatus, build_record, plan_records
 from ebookprep.config import Config
+from ebookprep.damaged import check_downloads
 from ebookprep.identify import placement_selected, relative
 from ebookprep.naming import unique_book_name
 from ebookprep.scan import BookFile, scan_input
@@ -51,6 +60,7 @@ def build_accepted(
     for skipped in scan.skipped:
         store.add_skipped(run_id, relative(skipped.path, input_root), skipped.reason)
     files_by_path = {relative(f.path, input_root): f for unit in scan.units for f in unit.files}
+    damage = check_downloads(input_root, store, files_by_path)
 
     excluded = store.unused_paths()
     all_books = []
@@ -61,7 +71,9 @@ def build_accepted(
         elif book.built_folder and placement_selected(book.placement, only):
             _remove_built(book, store, output_root, log)
 
-    _sync_ignored(input_root, output_root / config.ignored_folder, store.ignored_paths(), log)
+    misplaced = _category_files(input_root, {c.placement for c in store.not_book_categories()})
+    _sync_copies(input_root, output_root / config.misplaced_folder, misplaced, "not a book", log)
+    _sync_copies(input_root, output_root / config.ignored_folder, store.ignored_paths() - misplaced, "ignored in review", log)
 
     taken: dict[str, set[str]] = {}
     for book in all_books:
@@ -76,14 +88,19 @@ def build_accepted(
             b.needs_build
             or b.built_series != series[b.id]
             or b.built_sources != b.sources
-            or (b.built_folder and b.built_folder.rpartition("/")[0] != _output_parent(b, config))
+            or (b.built_folder and b.built_folder.rpartition("/")[0] != output_parent(b, config))
         )
         and placement_selected(b.placement, only)
     ]
+    unrestorable = [b for b in pending if any(s in damage and not damage[s].repairable for s in b.sources)]
+    for book in unrestorable:
+        for s in (s for s in book.sources if s in damage):
+            log(f"{book.placement}/{book.metadata.title}: skipped, damaged download ({damage[s].note}): {s}")
+    pending = [b for b in pending if b not in unrestorable]
     for number, book in enumerate(pending, start=1):
         label = f"[{number}/{len(pending)}] {book.placement}"
         try:
-            parent = _output_parent(book, config)
+            parent = output_parent(book, config)
             _build_book(
                 book, parent, series[book.id], files_by_path, taken, run_id, store, input_root, output_root, work_root, label, log
             )
@@ -153,7 +170,7 @@ def _build_book(
         _reserve(taken, book.built_folder)
 
 
-def _output_parent(book: BookRow, config: Config) -> str:
+def output_parent(book: BookRow, config: Config) -> str:
     """The folder a book's own folder goes into: where it was moved to in the review, the
     mislabeled folder for a mislabeled book, else its placement."""
     if book.target_placement:
@@ -163,31 +180,46 @@ def _output_parent(book: BookRow, config: Config) -> str:
     return book.placement
 
 
-def _sync_ignored(input_root: Path, folder: Path, ignored: set[str], log: Callable[[str], None]) -> None:
-    """Keeps unchanged copies of exactly the ignored input files in the ignored folder."""
-    for path in sorted(ignored):
+def _category_files(input_root: Path, categories: set[str]) -> set[str]:
+    """All files in the input folders of the categories, as paths relative to the input."""
+    return {
+        relative(path, input_root)
+        for category in categories
+        for path in input_root.joinpath(*category.split("/")).rglob("*")
+        if path.is_file()
+    }
+
+
+def _sync_copies(input_root: Path, folder: Path, paths: set[str], reason: str, log: Callable[[str], None]) -> None:
+    """Keeps unchanged copies of exactly these input files in the folder, with their input paths."""
+    for path in sorted(paths):
         source, copy = input_root / path, folder / path
         if source.is_file() and not (copy.is_file() and copy.stat().st_size == source.stat().st_size):
             copy.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(source, copy)
-            log(f"{folder.name}/{path}: copied (ignored in review)")
+            log(f"{folder.name}/{path}: copied ({reason})")
     if not folder.is_dir():
         return
     for copy in sorted(folder.rglob("*"), reverse=True):
         relative_path = str(copy.relative_to(folder))
-        if copy.is_file() and relative_path not in ignored:
+        if copy.is_file() and relative_path not in paths:
             copy.unlink()
-            log(f"{folder.name}/{relative_path}: removed (no longer ignored)")
+            log(f"{folder.name}/{relative_path}: removed (no longer {reason})")
         elif copy.is_dir() and not any(copy.iterdir()):
             copy.rmdir()
 
 
 def _remove_built(book: BookRow, store: StateStore, output_root: Path, log: Callable[[str], None]) -> None:
-    """Removes the output folder of a book whose files were all excluded as duplicates."""
+    """Removes the output folder of a book whose files are all left out, and the folders
+    above it that become empty."""
     folder = output_root.joinpath(*book.built_folder.split("/"))
     shutil.rmtree(folder, ignore_errors=True)
+    for parent in folder.parents:
+        if parent == output_root or not parent.is_dir() or any(parent.iterdir()):
+            break
+        parent.rmdir()
     store.clear_built(book.id)
-    log(f"{book.built_folder}: removed (all its files are excluded or ignored)")
+    log(f"{book.built_folder}: removed (all its files are excluded, ignored or not books)")
 
 
 def _reserve(taken: dict[str, set[str]], folder: str) -> None:
@@ -211,7 +243,8 @@ def _entry(book: BookRow, name: str, outcome: RecordOutcome, input_root: Path, o
         title=book.metadata.title,
         authors=book.metadata.authors,
         metadata_source=book.decided_by,
-        notes=book.review_reasons,
+        notes=book.review_reasons
+        + tuple(f"damaged download repaired: {relative(s, input_root)}: {note}" for s, note in outcome.download_repairs),
         needs_review=False,
         group_reason=book.group_reason,
         status=outcome.status.value,

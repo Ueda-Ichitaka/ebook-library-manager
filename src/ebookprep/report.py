@@ -3,7 +3,8 @@
 A report collects the build results (done, failed and flagged, retried after a silent
 calibre failure with the removed XMP packets, repaired PDFs, conversions), the books
 whose content differs from their filename, the files excluded as duplicates, the files
-ignored in the review and the skipped input files. There is a report per build run and a summary with the newest result
+ignored in the review, the categories flagged as not books, the input files recognised as
+moved, the damaged downloads and the skipped input files. There is a report per build run and a summary with the newest result
 of every book across all runs. ReportData holds the content; it is written as Markdown to
 the work folder and shown as a page in the web UI.
 """
@@ -11,7 +12,9 @@ the work folder and shown as a page in the web UI.
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from ebookprep.state import BookRow, ExcludedSource, IgnoredSource, RecordEntry, StateStore
+from ebookprep.state import (
+    BookRow, DownloadDamage, ExcludedSource, IgnoredSource, MovedFile, NotBookCategory, RecordEntry, StateStore,
+)
 
 
 @dataclass
@@ -22,6 +25,9 @@ class ReportData:
     mislabeled: list[BookRow] = field(default_factory=list)
     excluded: list[ExcludedSource] = field(default_factory=list)
     ignored: list[IgnoredSource] = field(default_factory=list)
+    not_books: list[NotBookCategory] = field(default_factory=list)
+    moved: list[MovedFile] = field(default_factory=list)
+    damaged: list[DownloadDamage] = field(default_factory=list)
 
     @property
     def done(self) -> list[RecordEntry]:
@@ -65,13 +71,17 @@ def run_report(store: StateStore, run_id: int) -> ReportData:
 
 
 def summary_report(store: StateStore) -> ReportData:
+    unused = store.unused_paths()
     return ReportData(
         "ebookprep report, all runs",
         store.latest_records(),
         store.all_skipped(),
-        mislabeled=[b for b in store.books() if b.mislabeled],
+        mislabeled=[b for b in store.books() if b.mislabeled and not set(b.sources) <= unused],
         excluded=store.excluded_sources(),
         ignored=store.ignored_sources(),
+        not_books=store.not_book_categories(),
+        moved=store.moved_files(),
+        damaged=list(store.download_damage().values()),
     )
 
 
@@ -141,6 +151,23 @@ def render_markdown(data: ReportData) -> str:
     if data.ignored:
         lines += ["## Ignored in review", "", "These input files are not built; they were ignored in the review.", ""]
         lines += [f"- `{i.path}`" for i in data.ignored]
+        lines.append("")
+
+    if data.not_books:
+        lines += ["## Not books", "", "All files of these categories are copied unchanged to the misplaced folder.", ""]
+        lines += [f"- `{c.placement}`" for c in data.not_books]
+        lines.append("")
+
+    if data.damaged:
+        lines += ["## Damaged downloads", "", "Broken downloads in the input; repairable ones are repaired while building.", ""]
+        lines += ["| File | Damage | Repairable | Note |", "|---|---|---|---|"]
+        lines += [f"| `{d.path}` | {d.damage} | {'yes' if d.repairable else 'no'} | {d.note} |" for d in data.damaged]
+        lines.append("")
+
+    if data.moved:
+        lines += ["## Moved files", "", "These known input files were found under a new path; their books moved along.", ""]
+        lines += ["| Old path | New path | Recognised by | When |", "|---|---|---|---|"]
+        lines += [f"| `{m.old_path}` | `{m.new_path}` | {m.method} | {m.moved_at} |" for m in data.moved]
         lines.append("")
 
     lines += ["## Skipped input files", ""]

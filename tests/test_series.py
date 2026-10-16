@@ -22,7 +22,7 @@ def test_kavita_normalize_matches_kavita():
     assert kavita_normalize("Egils Saga") == kavita_normalize("Egils saga") == "egilssaga"
     assert kavita_normalize("Naturrituale · Mit X") == kavita_normalize("Naturrituale: Mit X")
     assert kavita_normalize("C++ Quick Syntax!") == "c++quicksyntax!"
-    assert kavita_normalize("Hexenmedizin – Storl") == "hexenmedizinstorl"
+    assert kavita_normalize("Hexenmedizin \u2013 Storl") == "hexenmedizinstorl"
 
 
 def test_unique_titles_keep_their_title():

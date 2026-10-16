@@ -3,8 +3,9 @@
 For each book (group of source files, see grouping.py) it resolves local metadata (calibre
 .opf next to the book, else the filename). Books with an .opf written by calibre were
 checked by hand already and are accepted as they are. For all others it reads evidence
-from the book's first pages, asks the online sources (by ISBN when one is known, else or
-additionally by title and author) and lets scoring.py decide: a candidate is accepted
+from the book's first and last pages, asks the online sources (by ISBN when one is known,
+else or additionally by title and author; ISBNs from the last pages always together with
+title and author) and lets scoring.py decide: a candidate is accepted
 automatically only on strict evidence, otherwise the book waits for review with its local
 metadata as proposal. A file whose content turns out to be a different book than its
 name says is marked as mislabeled (it is built outside the library folders). A group formed by similar names always needs review, because the
@@ -12,9 +13,13 @@ files might be different books or editions.
 
 rescore re-decides stored books with the current rules from their stored candidates and
 freshly read evidence, without online requests; decisions by the user and calibre
-sidecars are kept.
+sidecars are kept. relookup asks the online sources again for the books waiting for
+review (e.g. after sources were added), with freshly read evidence; their earlier
+candidates (also those from ISBNs looked up in the review) are kept and decided on
+together with the new ones.
 
-Everything is stored in the SQLite state. Files that already belong to a stored book are
+Books in categories flagged as not books (magazines, blueprints) are skipped without any
+lookup. Everything is stored in the SQLite state. Files that already belong to a stored book are
 skipped, so decisions made in the review UI are never overwritten, and a group split in
 the review stays split. An unexpected error in one book is
 logged and the book is left for the next run.
@@ -26,19 +31,26 @@ from dataclasses import dataclass, replace
 from pathlib import Path
 
 from ebookprep.config import Config
-from ebookprep.evidence import Evidence, extract_evidence
+from ebookprep.evidence import Evidence, extract_evidence, isbn_forms
 from ebookprep.grouping import BookGroup, group_units
-from ebookprep.metadata import ResolvedMetadata, resolve_local
+from ebookprep.metadata import BookMetadata, ResolvedMetadata, resolve_local
 from ebookprep.scan import BookFile, scan_input
 from ebookprep.scoring import Decision, Verdict, decide
 from ebookprep.sources import Candidate, LookupQuery, MetadataSource, lookup_all, normalize_candidate
-from ebookprep.state import NewBook, StateStore, StoredCandidate
+from ebookprep.state import NewBook, StateStore, StoredCandidate, is_under
+
+# At most this many ISBNs from a book's last pages are looked up (the back pages may
+# advertise many other books).
+MAX_BACK_ISBNS = 3
 
 EXCERPT_CHARS = 3000
 EVIDENCE_FORMATS = (".pdf", ".epub")
 
 REASON_SIMILAR_GROUP = "group formed by similar names: check that the files are the same book"
 REASON_NO_EVIDENCE = "no candidate with strict evidence (ISBN in the book, or title and author on the first pages)"
+# Set when a book's files were moved into different placements (see moves.py); only the
+# reviewer can resolve it, so rescore and relookup keep it.
+REASON_SPLIT_PLACEMENT = "its files are now in different categories: split the book, or move the files back"
 
 
 @dataclass
@@ -48,6 +60,7 @@ class IdentifySummary:
     accepted: int = 0
     review: int = 0
     failed: int = 0
+    not_books: int = 0
 
 
 def identify(
@@ -59,8 +72,16 @@ def identify(
     log: Callable[[str], None] = print,
 ) -> IdentifySummary:
     store = StateStore(work_root / "state.db")
-    groups = [g for g in group_units(scan_input(input_root, config).units) if selected(g, only)]
+    not_books = {c.placement for c in store.not_book_categories()}
     summary = IdentifySummary()
+    groups = []
+    for group in group_units(scan_input(input_root, config).units):
+        if not selected(group, only):
+            continue
+        if is_under("/".join(group.placement.parts()), not_books):
+            summary.not_books += 1
+        else:
+            groups.append(group)
     known = store.known_sources()
 
     for number, group in enumerate(groups, start=1):
@@ -86,6 +107,7 @@ def identify(
     log(
         f"identify: {len(groups)} books in the input; {summary.new} new ({summary.accepted} accepted, "
         f"{summary.review} waiting for review), {summary.known} already known, {summary.failed} failed"
+        + (f"; {summary.not_books} skipped in categories that are not books" if summary.not_books else "")
     )
     return summary
 
@@ -123,7 +145,7 @@ def _identify_group(
         )
 
     evidence = _group_evidence(files)
-    candidates, errors = _lookup(resolved, evidence, sources)
+    candidates, errors = _lookup(resolved.metadata, evidence, sources)
     decision = decide(resolved.metadata, candidates, evidence)
     status, decided_by, reasons = _outcome(decision, group.needs_review, resolved.notes)
 
@@ -131,6 +153,7 @@ def _identify_group(
         **common,
         evidence_excerpt=evidence.text[:EXCERPT_CHARS],
         evidence_isbns=tuple(sorted(evidence.isbns)),
+        evidence_back_isbns=tuple(sorted(evidence.back_isbns)),
         lookup_errors=errors,
         status=status,
         decided_by=decided_by,
@@ -141,9 +164,12 @@ def _identify_group(
     )
 
 
-def _outcome(decision: Decision, similar_group: bool, local_notes: tuple[str, ...]) -> tuple[str, str, tuple[str, ...]]:
-    """Status, decided_by and review reasons of a book from the scoring decision."""
-    reasons = [REASON_SIMILAR_GROUP] if similar_group else []
+def _outcome(
+    decision: Decision, similar_group: bool, local_notes: tuple[str, ...], kept: tuple[str, ...] = ()
+) -> tuple[str, str, tuple[str, ...]]:
+    """Status, decided_by and review reasons of a book from the scoring decision; kept are
+    earlier reasons that stay until the reviewer decides."""
+    reasons = ([REASON_SIMILAR_GROUP] if similar_group else []) + [r for r in kept if r == REASON_SPLIT_PLACEMENT]
     if decision.verdict is Verdict.ACCEPT:
         decided_by = f"auto: {decision.chosen_source}"
     else:
@@ -168,6 +194,7 @@ def stored_candidates(assessments) -> tuple[StoredCandidate, ...]:
             title_in_text=a.title_in_text,
             author_in_text=a.author_in_text,
             auto_acceptable=a.auto_acceptable,
+            back_isbn_match=a.back_isbn_match,
         )
         for a in assessments
     )
@@ -194,9 +221,12 @@ def rescore(input_root: Path, work_root: Path, log: Callable[[str], None] = prin
             for c in store.candidates(book.id)
         ]
         decision = decide(book.local_metadata, candidates, evidence)
-        status, decided_by, reasons = _outcome(decision, book.group_reason == "similar", book.local_notes)
+        status, decided_by, reasons = _outcome(
+            decision, book.group_reason == "similar", book.local_notes, book.review_reasons
+        )
         store.replace_decision(
-            book.id, status, decided_by, reasons, decision.metadata, decision.mislabeled, _stored(decision)
+            book.id, status, decided_by, reasons, decision.metadata, decision.mislabeled, _stored(decision),
+            evidence_back_isbns=tuple(sorted(evidence.back_isbns)),
         )
         summary.rescored += 1
         if (status, decision.metadata, decision.mislabeled) != (book.status, book.metadata, book.mislabeled):
@@ -206,17 +236,91 @@ def rescore(input_root: Path, work_root: Path, log: Callable[[str], None] = prin
     return summary
 
 
-def _lookup(resolved: ResolvedMetadata, evidence: Evidence, sources: Sequence[MetadataSource]):
-    local = resolved.metadata
+@dataclass
+class RelookupSummary:
+    looked_up: int = 0
+    accepted: int = 0
+
+
+def relookup(
+    input_root: Path,
+    work_root: Path,
+    sources: Sequence[MetadataSource],
+    only: tuple[str, ...] = (),
+    log: Callable[[str], None] = print,
+) -> RelookupSummary:
+    store = StateStore(work_root / "state.db")
+    not_books = {c.placement for c in store.not_book_categories()}
+    unused = store.unused_paths()
+    books = [
+        b for b in store.books(status="review")
+        if placement_selected(b.placement, only)
+        and not is_under(b.placement, not_books)
+        and any(s not in unused for s in b.sources)
+    ]
+    summary = RelookupSummary()
+    for number, book in enumerate(books, start=1):
+        label = f"[book {number} of {len(books)}] {book.placement}"
+        try:
+            evidence = evidence_of([input_root / s for s in book.sources if s not in unused])
+            new, errors = _lookup(book.local_metadata, evidence, sources)
+            stored = [Candidate(source=c.source, metadata=c.metadata, cover_url=c.cover_url) for c in store.candidates(book.id)]
+            candidates = list({_candidate_key(c): c for c in (*stored, *new)}.values())
+            decision = decide(book.local_metadata, candidates, evidence)
+        except Exception as error:  # one broken book must never stop the run
+            log(f"{label}: lookup failed ({type(error).__name__}: {error})")
+            continue
+        status, decided_by, reasons = _outcome(
+            decision, book.group_reason == "similar", book.local_notes, book.review_reasons
+        )
+        store.replace_decision(
+            book.id, status, decided_by, reasons, decision.metadata, decision.mislabeled, _stored(decision),
+            evidence_back_isbns=tuple(sorted(evidence.back_isbns)), lookup_errors=errors,
+        )
+        summary.looked_up += 1
+        summary.accepted += status == "accepted"
+        log(f"{label}/{decision.metadata.title}: {status} ({decided_by}), {len(new)} new candidates")
+    log(f"relookup: {summary.looked_up} books waiting for review looked up again, {summary.accepted} now accepted")
+    return summary
+
+
+def _candidate_key(candidate: Candidate) -> tuple:
+    m = candidate.metadata
+    return (candidate.source, m.title.casefold(), tuple(a.casefold() for a in m.authors), m.isbn)
+
+
+def _lookup(local: BookMetadata, evidence: Evidence, sources: Sequence[MetadataSource]):
+    """Candidates by the book's ISBN, falling back to title and author. Without an ISBN on
+    the first pages, the ISBNs on the last pages are looked up and so are title and author,
+    since a back ISBN may belong to an advertised book."""
+    query = LookupQuery(title=local.title, authors=local.authors, isbn=None)
     isbn = local.isbn or _preferred_isbn(evidence.isbns)
-    query = LookupQuery(title=local.title, authors=local.authors, isbn=isbn)
-    result = lookup_all(sources, query)
-    candidates, errors = list(result.candidates), list(result.errors)
+    if isbn:
+        queries = [replace(query, isbn=isbn)]
+    else:
+        queries = [replace(query, isbn=i) for i in _distinct_isbns(evidence.back_isbns)[:MAX_BACK_ISBNS]]
+        queries.append(query)
+    candidates, errors = [], []
+    for q in queries:
+        result = lookup_all(sources, q)
+        candidates += result.candidates
+        errors += result.errors
     if not candidates and isbn:
-        by_title = lookup_all(sources, replace(query, isbn=None))
+        by_title = lookup_all(sources, query)
         candidates += by_title.candidates
         errors += by_title.errors
     return candidates, tuple(dict.fromkeys(errors))
+
+
+def _distinct_isbns(isbns: frozenset[str]) -> list[str]:
+    """One form per book (the 13-digit one when there is one), in a stable order."""
+    seen: set[str] = set()
+    distinct = []
+    for isbn in sorted(isbns, key=lambda i: (len(i) != 13, i)):
+        if isbn not in seen:
+            seen |= isbn_forms(isbn)
+            distinct.append(isbn)
+    return distinct
 
 
 def _preferred_isbn(isbns: frozenset[str]) -> str | None:
@@ -231,9 +335,11 @@ def _group_evidence(files: list[BookFile]) -> Evidence:
 def evidence_of(paths: list[Path]) -> Evidence:
     """Evidence from the first pages of a book's PDF and EPUB files, combined."""
     parts = [extract_evidence(p) for p in paths if p.suffix.lower() in EVIDENCE_FORMATS]
+    isbns = frozenset(i for p in parts for i in p.isbns)
     return Evidence(
         text=" ".join(p.text for p in parts if p.text),
-        isbns=frozenset(i for p in parts for i in p.isbns),
+        isbns=isbns,
+        back_isbns=frozenset(i for p in parts for i in p.back_isbns) - isbns,
     )
 
 

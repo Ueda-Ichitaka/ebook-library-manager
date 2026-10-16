@@ -1,0 +1,87 @@
+{# About this file: the problems of the last Kavita check per book, with accept, rename in Kavita and edit; renamed and accepted problems and the notes below. #}
+{% extends "base.html" %}
+{% block title %}Kavita - Ebook Library Manager{% endblock %}
+{% macro book_cell(i) %}
+{% if i.book_id and i.book_id in books %}<a href="/books/{{ i.book_id }}">{{ books[i.book_id].metadata.title }}</a>
+<br><span class="muted">{{ books[i.book_id].placement }}</span>{% else %}<span class="muted">no built book</span>{% endif %}
+{% endmacro %}
+{% macro issue_row(i, actions=True) %}
+<tr>
+  <td>{{ book_cell(i) }}</td>
+  <td class="muted">{{ i.path }}</td>
+  <td>{% if i.actual %}<span class="warn">{{ i.actual }}</span>{% endif %}
+      {% if i.expected %}<br>expected: {{ i.expected }}{% endif %}</td>
+  <td class="nowrap">
+    {% if actions %}
+    {% if i.kind in renamable and i.series_id %}
+    <form method="post" action="/kavita/issues/{{ i.id }}/rename" class="inline"
+          title="Rename the series in Kavita to the expected name">
+      <button type="submit">Rename in Kavita</button></form>
+    {% endif %}
+    {% if i.book_id %}<a class="button secondary" href="/books/{{ i.book_id }}">Edit book</a>{% endif %}
+    <form method="post" action="/kavita/issues/{{ i.id }}/accept" class="inline"
+          title="It is fine as it is: don't count it as a problem (also in later checks)">
+      <button class="secondary" type="submit">Accept</button></form>
+    {% endif %}
+  </td>
+</tr>
+{% endmacro %}
+{% block content %}
+<h2>Kavita</h2>
+<div class="card">
+  <p class="muted">Problems of the last Kavita check{% if last_check %} ({{ last_check[:19] | replace("T", " ") }} UTC){% endif %}.
+    Accept what is fine as it is, rename series whose name Kavita kept from an earlier scan, or edit the book
+    (accept it again, then build) and check again.</p>
+  <form method="post" action="/actions/start">
+    <input type="hidden" name="name" value="kavita-scan">
+    <button type="submit">Rescan Kavita and check</button>
+  </form>
+</div>
+{% set titles = {
+  "missing": ("Missing", "Built files Kavita doesn't show after the scan (unreadable file, or a scan error)."),
+  "wrong_name": ("Wrong Series Name", "The series is named differently than the book's title."),
+  "spacing": ("Spaces Differ", "Kavita kept a name from an earlier scan whose words are run together or split differently; rename it in Kavita."),
+  "merged": ("Merged With Other Books", "One Kavita series contains files of several books."),
+  "unexpected": ("Not Built", "Files Kavita shows that the build didn't write (leftovers in the output)."),
+} %}
+{% for kind, items in open.items() %}
+<h3>{{ titles[kind][0] }} ({{ items | length }})</h3>
+<p class="muted">{{ titles[kind][1] }}</p>
+{% if items %}
+<table>
+  <tr><th>Book</th><th>File</th><th>Kavita shows</th><th></th></tr>
+  {% for i in items %}{{ issue_row(i) }}{% endfor %}
+</table>
+{% endif %}
+{% endfor %}
+
+{% if fixed %}
+<h3>Renamed in Kavita ({{ fixed | length }})</h3>
+<p class="muted">Fixed until the next check confirms it.</p>
+<table>{% for i in fixed %}{{ issue_row(i, actions=False) }}{% endfor %}</table>
+{% endif %}
+
+<details id="accepted">
+  <summary>Accepted ({{ accepted | length }})</summary>
+  <table>
+    {% for i in accepted %}
+    <tr>
+      <td>{{ book_cell(i) }}</td>
+      <td class="muted">{{ i.text }}</td>
+      <td><form method="post" action="/kavita/issues/{{ i.id }}/unaccept" class="inline">
+        <button class="secondary" type="submit">Undo</button></form></td>
+    </tr>
+    {% else %}<tr><td class="muted">None.</td></tr>{% endfor %}
+  </table>
+</details>
+
+<details id="notes">
+  <summary>OK: only case or punctuation differ ({{ notes | length }})</summary>
+  <p class="muted">Kavita keeps the display name of an earlier scan when the new one only differs in case or
+    punctuation. Not a problem.</p>
+  <table>
+    {% for i in notes %}<tr><td class="muted">{{ i.path }}</td><td>{{ i.actual }}</td><td class="muted">expected: {{ i.expected }}</td></tr>
+    {% else %}<tr><td class="muted">None.</td></tr>{% endfor %}
+  </table>
+</details>
+{% endblock %}

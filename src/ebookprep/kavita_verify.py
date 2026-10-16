@@ -9,18 +9,26 @@ clash, see series.py). The check reports
   grouped into a series named after their folder); a built file belongs to its book
   folder, any other file counts as a book of its own,
 - wrong_name: files whose series isn't named after the book's title,
+- spacing: the series name has the right letters, but its words are run together or split
+  differently ("FormDerWissenschaftlichenAusarbeitung"); Kavita matches series by
+  normalized name (without spaces, case and punctuation) and keeps the display name it
+  had from an earlier scan, so only a rename in Kavita fixes it,
 - outdated_name (only noted, not a problem): the series name differs only in case or
-  punctuation; Kavita matches series by normalized name and keeps the display name it
-  had from an earlier scan,
+  punctuation, for the same reason,
 - unexpected: files Kavita shows that weren't built (e.g. leftovers in the output).
+record_check stores these as issues (one per file, with Kavita's series id for a rename)
+in the state, where the reviewer can accept them or mark them fixed (see the Kavita page
+of the web UI), and returns the number of open problems.
 """
+
+import re
 
 from dataclasses import dataclass, field
 from pathlib import Path, PurePosixPath
 from typing import Protocol
 
 from ebookprep.series import kavita_normalize
-from ebookprep.state import StateStore
+from ebookprep.state import KavitaIssue, StateStore
 
 KAVITA_FORMATS = (".pdf", ".epub")
 
@@ -40,13 +48,17 @@ class VerifyResult:
     merged: list[tuple[str, list[str]]] = field(default_factory=list)
     # (file, expected series name, actual series name)
     wrong_name: list[tuple[str, str, str]] = field(default_factory=list)
+    # (file, expected series name, older name with other spaces Kavita still shows)
+    spacing: list[tuple[str, str, str]] = field(default_factory=list)
     # (file, expected series name, older spelling Kavita still shows)
     outdated_name: list[tuple[str, str, str]] = field(default_factory=list)
     unexpected: list[str] = field(default_factory=list)
+    # Kavita's series id of every file it shows
+    series_ids: dict[str, int] = field(default_factory=dict)
 
     @property
     def ok(self) -> bool:
-        return not (self.missing or self.merged or self.wrong_name or self.unexpected)
+        return not (self.missing or self.merged or self.wrong_name or self.spacing or self.unexpected)
 
 
 def expected_files(store: StateStore, output_root: Path, mislabeled_folder: str) -> dict[str, str]:
@@ -75,14 +87,44 @@ def verify(kavita: SeriesSource, expected: dict[str, str], library_root: str) ->
             result.merged.append((name, files))
         for file in files:
             seen.add(file)
+            result.series_ids[file] = series["id"]
             if file not in expected:
                 result.unexpected.append(file)
             elif expected[file].strip() != name:
-                same_series = kavita_normalize(expected[file]) == kavita_normalize(name)
-                (result.outdated_name if same_series else result.wrong_name).append((file, expected[file], name))
+                entry = (file, expected[file], name)
+                if kavita_normalize(expected[file]) != kavita_normalize(name):
+                    result.wrong_name.append(entry)
+                elif _words(expected[file]) != _words(name):
+                    result.spacing.append(entry)
+                else:
+                    result.outdated_name.append(entry)
 
     result.missing = sorted(set(expected) - seen)
     return result
+
+
+def record_check(store: StateStore, expected: dict[str, str], result: VerifyResult) -> int:
+    """Stores the check's issues for the checked books (those with files in expected) and
+    returns the number of open problems (not accepted)."""
+    book_of = {b.built_folder: b.id for b in store.books() if b.built_folder}
+
+    def issue(kind: str, file: str, wanted: str = "", actual: str = "") -> KavitaIssue:
+        return KavitaIssue(kind, file, book_of.get(str(PurePosixPath(file).parent)), wanted, actual,
+                           result.series_ids.get(file))
+
+    issues = [issue("missing", f, expected[f]) for f in result.missing]
+    issues += [issue("wrong_name", *entry) for entry in result.wrong_name]
+    issues += [issue("spacing", *entry) for entry in result.spacing]
+    issues += [issue("case", *entry) for entry in result.outdated_name]
+    issues += [issue("merged", f, expected[f], name) for name, files in result.merged for f in files if f in expected]
+    issues += [issue("unexpected", f) for f in sorted(set(result.unexpected))]
+    checked = {book_of[str(PurePosixPath(f).parent)] for f in expected if str(PurePosixPath(f).parent) in book_of}
+    store.record_kavita_check(checked, issues)
+    return sum(i.open for i in store.kavita_issues())
+
+
+def _words(name: str) -> list[str]:
+    return re.findall(r"[^\W_]+", name.casefold())
 
 
 def _book_of(file: str, expected: dict[str, str]) -> str:

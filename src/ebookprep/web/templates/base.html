@@ -19,7 +19,7 @@
     header { padding: 12px 20px; border-bottom: 1px solid var(--line); display: flex; gap: 20px; align-items: baseline; }
     header a { color: var(--fg); text-decoration: none; font-weight: 600; }
     header form.update { margin-left: auto; }
-    main { padding: 16px 20px; max-width: 1200px; margin: 0 auto; }
+    main { padding: 16px 20px; max-width: 1600px; margin: 0 auto; }
     a { color: var(--accent); }
     .muted { color: var(--muted); }
     .card { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; margin-bottom: 14px; }
@@ -61,6 +61,32 @@
     .scroll th { position: sticky; top: 0; background: var(--card); z-index: 1; }
     .sticky-right { position: sticky; right: 0; background: var(--card); }
     .scroll th.sticky-right { z-index: 2; }
+    form.not-books { margin: 4px 0 8px; }
+    form.not-books button { padding: 2px 10px; font-size: 13px; }
+    .with-sidebar { display: grid; grid-template-columns: minmax(0, 1fr) minmax(320px, 440px); gap: 16px; align-items: start; }
+    @media (max-width: 1000px) { .with-sidebar { grid-template-columns: 1fr; } }
+    .folders h3 { margin: 0 0 4px; }
+    .folders details { margin: 0; }
+    .folders summary { font-weight: normal; padding: 0; }
+    .folders summary::marker { color: var(--muted); }
+    .tree-row { display: inline-grid; grid-template-columns: minmax(0, 1fr) 64px 80px auto; gap: 8px; align-items: center;
+                width: calc(100% - 20px); font-size: 14px; padding: 2px 0; vertical-align: middle; }
+    .tree.leaf .tree-row { margin-left: 20px; }
+    .tree-head { font-size: 12px; margin-left: 20px; }
+    .tree-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .tree-num { text-align: right; font-variant-numeric: tabular-nums; }
+    .tree-children { margin-left: 16px; }
+    .tree-reasons { font-size: 12px; margin: 0 0 4px 20px; }
+    .tree-list { margin: 2px 0 6px 20px; padding-left: 16px; font-size: 13px; }
+    .folders .bar { min-width: 60px; }
+    form.live { margin: 0; }
+    form.live label { display: inline; margin: 0; font-size: 12px; white-space: nowrap; }
+    form.live input { width: auto; }
+    form.inline { display: inline; margin: 0; }
+    a.button { display: inline-block; padding: 6px 14px; border-radius: 6px; text-decoration: none;
+               border: 1px solid var(--accent); }
+    a.button.secondary { color: var(--accent); }
+    .nowrap { white-space: nowrap; }
     .excerpt { max-height: 240px; overflow: auto; font-size: 13px; white-space: pre-wrap; }
   </style>
 </head>
@@ -76,6 +102,7 @@
     <a class="muted" href="/duplicates">Duplicates</a>
     <a class="muted" href="/mislabeled">Mislabeled</a>
     <a class="muted" href="/excluded">Excluded Files</a>
+    <a class="muted" href="/kavita">Kavita</a>
     <form class="update" method="post" action="/refresh"
           title="Bring the review queue in step with duplicate decisions and reload this page">
       <button type="submit">Update</button></form>

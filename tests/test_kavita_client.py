@@ -77,3 +77,30 @@ def test_scan_that_never_finishes_times_out():
 
     with pytest.raises(KavitaError, match="IT"):
         kavita.create_book_library("IT", ["/library/IT"], timeout=60)
+
+
+def test_rename_series_sends_back_every_field_kavita_would_otherwise_reset():
+    series = {
+        "id": 42, "name": "FormDerWissenschaftlichenAusarbeitung", "localizedName": "Lokal", "sortName": "Form",
+        "coverImageLocked": True, "nameLocked": False, "sortNameLocked": True, "localizedNameLocked": False,
+        "metadataProviderOverride": None, "aniListId": 0, "malId": 0, "hardcoverId": 7, "metronId": 0,
+        "comicVineId": None, "mangaBakaId": 0, "cbrId": 0, "pages": 120,
+    }
+    sent = []
+
+    class Fake(KavitaClient):
+        def _request(self, method, path, body=None):
+            sent.append((method, path, body))
+            return dict(series) if method == "GET" else None
+
+    Fake("http://kavita").rename_series(42, "Form der wissenschaftlichen Ausarbeitung")
+
+    assert sent[0][:2] == ("GET", "/api/Series/42")
+    method, path, body = sent[1]
+    assert (method, path) == ("POST", "/api/Series/update")
+    assert body == {
+        "id": 42, "name": "Form der wissenschaftlichen Ausarbeitung", "localizedName": "Lokal", "sortName": "Form",
+        "coverImageLocked": True, "nameLocked": False, "sortNameLocked": True, "localizedNameLocked": False,
+        "metadataProviderOverride": None, "aniListId": 0, "malId": 0, "hardcoverId": 7, "metronId": 0,
+        "comicVineId": None, "mangaBakaId": 0, "cbrId": 0,
+    }

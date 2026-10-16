@@ -194,6 +194,21 @@ def test_unexpected_error_in_one_book_is_flagged_and_the_run_continues(tmp_path,
     assert "unexpected problem" in failed[0].error
 
 
+def test_build_command_exits_with_the_flagged_code_when_books_were_flagged(tmp_path, monkeypatch):
+    from ebookprep.jobs import FLAGGED_EXIT_CODE
+
+    source, output, work, store = identified(tmp_path)
+    accept_all(store)
+    config = tmp_path / "config.toml"
+    config.write_text('topic_categories = ["IT/Security"]\n', encoding="utf-8")
+    monkeypatch.setattr(pipeline, "plan_records", lambda files, name: (_ for _ in ()).throw(RuntimeError("broken")))
+
+    exit_code = main(["build", "--input", str(source), "--output", str(output), "--work", str(work),
+                      "--config", str(config)])
+
+    assert exit_code == FLAGGED_EXIT_CODE == 3
+
+
 def test_only_filter(tmp_path):
     source, output, work, store = identified(tmp_path)
     accept_all(store)
@@ -330,6 +345,60 @@ def test_ignored_files_are_copied_to_the_ignored_folder_with_their_paths(tmp_pat
 
     assert (output / "_ignored" / knoppix).is_file()
     assert not (output / "_ignored" / "Spiritualität").exists()
+
+
+def test_not_book_categories_are_copied_unchanged_to_the_misplaced_folder(tmp_path):
+    source, output, work, store = identified(tmp_path)
+    accept_all(store)
+    build_accepted(source, output, work, CONFIG, **QUIET)
+    wicca = "Spiritualität/Witchcraft/Wicca - Vivianne Crowley/Wicca - Crowley, Vivianne.pdf"
+    assert (output / "Spiritualität/Witchcraft").is_dir()
+    store.ignore_sources([wicca])
+
+    store.flag_not_books("Spiritualität/Witchcraft")
+    store.flag_not_books("IT/Python")
+    build_accepted(source, output, work, CONFIG, **QUIET)
+
+    for path in (wicca, "IT/Python/code.zip"):
+        assert (output / "_misplaced" / path).read_bytes() == (source / path).read_bytes(), path
+    assert not (output / "Spiritualität").exists()
+    assert not (output / "_ignored" / wicca).exists()
+
+    store.restore_books("Spiritualität/Witchcraft")
+    store.restore_ignored(wicca)
+    build_accepted(source, output, work, CONFIG, **QUIET)
+
+    assert not (output / "_misplaced" / "Spiritualität").exists()
+    assert (output / "_misplaced/IT/Python/code.zip").is_file()
+    assert (output / "Spiritualität/Witchcraft").is_dir()
+
+
+def test_damaged_downloads_are_repaired_or_skipped_without_retry(tmp_path):
+    import zipfile
+
+    from conftest import overwrite_start, pdf_with_long_catalog
+
+    source, output, work = tmp_path / "input", tmp_path / "output", tmp_path / "work"
+    folder = source / "Beziehungskonzepte" / "unsortiert"
+    folder.mkdir(parents=True)
+    overwrite_start(pdf_with_long_catalog(folder / "Handbook of Attachment - Jude Cassidy.pdf"))
+    with zipfile.ZipFile(folder / "Rewriting the Rules - Meg-John Barker.epub", "w") as z:
+        z.writestr("mimetype", b"application/epub+zip", zipfile.ZIP_STORED)
+        z.writestr("OEBPS/Ch01.xhtml", b"<p>" + b"text " * 500 + b"</p>")
+    overwrite_start(folder / "Rewriting the Rules - Meg-John Barker.epub")
+    identify(source, work, CONFIG, sources=[], **QUIET)
+    store = StateStore(work / "state.db")
+    accept_all(store)
+    lines = []
+
+    run_id = build_accepted(source, output, work, CONFIG, log=lines.append)
+
+    (record,) = store.records(run_id)
+    assert record.status == "done" and record.sources == ("Beziehungskonzepte/unsortiert/Handbook of Attachment - Jude Cassidy.pdf",)
+    assert any("damaged download repaired" in n for n in record.notes)
+    assert any("Rewriting the Rules" in line and "damaged download" in line and "skipped" in line for line in lines)
+    damage = store.download_damage()
+    assert [d.repairable for d in damage.values()] == [True, False]
 
 
 # --- moving mislabeled books

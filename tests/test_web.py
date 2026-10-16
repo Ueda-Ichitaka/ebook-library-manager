@@ -309,8 +309,9 @@ def test_actions_page_offers_every_command(control):
 
     page = client.get("/actions")
 
-    for name in ("identify", "rescore", "build", "report", "kavita-check", "kavita-scan"):
+    for name in ("identify", "rescore", "build", "report", "kavita-scan"):
         assert f'value="{name}"' in page.text, name
+    assert 'value="kavita-check"' not in page.text
 
 
 def test_starting_a_command_runs_it_as_a_job(control):
@@ -455,7 +456,7 @@ def test_ignore_moves_a_book_to_skipped_and_restore_brings_it_back(setup):
 
     assert response.status_code == 303 and response.headers["location"] == f"/books/{second}"
     assert store.ignored_paths() == {"IT/Android/Beginning Android Games - Robert Green.pdf"}
-    assert "Beginning Android Games" not in client.get("/").text
+    assert "Beginning Android Games" not in client.get("/").text.split("<aside>")[0]
     assert "Beginning Android Games - Robert Green.pdf" in client.get("/excluded").text
 
     client.post("/ignored/restore", data={"path": "IT/Android/Beginning Android Games - Robert Green.pdf"})
@@ -791,3 +792,228 @@ def test_duplicates_page_has_sections_per_tier(tmp_path):
     assert "Certain (0)" in page and "Likely (1)" in page and "Possible (1)" in page
     key = possible.split('href="/duplicates/')[1].split('"')[0]
     assert "Possible duplicate" in client.get(f"/duplicates/{key}").text
+
+
+def test_a_category_can_be_flagged_as_not_books_and_restored(tmp_path):
+    store = StateStore(tmp_path / "work" / "state.db")
+    (tmp_path / "input/Magazine/elektor").mkdir(parents=True)
+    make_pdf(tmp_path / "input/Magazine/elektor/DE2010.pdf")
+    store.add_book(new_book("m", ("Magazine/elektor/DE2010.pdf",), placement="Magazine/elektor",
+                            metadata=BookMetadata(title="DE2010")))
+    store.add_book(new_book("a", ("IT/Android/a.pdf",), metadata=BookMetadata(title="Android A")))
+    client = TestClient(create_app(work_root=tmp_path / "work", input_root=tmp_path / "input"))
+    assert 'action="/categories/not-books"' in client.get("/").text
+    assert 'action="/categories/not-books"' in client.get("/files").text
+
+    response = client.post("/categories/not-books", data={"placement": "Magazine/elektor"}, follow_redirects=False)
+
+    assert response.status_code == 303
+    assert [c.placement for c in store.not_book_categories()] == ["Magazine/elektor"]
+    overview = client.get("/").text.split("<aside>")[0]
+    assert "DE2010" not in overview and "Android A" in overview
+    excluded = client.get("/excluded").text
+    assert "Not Books" in excluded and "Magazine/elektor" in excluded
+    assert "<title>Excluded Files - Ebook Library Manager</title>" in excluded
+
+    client.post("/categories/restore-books", data={"placement": "Magazine/elektor"})
+    assert store.not_book_categories() == []
+
+
+def test_only_existing_input_folders_can_be_flagged_as_not_books(tmp_path):
+    client = TestClient(create_app(work_root=tmp_path / "work", input_root=tmp_path / "input"))
+    (tmp_path / "input/IT/Android").mkdir(parents=True)
+
+    for bad in ("Magazine/missing", "../etc", "IT/Android/../.."):
+        assert client.post("/categories/not-books", data={"placement": bad}).status_code == 422, bad
+    assert StateStore(tmp_path / "work" / "state.db").not_book_categories() == []
+
+
+def test_report_page_lists_categories_that_are_not_books(tmp_path):
+    StateStore(tmp_path / "work" / "state.db").flag_not_books("Magazine/elektor")
+    client = TestClient(create_app(work_root=tmp_path / "work", input_root=tmp_path / "input"))
+
+    page = client.get("/report").text
+
+    assert 'href="#not-books"' in page and "Magazine/elektor" in page
+
+
+def test_book_page_shows_isbns_of_the_last_pages_and_back_matches(tmp_path):
+    store = StateStore(tmp_path / "work" / "state.db")
+    back = StoredCandidate(source="Open Library", metadata=BookMetadata(title="Many Love", isbn="9781501189784"),
+                           cover_url=None, score=3.0, isbn_match=False, title_in_text=True, author_in_text=False,
+                           auto_acceptable=True, back_isbn_match=True)
+    book_id = store.add_book(new_book("b", ("IT/Android/b.pdf",), candidates=(back,),
+                                      evidence_back_isbns=("1501189786", "9781501189784")))
+    client = TestClient(create_app(work_root=tmp_path / "work", input_root=tmp_path / "input"))
+
+    page = client.get(f"/books/{book_id}").text
+
+    assert "ISBNs on the last pages: 1501189786, 9781501189784" in page
+    assert "✅ last pages" in page
+
+
+def test_files_page_and_report_list_moved_files(tmp_path):
+    store = StateStore(tmp_path / "work" / "state.db")
+    store.record_move("DIY/Nähen/schnittmuster-1.pdf", "DIY/Schnittmuster/schnittmuster-1.pdf", "same filename", None)
+    (tmp_path / "input").mkdir()
+    client = TestClient(create_app(work_root=tmp_path / "work", input_root=tmp_path / "input"))
+
+    for page in (client.get("/files").text, client.get("/report").text):
+        assert "Moved Files" in page
+        assert "DIY/Nähen/schnittmuster-1.pdf" in page and "DIY/Schnittmuster/schnittmuster-1.pdf" in page
+        assert "same filename" in page
+
+
+def test_start_page_shows_input_and_output_folders_and_moves(tmp_path):
+    store = StateStore(tmp_path / "work" / "state.db")
+    make_pdf_dir = tmp_path / "input/IT/Android"
+    make_pdf_dir.mkdir(parents=True)
+    make_pdf(make_pdf_dir / "a.pdf")
+    book_id = store.add_book(new_book("a", ("IT/Android/a.pdf",), status="accepted", metadata=BookMetadata(title="Android A")))
+    (tmp_path / "output/IT/Android/Android A").mkdir(parents=True)
+    (tmp_path / "output/IT/Android/Android A/Android A.pdf").write_bytes(b"x")
+    store.mark_built(book_id, BookMetadata(title="Android A"), "IT/Android/Android A")
+    store.record_move("DIY/Mittelalter/x.pdf", "DIY/Nähen/x.pdf", "same filename", None)
+    client = TestClient(create_app(work_root=tmp_path / "work", input_root=tmp_path / "input", output_root=tmp_path / "output"))
+
+    page = client.get("/").text
+
+    assert "Input Folders" in page and "Output Folders" in page and "Moved" in page
+    assert 'data-folder="IT/Android"' in page and "1/1" in page
+    assert "1 book not checked in Kavita since its build" in page
+    assert "DIY/Mittelalter" in page and "DIY/Nähen" in page
+    assert 'action="/folders/live"' in page
+
+
+def test_output_folder_can_be_marked_as_live_and_unmarked(tmp_path):
+    (tmp_path / "output/IT/Android").mkdir(parents=True)
+    (tmp_path / "output/_ignored").mkdir(parents=True)
+    (tmp_path / "input").mkdir()
+    client = TestClient(create_app(work_root=tmp_path / "work", input_root=tmp_path / "input", output_root=tmp_path / "output"))
+    store = StateStore(tmp_path / "work" / "state.db")
+
+    assert client.post("/folders/live", data={"path": "IT/Android", "live": "1"}, follow_redirects=False).status_code == 303
+    assert list(store.live_folders()) == ["IT/Android"]
+    client.post("/folders/live", data={"path": "IT/Android", "live": "0"})
+    assert store.live_folders() == {}
+
+    for bad in ("IT/Missing", "_ignored", "../work", "IT/Android/../.."):
+        assert client.post("/folders/live", data={"path": bad, "live": "1"}).status_code == 422, bad
+
+
+def test_flagged_job_is_shown_as_done_with_flagged_books(tmp_path):
+    store = StateStore(tmp_path / "work" / "state.db")
+    job_id = store.add_job("build", str(tmp_path / "job.log"))
+    (tmp_path / "job.log").write_text("[1/2] X: failed (damaged download)\n")
+    store.finish_job(job_id, "flagged", 3)
+    client = TestClient(create_app(work_root=tmp_path / "work", input_root=tmp_path / "input"))
+
+    assert "done with flagged books" in client.get("/actions").text
+    assert "done with flagged books" in client.get(f"/jobs/{job_id}/log").text
+
+
+def test_files_page_and_report_show_damaged_downloads(tmp_path):
+    from ebookprep.state import DownloadCheck
+
+    (tmp_path / "input/Beziehungskonzepte/unsortiert").mkdir(parents=True)
+    make_pdf(tmp_path / "input/Beziehungskonzepte/unsortiert/rules.pdf")
+    store = StateStore(tmp_path / "work" / "state.db")
+    store.save_download_checks([DownloadCheck(
+        "Beziehungskonzepte/unsortiert/rules.pdf", 1, 1, "the download site's rate-limit message overwrote the start",
+        False, "lost content: Ch01; re-download the file with MD5 f29f22bc",
+    )])
+    client = TestClient(create_app(work_root=tmp_path / "work", input_root=tmp_path / "input"))
+
+    files = client.get("/files").text
+    assert "damaged download" in files and "re-download the file with MD5 f29f22bc" in files
+    report = client.get("/report").text
+    assert 'href="#damaged"' in report and "rules.pdf" in report and "re-download" in report
+
+
+# --- Kavita page
+
+
+def kavita_setup(tmp_path, kavita_factory=None):
+    from ebookprep.state import KavitaIssue
+
+    store = StateStore(tmp_path / "work" / "state.db")
+    book_id = store.add_book(new_book("f", ("S/P/form.pdf",), status="accepted", placement="S/P",
+                                      metadata=BookMetadata(title="Form der wissenschaftlichen Ausarbeitung")))
+    store.mark_built(book_id, BookMetadata(title="Form der wissenschaftlichen Ausarbeitung"), "S/P/Form - X")
+    store.record_kavita_check({book_id}, [
+        KavitaIssue("spacing", "S/P/Form - X/Form - X.pdf", book_id, "Form der wissenschaftlichen Ausarbeitung",
+                    "FormDerWissenschaftlichenAusarbeitung", 42),
+        KavitaIssue("case", "S/P/Pro - Y/Pro - Y.pdf", None, "Pro PHP Programming", "Pro PHP programming", 7),
+        KavitaIssue("unexpected", "S/P/leftover.pdf"),
+    ])
+    (tmp_path / "input").mkdir(exist_ok=True)
+    client = TestClient(create_app(work_root=tmp_path / "work", input_root=tmp_path / "input",
+                                   kavita_factory=kavita_factory))
+    return client, store, book_id
+
+
+def test_kavita_page_lists_open_problems_per_book_with_actions(tmp_path):
+    client, store, book_id = kavita_setup(tmp_path)
+
+    page = client.get("/kavita").text
+
+    open_part = page.split('id="accepted"')[0]
+    assert "FormDerWissenschaftlichenAusarbeitung" in open_part and f'href="/books/{book_id}"' in open_part
+    assert "Rename in Kavita" in open_part and "S/P/leftover.pdf" in open_part
+    assert "Pro PHP programming" not in open_part and "Pro PHP programming" in page
+    assert 'name="name" value="kavita-scan"' in page
+    assert 'href="/kavita"' in client.get("/").text
+
+
+def test_kavita_problem_can_be_accepted_and_undone(tmp_path):
+    client, store, book_id = kavita_setup(tmp_path)
+    issue = next(i for i in store.kavita_issues() if i.kind == "spacing")
+
+    assert client.post(f"/kavita/issues/{issue.id}/accept", follow_redirects=False).status_code == 303
+    assert store.book(book_id).kavita_passed
+    assert "FormDerWissenschaftlichenAusarbeitung" in client.get("/kavita").text.split('id="accepted"')[1]
+
+    client.post(f"/kavita/issues/{issue.id}/unaccept")
+    assert not store.book(book_id).kavita_passed
+
+
+def test_rename_in_kavita_uses_the_expected_name_and_marks_the_issue_fixed(tmp_path):
+    renamed = []
+
+    class FakeKavita:
+        def rename_series(self, series_id, name):
+            renamed.append((series_id, name))
+
+    client, store, book_id = kavita_setup(tmp_path, kavita_factory=FakeKavita)
+    issue = next(i for i in store.kavita_issues() if i.kind == "spacing")
+
+    assert client.post(f"/kavita/issues/{issue.id}/rename", follow_redirects=False).status_code == 303
+
+    assert renamed == [(42, "Form der wissenschaftlichen Ausarbeitung")]
+    assert store.kavita_issue(issue.id).fixed and store.book(book_id).kavita_passed
+    unexpected = next(i for i in store.kavita_issues() if i.kind == "unexpected")
+    assert client.post(f"/kavita/issues/{unexpected.id}/rename").status_code == 422
+
+
+def test_book_page_shows_its_kavita_problem(tmp_path):
+    client, store, book_id = kavita_setup(tmp_path)
+
+    page = client.get(f"/books/{book_id}").text
+
+    assert "Kavita:" in page and "spaces differ" in page and 'href="/kavita"' in page
+
+
+def test_failed_rename_shows_kavitas_answer(tmp_path):
+    from ebookprep.kavita import KavitaError
+
+    class FailingKavita:
+        def rename_series(self, series_id, name):
+            raise KavitaError("POST /api/Series/update failed with HTTP 400: series-name-exists")
+
+    client, store, book_id = kavita_setup(tmp_path, kavita_factory=FailingKavita)
+    issue = next(i for i in store.kavita_issues() if i.kind == "spacing")
+
+    response = client.post(f"/kavita/issues/{issue.id}/rename")
+
+    assert response.status_code == 502 and "series-name-exists" in response.text
+    assert not store.kavita_issue(issue.id).fixed

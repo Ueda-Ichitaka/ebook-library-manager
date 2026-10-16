@@ -96,3 +96,10 @@ def test_ignored_folder_defaults_and_validation(tmp_path):
     for bad in ('"a/b"', '""', "3"):
         with pytest.raises(ConfigError, match="ignored_folder"):
             load_config(write(tmp_path, f"ignored_folder = {bad}\n"))
+
+
+def test_misplaced_folder_defaults_and_validation(tmp_path):
+    assert load_config(write(tmp_path, "")).misplaced_folder == "_misplaced"
+    assert load_config(write(tmp_path, 'misplaced_folder = "not books"\n')).misplaced_folder == "not books"
+    with pytest.raises(ConfigError, match="misplaced_folder"):
+        load_config(write(tmp_path, 'misplaced_folder = "a/b"\n'))

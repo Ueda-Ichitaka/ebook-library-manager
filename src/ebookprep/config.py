@@ -13,8 +13,9 @@ known sources are used when it is missing.
 
 mislabeled_folder is the top-level output folder for files that contain a different book
 than their name says; ignored_folder holds unchanged copies of the files ignored in the
-review, with their input paths. Both are outside the library folders, so Kavita doesn't
-show them.
+review, with their input paths; misplaced_folder holds unchanged copies of the categories
+flagged as not books (magazines, blueprints), with their input paths. All three are
+outside the library folders, so Kavita doesn't show them.
 """
 
 import tomllib
@@ -33,6 +34,7 @@ class Config:
     openlibrary_contact: str = ""
     mislabeled_folder: str = "_mislabeled"
     ignored_folder: str = "_ignored"
+    misplaced_folder: str = "_misplaced"
     # names of the online metadata sources to use, None for all
     sources: tuple[str, ...] | None = None
 
@@ -54,6 +56,7 @@ def load_config(path: Path) -> Config:
 
     mislabeled = _folder_name(data, "mislabeled_folder", "_mislabeled")
     ignored = _folder_name(data, "ignored_folder", "_ignored")
+    misplaced = _folder_name(data, "misplaced_folder", "_misplaced")
 
     sources = data.get("sources")
     if sources is not None and (not isinstance(sources, list) or not all(isinstance(n, str) for n in sources)):
@@ -64,6 +67,7 @@ def load_config(path: Path) -> Config:
         openlibrary_contact=contact,
         mislabeled_folder=mislabeled,
         ignored_folder=ignored,
+        misplaced_folder=misplaced,
         sources=tuple(sources) if sources is not None else None,
     )
 

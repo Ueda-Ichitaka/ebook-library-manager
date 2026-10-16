@@ -16,7 +16,9 @@ BASE = [sys.executable, "-m", "ebookprep"]
 
 
 def test_every_command_has_a_label_and_description():
-    assert set(COMMANDS) == {"identify", "rescore", "build", "report", "kavita-check", "kavita-scan"}
+    assert set(COMMANDS) == {
+        "identify", "detect-moves", "relookup", "rescore", "build", "report", "kavita-scan"
+    }
     assert all(c.label and c.description for c in COMMANDS.values())
 
 
@@ -25,11 +27,11 @@ def test_every_command_has_a_label_and_description():
     [
         ("identify", ["identify", "--input", "/data/input", "--work", "/data/work", "--config", "/app/config.toml"]),
         ("rescore", ["rescore", "--input", "/data/input", "--work", "/data/work"]),
+        ("detect-moves", ["detect-moves", "--input", "/data/input", "--work", "/data/work", "--config", "/app/config.toml"]),
+        ("relookup", ["relookup", "--input", "/data/input", "--work", "/data/work", "--config", "/app/config.toml"]),
         ("build", ["build", "--input", "/data/input", "--output", "/data/output", "--work", "/data/work",
                    "--config", "/app/config.toml"]),
         ("report", ["report", "--work", "/data/work"]),
-        ("kavita-check", ["kavita-check", "--output", "/data/output", "--work", "/data/work", "--config",
-                          "/app/config.toml", "--url", "http://kavita:5000"]),
         ("kavita-scan", ["kavita-check", "--output", "/data/output", "--work", "/data/work", "--config",
                          "/app/config.toml", "--url", "http://kavita:5000", "--scan"]),
     ],

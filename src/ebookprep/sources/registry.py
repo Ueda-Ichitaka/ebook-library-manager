@@ -1,6 +1,7 @@
 """About this file: the online metadata sources the identify stage can use.
 
-calibre's built-in sources (one per download plugin) and Open Library's own API. All of
+calibre's built-in sources (one per download plugin), Open Library's own API, the German
+national library (DNB) and the Google Books API (needs an API key, see googlebooks.py). All of
 them are used unless config.toml lists the wanted ones by name under "sources"; they are
 then used in that order. Adding a source means adding it to available_sources.
 """
@@ -8,11 +9,18 @@ then used in that order. Adding a source means adding it to available_sources.
 from ebookprep.config import Config, ConfigError
 from ebookprep.sources import MetadataSource
 from ebookprep.sources.calibre_source import PLUGINS, CalibreSource
+from ebookprep.sources.dnb import DnbSource
+from ebookprep.sources.googlebooks import GoogleBooksSource
 from ebookprep.sources.openlibrary import OpenLibrarySource
 
 
 def available_sources(config: Config) -> list[MetadataSource]:
-    return [*(CalibreSource(plugin) for plugin in PLUGINS), OpenLibrarySource(contact=config.openlibrary_contact)]
+    return [
+        *(CalibreSource(plugin) for plugin in PLUGINS),
+        OpenLibrarySource(contact=config.openlibrary_contact),
+        DnbSource(),
+        GoogleBooksSource(),
+    ]
 
 
 def default_sources(config: Config) -> list[MetadataSource]:

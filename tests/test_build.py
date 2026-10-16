@@ -7,7 +7,9 @@ from pathlib import Path
 
 import pikepdf
 import pytest
-from conftest import damage_trailer, make_epub, make_pdf, make_pdf_with_unmergeable_xmp
+from conftest import (
+    damage_trailer, make_epub, make_pdf, make_pdf_with_unmergeable_xmp, overwrite_start, pdf_with_long_catalog,
+)
 
 from ebookprep.build import RecordPlan, RecordStatus, build_record, plan_records
 from ebookprep.calibre import convert
@@ -78,6 +80,36 @@ def test_damaged_pdf_is_repaired_and_reported(tmp_path):
     ((repaired_source, report),) = outcome.repairs
     assert repaired_source == src and report.was_damaged
     assert kavita_view(dest / f"{NAME}.pdf").series == META.title
+
+
+@calibre
+def test_damaged_download_is_repaired_in_the_work_copy(tmp_path):
+    src = overwrite_start(pdf_with_long_catalog(tmp_path / "in.pdf"))
+    original = src.read_bytes()
+    dest = tmp_path / "out" / NAME
+
+    outcome = build_record(RecordPlan(NAME, (BookFile(src),)), META, dest, tmp_path / "work")
+
+    assert outcome.status is RecordStatus.DONE
+    ((repaired_source, note),) = outcome.download_repairs
+    assert repaired_source == src and "header" in note
+    assert kavita_view(dest / f"{NAME}.pdf").series == META.title
+    assert src.read_bytes() == original
+
+
+def test_damaged_download_with_lost_content_fails(tmp_path):
+    import zipfile
+
+    src = tmp_path / "in.epub"
+    with zipfile.ZipFile(src, "w") as z:
+        z.writestr("mimetype", b"application/epub+zip", zipfile.ZIP_STORED)
+        z.writestr("OEBPS/Ch01.xhtml", b"<p>" + b"text " * 500 + b"</p>")
+    overwrite_start(src)
+
+    outcome = build_record(RecordPlan(NAME, (BookFile(src),)), META, tmp_path / "out" / NAME, tmp_path / "work")
+
+    assert outcome.status is RecordStatus.FAILED
+    assert "damaged download" in outcome.error and "OEBPS/Ch01.xhtml" in outcome.error
 
 
 @calibre

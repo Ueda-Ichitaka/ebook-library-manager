@@ -14,12 +14,19 @@ openlibrary_contact = ""
 mislabeled_folder = "_mislabeled"
 
 # Online metadata sources used by identify, in this order. Available: "calibre: Google",
-# "calibre: Amazon.com", "calibre: Edelweiss", "Open Library". Remove the line to use all.
+# "calibre: Amazon.com", "calibre: Edelweiss", "Open Library", "DNB" (German national
+# library), "Google Books API" (needs GOOGLE_BOOKS_API_KEY in api-keys.env). Remove the
+# line to use all.
 # calibre's Amazon.com source is off: it starts a browser for every book, is slow, and
 # returned no results from this network.
-sources = ["calibre: Google", "calibre: Edelweiss", "Open Library"]
+sources = ["calibre: Google", "calibre: Edelweiss", "Open Library", "DNB", "Google Books API"]
 
 # Top-level output folder with unchanged copies of the files ignored in the review (e.g.
 # pictures saved as PDF), keeping their input paths. Outside the libraries, so Kavita
 # doesn't show them.
 ignored_folder = "_ignored"
+
+# Top-level output folder with unchanged copies of the categories flagged as not books in
+# the review (e.g. magazines, blueprints), keeping their input paths. Outside the
+# libraries, so Kavita doesn't show them.
+misplaced_folder = "_misplaced"

@@ -37,9 +37,18 @@ def test_job_runs_in_background_and_logs_output(runner):
 
 
 def test_failing_job_is_marked_failed(runner):
-    job = wait_until_finished(runner, runner.start("demo", [sys.executable, "-c", "import sys; sys.exit(3)"]))
+    job = wait_until_finished(runner, runner.start("demo", [sys.executable, "-c", "import sys; sys.exit(1)"]))
 
-    assert (job.status, job.exit_code) == ("failed", 3)
+    assert (job.status, job.exit_code) == ("failed", 1)
+
+
+def test_job_that_ran_through_with_flagged_books_is_marked_flagged(runner):
+    from ebookprep.jobs import FLAGGED_EXIT_CODE
+
+    code = f"import sys; sys.exit({FLAGGED_EXIT_CODE})"
+    job = wait_until_finished(runner, runner.start("build", [sys.executable, "-c", code]))
+
+    assert (job.status, job.exit_code) == ("flagged", 3)
 
 
 def test_only_one_job_at_a_time(runner):
